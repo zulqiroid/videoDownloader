@@ -12,6 +12,7 @@ import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.layout.size
 import androidx.compose.foundation.layout.width
+import androidx.compose.foundation.shape.CircleShape
 import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.material3.Icon
 import androidx.compose.material3.Text
@@ -86,15 +87,31 @@ fun LanguageRowItem(
          if (isSelected) {
              Box(
                  modifier = Modifier
-                     .size(34.dp)
-                     .clip(RoundedCornerShape(12.dp))
+                     .size(24.dp)
+                     .clip(CircleShape)
                      .background(
-                         color = Color.Red.copy(alpha = 0.1f),
+                         color = Color.White,
+                     )
+                     .border(
+                         width = 8.dp,
+                         color = Color(0xFFE00004),
+                         shape = CircleShape
                      ),
-                 contentAlignment = Alignment.Center
-             ) {
-
-             }
-        }
+             )
+        }else{
+             Box(
+                 modifier = Modifier
+                     .size(24.dp)
+                     .clip(CircleShape)
+                     .background(
+                         color = Color.White,
+                     )
+                     .border(
+                         width = 3.dp,
+                         color = Color(0xFF64748B).copy(alpha = 0.3f),
+                         shape = CircleShape
+                     ),
+             )
+         }
     }
 }

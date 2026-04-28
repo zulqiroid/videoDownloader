@@ -17,21 +17,30 @@ import org.w3c.dom.Text
 
 @Composable
 fun AppButton(
+    modifier: Modifier = Modifier,
     text: String,
-    onClick: () -> Unit = {}
+    onClick: () -> Unit = {},
+    isEnable: Boolean = true,
+    fontSIze: Int = 22,
+    buttonHeight: Int = 60,
+    padding: Int = 16,
+    containerColor: Color = Color(0xFFE60000),
+    contentColor: Color = Color.White,
 ) {
     Button(
         onClick = {
             onClick()
         },
-        modifier = Modifier
-            .fillMaxWidth()
-            .height(56.dp)
-            .padding(horizontal = 16.dp),
+        enabled = isEnable,
+        modifier = modifier
+            .height(buttonHeight.dp)
+            .padding(horizontal = padding.dp),
         shape = RoundedCornerShape(15.dp), // fully rounded
         colors = ButtonDefaults.buttonColors(
-            containerColor = Color(0xFFE60000), // red color
-            contentColor = Color.White
+            containerColor = containerColor, // red color
+            contentColor = contentColor,
+            disabledContainerColor = Color(0xFFDEDDDD),
+            disabledContentColor = Color.White
         ),
         elevation = ButtonDefaults.buttonElevation(
             defaultElevation = 4.dp
@@ -39,9 +48,8 @@ fun AppButton(
     ) {
         Text(
             text = text,
-            color = Color.White,
-            fontSize = 16.sp,
-            fontWeight = FontWeight.SemiBold
+             fontSize = fontSIze.sp,
+            fontWeight = FontWeight.W700
         )
     }
 }

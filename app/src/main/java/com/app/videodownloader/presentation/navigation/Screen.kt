@@ -6,9 +6,14 @@ import kotlinx.serialization.Serializable
 sealed class Screen : NavKey {
 
     @Serializable
-    object SplashScreen : Screen()
+    object Splash : Screen()
 
     @Serializable
-    object AppLanguageScreen : Screen()
+    object AppLanguage : Screen()
 
+    @Serializable
+    object OnBoarding : Screen()
+
+    @Serializable
+    object Main : Screen()
 }

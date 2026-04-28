@@ -1,0 +1,29 @@
+{
+  "project_info": {
+    "project_number": "261337885111",
+    "project_id": "videodownloader-c9645",
+    "storage_bucket": "videodownloader-c9645.firebasestorage.app"
+  },
+  "client": [
+    {
+      "client_info": {
+        "mobilesdk_app_id": "1:261337885111:android:517f2ce38d79fba550a032",
+        "android_client_info": {
+          "package_name": "com.app.videodownloader"
+        }
+      },
+      "oauth_client": [],
+      "api_key": [
+        {
+          "current_key": "AIzaSyB_Aawte57PSvff1lsBEl8f8J8_zqe3JDY"
+        }
+      ],
+      "services": {
+        "appinvite_service": {
+          "other_platform_oauth_client": []
+        }
+      }
+    }
+  ],
+  "configuration_version": "1"
+}

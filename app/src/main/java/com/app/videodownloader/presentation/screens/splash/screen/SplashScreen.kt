@@ -1,5 +1,6 @@
 package com.app.videodownloader.presentation.screens.splash.screen
 
+import androidx.activity.compose.BackHandler
 import androidx.compose.foundation.Image
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Box
@@ -7,49 +8,67 @@ import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.Spacer
 import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.fillMaxWidth
-import androidx.compose.foundation.layout.height
 import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.layout.size
-import androidx.compose.foundation.shape.RoundedCornerShape
-import androidx.compose.material3.Button
-import androidx.compose.material3.ButtonDefaults
 import androidx.compose.material3.Scaffold
 import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.LaunchedEffect
+import androidx.compose.runtime.getValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.layout.ContentScale
 import androidx.compose.ui.res.painterResource
-import androidx.compose.ui.text.font.FontStyle
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.text.style.TextAlign
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
+import androidx.lifecycle.compose.collectAsStateWithLifecycle
 import androidx.navigation3.runtime.NavBackStack
 import androidx.navigation3.runtime.NavKey
 import com.app.videodownloader.R
 import com.app.videodownloader.presentation.componants.AppButton
+import com.app.videodownloader.presentation.componants.exitConfirmationDialogue.ExitConfirmationDialog
+import com.app.videodownloader.presentation.componants.privacyPolicyDialgue.PrivacyDialogHost
 import com.app.videodownloader.presentation.navigation.Screen
+import com.app.videodownloader.presentation.screens.onBoarding.events.OnboardingEvents
 import com.app.videodownloader.presentation.screens.splash.events.SplashNavEvents
+import com.app.videodownloader.presentation.screens.splash.events.SplashUiEvents
 import com.app.videodownloader.presentation.screens.splash.viewModel.SplashViewModel
 import org.koin.compose.viewmodel.koinViewModel
 
 @Composable
 fun SplashScreen(
-     backStack: NavBackStack<NavKey>,
-     viewModel: SplashViewModel = koinViewModel()
+    backStack: NavBackStack<NavKey>,
+    viewModel: SplashViewModel = koinViewModel(),
 ) {
+    val state by viewModel.states.collectAsStateWithLifecycle()
+
     LaunchedEffect(viewModel.navEvents) {
         viewModel.navEvents.collect {
-            when(it){
+            when (it) {
                 SplashNavEvents.NavigateToLanguageSRC -> {
-                    backStack.add(Screen.AppLanguageScreen)
+                    backStack.clear()
+                    backStack.add(Screen.AppLanguage)
+                }
+
+                SplashNavEvents.ExitApp -> {
+                    backStack.clear()
+                }
+
+                SplashNavEvents.NavigateToMainSrc -> {
+                    backStack.clear()
+                    backStack.add(Screen.Main)
                 }
             }
         }
     }
+
+    BackHandler {
+        viewModel.onEvent(SplashUiEvents.OnBackClicked)
+    }
+
 
     Scaffold(
         modifier = Modifier.fillMaxSize()
@@ -87,7 +106,7 @@ fun SplashScreen(
                         modifier = Modifier.size(18.dp)
                     )
                     Text(
-                        text = "Video Dowmloader",
+                        text = "Video Downloader",
                         fontSize = 36.sp,
                         color = Color.Black,
                         fontWeight = FontWeight.Bold
@@ -108,8 +127,12 @@ fun SplashScreen(
 
                 ) {
                     AppButton(
+                        modifier = Modifier
+                            .fillMaxWidth(),
                         text = "Get Started",
-                        onClick = {}
+                        onClick = {
+                            viewModel.onEvent(SplashUiEvents.OnGetStartedClicked)
+                        }
                     )
                     Spacer(
                         modifier = Modifier.size(10.dp)
@@ -117,12 +140,24 @@ fun SplashScreen(
                     Text(
                         text = "This app may contains ads",
                         fontSize = 12.sp,
-                        fontWeight = FontWeight.Thin,
+                        color = Color(0xFFC7C6C6),
+                        fontWeight = FontWeight.W400,
                         textAlign = TextAlign.Center,
                         modifier = Modifier.fillMaxWidth()
                     )
                 }
             }
         }
+
+        ExitConfirmationDialog(
+            visible = state.showExitDialogue,
+            onExitClick = {
+                viewModel.onEvent(SplashUiEvents.OnDialogueExitClicked)
+            },
+            onCancelClick = {
+                viewModel.onEvent(SplashUiEvents.OnDialogueCancelCLicked)
+            }
+        )
+
     }
 }

@@ -1,5 +1,6 @@
 package com.app.videodownloader.presentation.screens.appLanguage.screen
 
+import androidx.activity.compose.BackHandler
 import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.WindowInsets
@@ -13,6 +14,7 @@ import androidx.compose.foundation.lazy.LazyColumn
 import androidx.compose.foundation.lazy.items
 import androidx.compose.material3.Scaffold
 import androidx.compose.runtime.Composable
+import androidx.compose.runtime.LaunchedEffect
 import androidx.compose.runtime.collectAsState
 import androidx.compose.runtime.getValue
 import androidx.compose.ui.Modifier
@@ -20,10 +22,15 @@ import androidx.compose.ui.graphics.Color
 import androidx.navigation3.runtime.NavBackStack
 import androidx.navigation3.runtime.NavKey
 import com.app.videodownloader.presentation.componants.AppButton
+import com.app.videodownloader.presentation.componants.exitConfirmationDialogue.ExitConfirmationDialog
 import com.app.videodownloader.presentation.localization.AppLanguageCodes
+import com.app.videodownloader.presentation.navigation.Screen
 import com.app.videodownloader.presentation.screens.appLanguage.componants.LanguageRowItem
 import com.app.videodownloader.presentation.screens.appLanguage.componants.TopBar
+import com.app.videodownloader.presentation.screens.appLanguage.events.AppLanguageNavEvents
+import com.app.videodownloader.presentation.screens.appLanguage.events.AppLanguageUiEvents
 import com.app.videodownloader.presentation.screens.appLanguage.viewModel.AppLanguageViewModel
+import com.app.videodownloader.presentation.screens.splash.events.SplashUiEvents
 import org.koin.compose.viewmodel.koinViewModel
 
 @Composable
@@ -32,6 +39,25 @@ fun AppLanguageRootScreen(
     viewModel: AppLanguageViewModel = koinViewModel()
 ) {
     val state by viewModel.states.collectAsState()
+
+    LaunchedEffect(viewModel.navEvents) {
+        viewModel.navEvents.collect {
+            when(it){
+                AppLanguageNavEvents.NavigateToOnBoarding -> {
+                    backStack.clear()
+                    backStack.add(Screen.OnBoarding)
+                }
+
+                AppLanguageNavEvents.ExitApp -> {
+                    backStack.clear()
+                }
+            }
+        }
+    }
+
+    BackHandler{
+        viewModel.onEvent(AppLanguageUiEvents.OnBackClicked)
+    }
 
     Scaffold(
         modifier = Modifier.fillMaxSize(),
@@ -44,30 +70,52 @@ fun AppLanguageRootScreen(
             )
         }
     ) {paddingValues ->
-
         Box(
-            modifier = Modifier.padding(paddingValues)
-        ){
-            Column(
-                modifier = Modifier.fillMaxSize(),
+            modifier = Modifier.fillMaxSize()
+        ) {
+            Box(
+                modifier = Modifier.padding(paddingValues)
             ) {
-                LazyColumn(
-                    modifier = Modifier.weight(1f)
+                Column(
+                    modifier = Modifier.fillMaxSize(),
                 ) {
-                    items(AppLanguageCodes.entries){ language ->
-                        LanguageRowItem(
-                            language = language,
-                            isSelected = state.selectedLanguage == language,
-                            onSelect = {}
-                        )
+                    LazyColumn(
+                        modifier = Modifier.weight(1f)
+                    ) {
+                        items(AppLanguageCodes.entries) { language ->
+                            LanguageRowItem(
+                                language = language,
+                                isSelected = state.selectedLanguage == language,
+                                onSelect = {
+                                    viewModel.onEvent(
+                                        AppLanguageUiEvents.OnLanguageItemClicked(
+                                            language
+                                        )
+                                    )
+                                }
+                            )
+                        }
                     }
-                }
-                AppButton(
-                    text = "Continue",
-                    onClick = {}
-                )
+                    AppButton(
+                        modifier = Modifier
+                            .fillMaxWidth(),
+                        text = "Continue",
+                        onClick = {
+                            viewModel.onEvent(AppLanguageUiEvents.OnContinueButtonClicked)
+                        }
+                    )
 
+                }
             }
+            ExitConfirmationDialog(
+                visible = state.showExitDialogue,
+                onExitClick = {
+                    viewModel.onEvent(AppLanguageUiEvents.OnDialogueExitClicked)
+                },
+                onCancelClick = {
+                    viewModel.onEvent(AppLanguageUiEvents.OnDialogueCancelCLicked)
+                }
+            )
         }
 
     }

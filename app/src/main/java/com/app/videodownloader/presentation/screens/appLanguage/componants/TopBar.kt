@@ -24,14 +24,8 @@ fun TopBar(
     modifier: Modifier = Modifier
 ) {
     Box(
-        modifier = Modifier.height(150.dp)
+        modifier = Modifier
     ) {
-        Image(
-            painter = painterResource(R.drawable.lanuage_src_header),
-            contentDescription = "language_src_header",
-            contentScale = ContentScale.Crop,
-            modifier = Modifier.fillMaxWidth(),
-        )
 
         Column(
             modifier = modifier.padding(horizontal = 24.dp).padding(bottom = 12.dp)

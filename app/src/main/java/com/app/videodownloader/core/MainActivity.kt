@@ -4,9 +4,11 @@ import android.os.Bundle
 import androidx.activity.ComponentActivity
 import androidx.activity.compose.setContent
 import androidx.activity.enableEdgeToEdge
+import com.app.videodownloader.presentation.componants.privacyPolicyDialgue.PrivacyDialogHost
 import com.app.videodownloader.presentation.navigation.AppNavigation
-import com.app.videodownloader.presentation.screens.appLanguage.screen.AppLanguageRootScreen
-import com.app.videodownloader.presentation.screens.splash.screen.SplashScreen
+import com.app.videodownloader.presentation.screens.downloader.screen.DownloaderScreen
+import com.app.videodownloader.presentation.screens.main.screen.MainScreen
+import com.app.videodownloader.presentation.screens.onBoarding.screen.OnboardingScreen
 import com.app.videodownloader.presentation.ui.theme.VideoDownloaderTheme
 
 class MainActivity : ComponentActivity() {
@@ -16,7 +18,13 @@ class MainActivity : ComponentActivity() {
         setContent {
             VideoDownloaderTheme {
                 AppNavigation()
-//                AppLanguageRootScreen()
+//                PrivacyDialogHost()
+
+//                MainScreen()
+             /*   OnboardingScreen(
+                    onFinish = {}
+                )*/
+//                DownloaderScreen()
             }
         }
     }
