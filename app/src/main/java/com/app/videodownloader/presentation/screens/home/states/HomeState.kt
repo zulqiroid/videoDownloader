@@ -32,7 +32,7 @@ fun socialSideList() = listOf(
         "TickoTik"
     ),
     SocialSide(
-        R.drawable.ic_twetsot,
+        R.drawable.ic_twetshot2,
         "Twetsot"
     ),
     SocialSide(
@@ -40,7 +40,7 @@ fun socialSideList() = listOf(
         "Talktrand"
     ),
     SocialSide(
-        R.drawable.ic_dailymoots,
+        R.drawable.ic_dailymoot2,
         "DailyMoots"
     ),
     SocialSide(

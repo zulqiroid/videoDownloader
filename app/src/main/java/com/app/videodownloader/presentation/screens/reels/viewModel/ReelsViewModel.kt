@@ -2,6 +2,7 @@ package com.app.videodownloader.presentation.screens.reels.viewModel
 
 import androidx.lifecycle.ViewModel
 import androidx.lifecycle.viewModelScope
+import com.app.videodownloader.domain.model.Reel
 import com.app.videodownloader.domain.usecases.GetTrendingReelsUseCase
 import com.app.videodownloader.presentation.screens.reels.events.ReelsEvent
 import com.app.videodownloader.presentation.screens.reels.states.ReelUi
@@ -49,6 +50,21 @@ class ReelsViewModel(
                     reels = reels,
                     isLoading = false
                 )
+            }
+        }
+    }
+
+    fun setCurrentIndex(selectedReel: Reel?) {
+
+        if (selectedReel == null) return
+
+        val index = _state.value.reels.indexOfFirst {
+            it.id == selectedReel.id
+        }
+
+        if (index != -1) {
+            _state.update {
+                it.copy(currentIndex = index)
             }
         }
     }

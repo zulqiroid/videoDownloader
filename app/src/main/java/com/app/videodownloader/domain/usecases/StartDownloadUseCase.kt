@@ -1,0 +1,22 @@
+package com.app.videodownloader.domain.usecases
+
+import com.app.videodownloader.domain.model.DownloadItem
+import com.app.videodownloader.domain.repository.VideoDownloadRepository
+import kotlinx.coroutines.flow.Flow
+
+class StartDownloadUseCase(
+    private val repository: VideoDownloadRepository
+) {
+    suspend operator fun invoke(url: String) {
+        repository.startDownload(url)
+    }
+}
+
+
+class ObserveDownloadsUseCase(
+    private val repository: VideoDownloadRepository
+) {
+    operator fun invoke(): Flow<List<DownloadItem>> {
+        return repository.observeDownloads()
+    }
+}

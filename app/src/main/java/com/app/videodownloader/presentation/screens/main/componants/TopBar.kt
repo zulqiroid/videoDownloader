@@ -9,6 +9,9 @@ import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.layout.size
 import androidx.compose.foundation.shape.CircleShape
+import androidx.compose.material.icons.Icons
+import androidx.compose.material.icons.automirrored.filled.ArrowBack
+import androidx.compose.material.icons.filled.ArrowBack
 import androidx.compose.material3.Icon
 import androidx.compose.material3.IconButton
 import androidx.compose.material3.Text
@@ -33,6 +36,8 @@ fun TopBar(
     viewModel: MainViewModel,
     modifier: Modifier = Modifier,
     selectedTab: BottomNavItem,
+    onInfoClicked: () -> Unit,
+    onPremiumClicked : () -> Unit,
 ) {
 
     Box(
@@ -42,23 +47,59 @@ fun TopBar(
 
         when (selectedTab) {
             BottomNavItem.Download -> {
-                DownloadTopBar()
+                DownloadTopBar(
+                    onPremiumClicked = {
+                        onPremiumClicked()
+                    }
+                )
             }
 
             BottomNavItem.Home -> {
-                HomeTopBar()
+                HomeTopBar(
+                    onPremiumClicked = {
+                        onPremiumClicked()
+                    },
+                    onInfoClicked = {
+                        onInfoClicked()
+                    }
+                )
             }
 
             BottomNavItem.Player -> {
-                PlayerTopBar()
+                PlayerTopBar(
+                    onPremiumClicked = {
+                        onPremiumClicked()
+                    }
+                )
             }
 
             BottomNavItem.Reels -> {
-                ReelsTopBar()
+                ReelsTopBar(
+                    onPremiumClicked = {
+                        onPremiumClicked()
+                    },
+                    onInfoClicked = {
+                        onInfoClicked()
+                    }
+                )
             }
 
             BottomNavItem.More -> {
-                MoreTopBar()
+                MoreTopBar(
+                    onPremiumClicked = {
+                        onPremiumClicked()
+                    }
+                )
+            }
+
+            BottomNavItem.Social -> {
+                SocialTopBar(
+                    onBackClicked = {
+                        viewModel.onEvent(
+                            MainEvents.OnTabSelected(BottomNavItem.Home, null)
+                        )
+                    }
+                )
             }
         }
     }
@@ -66,7 +107,10 @@ fun TopBar(
 }
 
 @Composable
-fun HomeTopBar() {
+fun HomeTopBar(
+    onPremiumClicked : () -> Unit,
+    onInfoClicked: () -> Unit
+) {
 
 
     Row(
@@ -106,7 +150,9 @@ fun HomeTopBar() {
             modifier = Modifier.weight(1f)
         )
         IconButton(
-            onClick = {},
+            onClick = {
+                onPremiumClicked()
+            },
 
             ) {
             Icon(
@@ -117,7 +163,10 @@ fun HomeTopBar() {
             )
         }
         IconButton(
-            onClick = {},
+            onClick = {
+                onInfoClicked()
+
+            },
 
             ) {
             Icon(
@@ -133,7 +182,9 @@ fun HomeTopBar() {
 }
 
 @Composable
-fun PlayerTopBar() {
+fun PlayerTopBar(
+    onPremiumClicked : () -> Unit,
+) {
 
     Row(
         modifier = Modifier
@@ -154,7 +205,9 @@ fun PlayerTopBar() {
             modifier = Modifier.weight(1f)
         )
         IconButton(
-            onClick = {},
+            onClick = {
+                onPremiumClicked()
+            },
 
             ) {
             Icon(
@@ -180,7 +233,10 @@ fun PlayerTopBar() {
 }
 
 @Composable
-fun ReelsTopBar() {
+fun ReelsTopBar(
+    onPremiumClicked : () -> Unit,
+    onInfoClicked: () -> Unit
+) {
 
     Row(
         modifier = Modifier
@@ -201,7 +257,7 @@ fun ReelsTopBar() {
             modifier = Modifier.weight(1f)
         )
         IconButton(
-            onClick = {},
+            onClick = {onPremiumClicked()},
 
             ) {
             Icon(
@@ -212,7 +268,9 @@ fun ReelsTopBar() {
             )
         }
         IconButton(
-            onClick = {},
+            onClick = {
+                onInfoClicked()
+            },
 
             ) {
             Icon(
@@ -227,7 +285,9 @@ fun ReelsTopBar() {
 }
 
 @Composable
-fun DownloadTopBar() {
+fun DownloadTopBar(
+    onPremiumClicked : () -> Unit,
+) {
 
     Row(
         modifier = Modifier
@@ -248,7 +308,9 @@ fun DownloadTopBar() {
             modifier = Modifier.weight(1f)
         )
         IconButton(
-            onClick = {},
+            onClick = {
+                onPremiumClicked()
+            },
 
             ) {
             Icon(
@@ -274,7 +336,9 @@ fun DownloadTopBar() {
 }
 
 @Composable
-fun MoreTopBar(){
+fun MoreTopBar(
+    onPremiumClicked : () -> Unit,
+){
 
     Row(
         modifier = Modifier
@@ -295,7 +359,9 @@ fun MoreTopBar(){
             modifier = Modifier.weight(1f)
         )
         IconButton(
-            onClick = {},
+            onClick = {
+                onPremiumClicked()
+            },
 
             ) {
             Icon(
@@ -316,6 +382,46 @@ fun MoreTopBar(){
                 modifier = Modifier.size(24.dp)
             )
         }
+
+    }
+}
+
+@Composable
+fun SocialTopBar(
+    onBackClicked:() -> Unit
+){
+
+    Row(
+        modifier = Modifier
+            .padding(horizontal = 16.dp, vertical = 22.dp)
+            .fillMaxWidth(),
+        verticalAlignment = Alignment.CenterVertically
+    ) {
+
+        IconButton(
+            onClick = {
+                onBackClicked()
+            },
+            ) {
+            Icon(
+                imageVector = Icons.AutoMirrored.Filled.ArrowBack,
+                contentDescription = "premium icon",
+                tint = Color(0xFF1F2937),
+                modifier = Modifier.size(24.dp)
+            )
+        }
+        Text(
+            text = "Social",
+            fontSize = 20.sp,
+            color = Color(0xFF1F2937),
+            fontWeight = FontWeight.W700
+        )
+
+
+        Spacer(
+            modifier = Modifier.weight(1f)
+        )
+
 
     }
 }

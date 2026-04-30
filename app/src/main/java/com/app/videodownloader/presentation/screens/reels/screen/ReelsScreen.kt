@@ -10,6 +10,7 @@ import androidx.compose.runtime.LaunchedEffect
 import androidx.compose.runtime.collectAsState
 import androidx.compose.runtime.getValue
 import androidx.compose.ui.Modifier
+import com.app.videodownloader.domain.model.Reel
 import com.app.videodownloader.presentation.screens.reels.componants.ReelItem
 import com.app.videodownloader.presentation.screens.reels.events.ReelsEvent
 import com.app.videodownloader.presentation.screens.reels.viewModel.ReelsViewModel
@@ -18,12 +19,14 @@ import org.koin.compose.viewmodel.koinViewModel
 @OptIn(ExperimentalFoundationApi::class)
 @Composable
 fun ReelsScreen(
+    selectedReel : Reel? = null,
     viewModel: ReelsViewModel = koinViewModel()
 ) {
     val state by viewModel.state.collectAsState()
     val pagerState = rememberPagerState(pageCount = { state.reels.size })
 
     LaunchedEffect(Unit) {
+        viewModel.setCurrentIndex(selectedReel)
         viewModel.onEvent(ReelsEvent.LoadReels)
     }
 

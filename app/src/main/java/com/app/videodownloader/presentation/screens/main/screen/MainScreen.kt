@@ -1,6 +1,7 @@
 package com.app.videodownloader.presentation.screens.main.screen
 
 import androidx.activity.compose.BackHandler
+import androidx.activity.compose.LocalActivity
 import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.padding
@@ -25,6 +26,8 @@ import androidx.navigation3.runtime.NavKey
 import com.app.videodownloader.presentation.componants.DownloadStartedDialog
 import com.app.videodownloader.presentation.componants.exitConfirmationDialogue.ExitConfirmationDialog
 import com.app.videodownloader.presentation.componants.privacyPolicyDialgue.PrivacyDialogHost
+import com.app.videodownloader.presentation.navigation.Screen
+import com.app.videodownloader.presentation.navigation.Screen.*
 import com.app.videodownloader.presentation.screens.download.screen.DownloadScreen
 import com.app.videodownloader.presentation.screens.home.screen.HomeScreen
 import com.app.videodownloader.presentation.screens.main.componants.DownloadBottomSheet
@@ -38,9 +41,11 @@ import com.app.videodownloader.presentation.screens.main.states.BottomNavItem
 import com.app.videodownloader.presentation.screens.main.states.DownloadSheetState
 import com.app.videodownloader.presentation.screens.main.viewModel.MainViewModel
 import com.app.videodownloader.presentation.screens.more.screen.MoreScreen
+import com.app.videodownloader.presentation.screens.player.componants.FileOptionsDialog
+import com.app.videodownloader.presentation.screens.main.events.FileDialogIntent
 import com.app.videodownloader.presentation.screens.player.screen.PlayerScreen
 import com.app.videodownloader.presentation.screens.reels.screen.ReelsScreen
-import com.app.videodownloader.presentation.screens.splash.events.SplashUiEvents
+import com.app.videodownloader.presentation.screens.social.screen.Social
 import org.koin.compose.viewmodel.koinViewModel
 
 @Composable
@@ -52,6 +57,7 @@ fun MainScreen(
     val drawerState = rememberDrawerState(DrawerValue.Closed)
     val scope = rememberCoroutineScope()
 
+    val activity = LocalActivity.current
     LaunchedEffect(state.isDrawerOpen) {
         if (state.isDrawerOpen) {
             drawerState.open()
@@ -62,18 +68,20 @@ fun MainScreen(
 
     LaunchedEffect(viewModel.navEvents) {
         viewModel.navEvents.collect {
-            when(it){
+            when (it) {
                 MainNavEvents.ExitApp -> {
                     backStack.clear()
                 }
+
+                else -> {}
             }
         }
     }
 
     BackHandler {
-        if (state.selectedTab != BottomNavItem.Home){
-            viewModel.onEvent(OnTabSelected(BottomNavItem.Home))
-        }else{
+        if (state.selectedTab != BottomNavItem.Home) {
+            viewModel.onEvent(OnTabSelected(BottomNavItem.Home, activity))
+        } else {
             viewModel.onEvent(OnBackClicked)
         }
     }
@@ -89,23 +97,31 @@ fun MainScreen(
                 modifier = Modifier.padding(
                     top = WindowInsets.statusBars.asPaddingValues().calculateTopPadding()
                 ),
-                selectedTab = state.selectedTab
+                selectedTab = state.selectedTab,
+                onInfoClicked = {
+                    backStack.add(Screen.DownloadGuide)
+                },
+                onPremiumClicked = {
+                    backStack.add(Screen.Premium)
+                }
             )
         }
     ) { paddingValues ->
-
         Box(
             modifier = Modifier
                 .fillMaxSize()
         ) {
-
             Box(
                 modifier = Modifier
                     .fillMaxSize()
                     .padding(
-                        bottom = WindowInsets.navigationBars
-                            .asPaddingValues()
-                            .calculateBottomPadding() + 76.dp,
+                        bottom = if (state.selectedTab != BottomNavItem.Social) {
+                            WindowInsets.navigationBars
+                                .asPaddingValues()
+                                .calculateBottomPadding() + 76.dp
+                        } else {
+                            16.dp
+                        },
                         top = paddingValues.calculateTopPadding()
                     )
             ) {
@@ -113,22 +129,74 @@ fun MainScreen(
                     BottomNavItem.Home -> HomeScreen(
                         fetchUrl = { url ->
                             viewModel.onEvent(FetchUrl(url))
+                        },
+                        downloadReel = {
+                            viewModel.onEvent(OnDownLoadInBottomSheetClicked(it.videoUrl))
+                        },
+                        playReel = {
+                            viewModel.onEvent(OnReelSelected(it))
+                        },
+                        onSocialClick = {
+                            viewModel.onEvent(OnSocialPlatformSelected(it))
                         }
                     )
-                    BottomNavItem.Player -> PlayerScreen()
-                    BottomNavItem.Reels -> ReelsScreen()
-                    BottomNavItem.Download -> DownloadScreen()
+
+                    BottomNavItem.Player -> PlayerScreen(
+                        sendToMedia = { a, b ->
+                            backStack.add(
+                                MediaPlayer(
+                                    a, b
+                                )
+                            )
+                        },
+                        onMoreClick = {
+                            viewModel.onEvent(MainEvents.OnMediaItemInPLayerClick(it))
+                        }
+                    )
+
+                    BottomNavItem.Reels -> {
+                        ReelsScreen(
+                            selectedReel = state.selectedReel
+                        )
+                    }
+
+                    BottomNavItem.Download -> DownloadScreen(
+                        sendToMedia = { a, b ->
+                            backStack.add(
+                                MediaPlayer(
+                                    a, b
+                                )
+                            )
+                        },
+                    )
+
                     BottomNavItem.More -> {
                         MoreScreen()
+                    }
+
+                    BottomNavItem.Social -> {
+                        Social(
+                            fetchUrl = { url ->
+                                viewModel.onEvent(FetchUrl(url))
+                            },
+                            downloadReel = {
+                                viewModel.onEvent(OnDownLoadInBottomSheetClicked(it.videoUrl))
+                            },
+                            playReel = {
+                                viewModel.onEvent(OnReelSelected(it))
+                            },
+                        )
                     }
                 }
             }
 
-            MainBottomBar(
-                state = state,
-                onIntent = viewModel::onEvent,
-                modifier = Modifier.align(Alignment.BottomCenter)
-            )
+            if (state.selectedTab != BottomNavItem.Social) {
+                MainBottomBar(
+                    state = state,
+                    onIntent = viewModel::onEvent,
+                    modifier = Modifier.align(Alignment.BottomCenter)
+                )
+            }
 
             PrivacyDialogHost(
                 isShowDialogue = state.showPolicyDialogue,
@@ -138,8 +206,8 @@ fun MainScreen(
             )
             if (state.urlFetchingLoading) {
                 FetchingDialog(
-                    message = "Fetching Video...",
-                    subMessage = "Analyzing link and preparing download options. This will just take a moment..."
+                    message = "Fetching Video Details",
+                    subMessage = "Please wait while we prepare your download."
                 )
             }
 
@@ -159,7 +227,11 @@ fun MainScreen(
                         viewModel.onEvent(MainEvents.OnOptionSelected(it))
                     },
                     onDownload = {
-                        viewModel.onEvent(MainEvents.OnDownLoadInBottomSheetClicked)
+                        viewModel.onEvent(
+                            MainEvents.OnDownLoadInBottomSheetClicked(
+                                state.videoData?.downloadOptions?.firstOrNull()?.url ?: ""
+                            )
+                        )
                     }
                 )
             }
@@ -184,7 +256,60 @@ fun MainScreen(
                     viewModel.onEvent(OnDialogueCancelCLicked)
                 }
             )
+
+            if (state.showPlayerDialogue) {
+                FileOptionsDialog(
+                    item = state.playerMediaItem,
+                    onIntent = {
+                        when (it) {
+                            FileDialogIntent.OnAddToQueueClicked -> {
+                                viewModel.fileDialogueEvent(FileDialogIntent.OnAddToQueueClicked)
+                            }
+
+                            FileDialogIntent.OnDeleteClicked -> {
+                                viewModel.fileDialogueEvent(FileDialogIntent.OnDeleteClicked)
+
+                            }
+
+                            FileDialogIntent.OnDismiss -> {
+                                viewModel.fileDialogueEvent(FileDialogIntent.OnDismiss)
+
+
+                            }
+
+                            FileDialogIntent.OnInfoClicked -> {
+                                viewModel.fileDialogueEvent(FileDialogIntent.OnInfoClicked)
+
+
+                            }
+
+                            FileDialogIntent.OnMoveClicked -> {
+                                viewModel.fileDialogueEvent(FileDialogIntent.OnMoveClicked)
+
+
+                            }
+
+                            FileDialogIntent.OnPlayClicked -> {
+                                viewModel.fileDialogueEvent(FileDialogIntent.OnPlayClicked)
+
+
+                            }
+
+                            FileDialogIntent.OnRenameClicked -> {
+                                viewModel.fileDialogueEvent(FileDialogIntent.OnRenameClicked)
+
+
+                            }
+
+                            FileDialogIntent.OnShareClicked -> {
+                                viewModel.fileDialogueEvent(FileDialogIntent.OnShareClicked)
+                            }
+                        }
+                    }
+                )
+            }
         }
     }
+
 
 }

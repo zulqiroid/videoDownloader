@@ -8,9 +8,12 @@ import androidx.compose.material.icons.outlined.SlowMotionVideo
 import androidx.compose.ui.graphics.painter.Painter
 import androidx.compose.ui.graphics.vector.ImageVector
 import com.app.videodownloader.R
+import com.app.videodownloader.domain.model.Reel
+import com.app.videodownloader.domain.model.SocialPlatform
 
 sealed class BottomNavItem(
-    val title: String,
+    val reel: Reel? = null,
+     val title: String,
     val iconSelected: Int,
     val iconNotSelected: Int
 ) {
@@ -27,9 +30,10 @@ sealed class BottomNavItem(
         )
 
     data object Reels : BottomNavItem(
+        reel= null,
         title = "Reels",
-        iconSelected = R.drawable.ic_reels_filled,
-        iconNotSelected = R.drawable.ic_reels_outlined,
+        iconSelected = R.drawable.ic_reel2_filled,
+        iconNotSelected = R.drawable.ic_reels2,
         )
 
     data object Download : BottomNavItem(
@@ -39,6 +43,11 @@ sealed class BottomNavItem(
         )
     data object More : BottomNavItem(
         title = "More",
+        iconSelected = R.drawable.ic_more_filled,
+        iconNotSelected = R.drawable.ic_more_outlined,
+        )
+    data object Social : BottomNavItem(
+        title = "Social",
         iconSelected = R.drawable.ic_more_filled,
         iconNotSelected = R.drawable.ic_more_outlined,
         )

@@ -14,7 +14,7 @@ android {
     }
 
     defaultConfig {
-        applicationId = "com.app.videodownloader"
+        applicationId = "com.example.videodownloader"
         minSdk = 24
         targetSdk = 36
         versionCode = 1
@@ -55,6 +55,8 @@ dependencies {
     implementation(libs.androidx.lifecycle.viewmodel.ktx)
     implementation(libs.androidx.media3.exoplayer)
     implementation(libs.androidx.media3.ui)
+    implementation(libs.androidx.compose.foundation)
+    implementation(libs.androidx.lifecycle.process)
     testImplementation(libs.junit)
     androidTestImplementation(libs.androidx.junit)
     androidTestImplementation(libs.androidx.espresso.core)
@@ -90,4 +92,9 @@ dependencies {
     implementation("androidx.compose.material:material-icons-extended")
     implementation("androidx.datastore:datastore-preferences:1.2.1")
     implementation("com.airbnb.android:lottie-compose:6.7.1")
+
+    implementation("io.coil-kt:coil-compose:2.7.0")
+    implementation("io.coil-kt:coil-video:2.7.0")
+
+    implementation(libs.play.services.ads)
 }

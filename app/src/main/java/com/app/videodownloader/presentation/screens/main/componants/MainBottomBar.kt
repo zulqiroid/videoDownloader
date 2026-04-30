@@ -1,5 +1,6 @@
 package com.app.videodownloader.presentation.screens.main.componants
 
+import androidx.activity.compose.LocalActivity
 import androidx.compose.animation.core.LinearEasing
 import androidx.compose.animation.core.RepeatMode
 import androidx.compose.animation.core.animateFloat
@@ -63,6 +64,8 @@ fun MainBottomBar(
         BottomNavItem.Download,
         BottomNavItem.More,
     )
+
+    val activity = LocalActivity.current
 
     val infiniteTransition = rememberInfiniteTransition(label = "")
 
@@ -140,6 +143,7 @@ fun MainBottomBar(
                           ) // match outer size
                       )
   */
+
                     Box(
                         modifier = Modifier
                             .size(60.dp)
@@ -153,7 +157,13 @@ fun MainBottomBar(
                                 )
                             )
                             .clip(CircleShape)
-                            .background(Color(0xFFE00004)),
+                            .background(Color(0xFFE00004))
+                            .clickable(
+                                interactionSource = interactionSource,
+                                indication = null
+                            ) {
+                                onIntent(MainEvents.OnTabSelected(item, activity))
+                            },
                         contentAlignment = Alignment.Center
                     ) {
                         Icon(
@@ -165,7 +175,7 @@ fun MainBottomBar(
                     }
                 }
 
-            } else {
+            }else if(item == BottomNavItem.Player){} else {
                 val selected = state.selectedTab == item
 
                 val scale by animateFloatAsState(
@@ -176,15 +186,15 @@ fun MainBottomBar(
                 Column(
                     modifier = Modifier
                         .weight(1f)
-                        .graphicsLayer {
+                       /* .graphicsLayer {
                             scaleX = scale
                             scaleY = scale
-                        }
+                        }*/
                         .clickable(
                             interactionSource = interactionSource,
                             indication = null
                         ) {
-                            onIntent(MainEvents.OnTabSelected(item))
+                            onIntent(MainEvents.OnTabSelected(item, activity))
                         }
                         .padding(horizontal = 6.dp),
                     horizontalAlignment = Alignment.CenterHorizontally,
@@ -196,13 +206,13 @@ fun MainBottomBar(
                         ),
                         contentDescription = item.title,
                         tint = if (selected) Color(0xFFE00004) else Color(0xFF6B7280),
-                        modifier = Modifier.size(24.dp)
+                        modifier = Modifier.size(36.dp)
                     )
 
                     Text(
                         text = item.title,
-                        fontSize = 10.sp,
-                        fontWeight = FontWeight.W500,
+                        fontSize = 11.sp,
+                        fontWeight = FontWeight.W600,
                         color = if (selected) Color(0xFFE00004) else Color(0xFF6B7280)
                     )
                 }

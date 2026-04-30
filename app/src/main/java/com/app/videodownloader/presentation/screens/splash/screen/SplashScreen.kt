@@ -1,6 +1,7 @@
 package com.app.videodownloader.presentation.screens.splash.screen
 
 import androidx.activity.compose.BackHandler
+import androidx.activity.compose.LocalActivity
 import androidx.compose.foundation.Image
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Box
@@ -64,6 +65,8 @@ fun SplashScreen(
             }
         }
     }
+    val activity = LocalActivity.current
+
 
     BackHandler {
         viewModel.onEvent(SplashUiEvents.OnBackClicked)
@@ -131,7 +134,7 @@ fun SplashScreen(
                             .fillMaxWidth(),
                         text = "Get Started",
                         onClick = {
-                            viewModel.onEvent(SplashUiEvents.OnGetStartedClicked)
+                            viewModel.onEvent(SplashUiEvents.OnGetStartedClicked(activity))
                         }
                     )
                     Spacer(

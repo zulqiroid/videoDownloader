@@ -2,6 +2,7 @@ package com.app.videodownloader.presentation.screens.home.componants
 
 import androidx.compose.foundation.Image
 import androidx.compose.foundation.background
+import androidx.compose.foundation.clickable
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.Column
@@ -21,10 +22,14 @@ import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.res.painterResource
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
+import com.app.videodownloader.domain.model.SocialPlatform
 import com.app.videodownloader.presentation.screens.home.states.HomeState
 
 @Composable
-fun SocialAppsRow(state: HomeState) {
+fun SocialAppsRow(
+    state: HomeState,
+    onSocialClick: (SocialPlatform) -> Unit
+) {
 
     LazyVerticalGrid(
         columns = GridCells.Fixed(4),
@@ -35,7 +40,14 @@ fun SocialAppsRow(state: HomeState) {
         items(state.socialSide) { social ->
 
             Column(
-                modifier = Modifier,
+                modifier = Modifier.clickable{
+
+                    val platform = SocialPlatform.fromName(social.name)
+
+                    platform?.let {
+                        onSocialClick(it)
+                    }
+                },
                 horizontalAlignment = Alignment.CenterHorizontally,
                 verticalArrangement = Arrangement.spacedBy(8.dp)
             ) {

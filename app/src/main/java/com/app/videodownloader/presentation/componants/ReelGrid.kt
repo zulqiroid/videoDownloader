@@ -1,4 +1,4 @@
-package com.app.videodownloader.presentation.screens.home.componants
+package com.app.videodownloader.presentation.componants
 
 import android.graphics.Bitmap
 import androidx.compose.foundation.Image
@@ -16,28 +16,19 @@ import androidx.compose.foundation.lazy.grid.LazyVerticalGrid
 import androidx.compose.foundation.lazy.grid.items
 import androidx.compose.foundation.shape.CircleShape
 import androidx.compose.foundation.shape.RoundedCornerShape
-import androidx.compose.material.icons.Icons
-import androidx.compose.material.icons.filled.Download
-import androidx.compose.material.icons.filled.PlayArrow
 import androidx.compose.material3.Icon
-import androidx.compose.material3.IconButton
 import androidx.compose.runtime.Composable
-import androidx.compose.runtime.getValue
 import androidx.compose.runtime.produceState
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.clip
 import androidx.compose.ui.graphics.asImageBitmap
 import androidx.compose.ui.layout.ContentScale
-import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.unit.dp
-import coil.compose.AsyncImage
 import com.app.videodownloader.data.local.dataSource.ThumbnailCache
 import com.app.videodownloader.data.local.dataSource.VideoThumbnailUtil
 import com.app.videodownloader.domain.model.Reel
 import com.app.videodownloader.domain.model.ReelCategory
-import kotlinx.coroutines.Dispatchers
-import kotlinx.coroutines.withContext
 import androidx.compose.runtime.State
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.res.painterResource
@@ -57,7 +48,8 @@ fun rememberVideoThumbnail(videoUrl: String): State<Bitmap?> {
 @Composable
 fun ReelGrid(
     categories: List<ReelCategory>,
-    onDownloadClick: (String) -> Unit
+    onDownloadClick: (Reel) -> Unit,
+    onPlayClick: (Reel) -> Unit,
 ) {
 
     val reels = categories.flatMap { it.reels }
@@ -71,7 +63,12 @@ fun ReelGrid(
         items(reels) { reel ->
             ReelItem(
                 reel = reel,
-                onDownloadClick = onDownloadClick
+                onDownloadClick = {
+                    onDownloadClick(it)
+                },
+                onPlayClick = {
+                    onPlayClick(it)
+                }
             )
         }
     }
@@ -80,7 +77,8 @@ fun ReelGrid(
 @Composable
 fun ReelItem(
     reel: Reel,
-    onDownloadClick: (String) -> Unit
+    onDownloadClick: (Reel) -> Unit,
+    onPlayClick: (Reel) -> Unit
 ) {
     val thumbnailState = rememberVideoThumbnail(reel.videoUrl)
 
@@ -113,8 +111,8 @@ fun ReelItem(
                 .size(45.dp)
                 .clip(CircleShape)
                 .background(Color.White.copy(alpha = 0.4f))
-                .clickable{
-                    onDownloadClick(reel.id)
+                .clickable {
+                    onPlayClick(reel)
                 },
             contentAlignment = Alignment.Center
         ) {
@@ -134,8 +132,8 @@ fun ReelItem(
                 .size(32.dp)
                 .clip(CircleShape)
                 .background(Color(0xFFE00004))
-                .clickable{
-                    onDownloadClick(reel.id)
+                .clickable {
+                    onDownloadClick(reel)
                 },
             contentAlignment = Alignment.Center
         ) {

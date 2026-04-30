@@ -5,8 +5,12 @@ import androidx.navigation3.runtime.rememberNavBackStack
 import androidx.navigation3.ui.NavDisplay
 import androidx.navigation3.runtime.entryProvider
 import com.app.videodownloader.presentation.screens.appLanguage.screen.AppLanguageRootScreen
+import com.app.videodownloader.presentation.screens.downloadGuide.screen.DownloadGuideRoute
 import com.app.videodownloader.presentation.screens.main.screen.MainScreen
+import com.app.videodownloader.presentation.screens.medaPlayer.screen.MediaPlayerScreen
 import com.app.videodownloader.presentation.screens.onBoarding.screen.OnboardingScreen
+import com.app.videodownloader.presentation.screens.premium.screen.PremiumRoute
+import com.app.videodownloader.presentation.screens.social.screen.Social
 import com.app.videodownloader.presentation.screens.splash.screen.SplashScreen
 
 @Composable
@@ -39,6 +43,24 @@ fun AppNavigation() {
                     backStack = backStack
                 )
             }
+            entry<Screen.MediaPlayer> { params ->
+                MediaPlayerScreen(
+                    mediaList = params.mediaList,
+                    startIndex = params.startIndex,
+                     backStack = backStack
+                 )
+            }
+            entry<Screen.DownloadGuide> { params ->
+                DownloadGuideRoute(
+                    backStack = backStack
+                )
+            }
+            entry<Screen.Premium> { params ->
+                PremiumRoute(
+                    backStack = backStack
+                )
+            }
+
         }
     )
 }

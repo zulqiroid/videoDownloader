@@ -1,5 +1,7 @@
 package com.app.videodownloader.presentation.screens.main.states
 
+import com.app.videodownloader.domain.model.MediaFile
+import com.app.videodownloader.domain.model.Reel
 import com.app.videodownloader.domain.model.VideoData
 
 data class MainState(
@@ -18,4 +20,9 @@ data class MainState(
     val selectedOptionIndex: Int = 0,
 
     val showDownloadProgressDialogue: Boolean = false,
-)
+
+    val selectedReel : Reel? = null,
+
+    val showPlayerDialogue: Boolean = false,
+    val playerMediaItem: MediaFile? = null,
+    )

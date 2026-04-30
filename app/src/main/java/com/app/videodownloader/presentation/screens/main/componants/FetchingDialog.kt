@@ -7,6 +7,7 @@ import androidx.compose.animation.core.rememberInfiniteTransition
 import androidx.compose.animation.core.tween
 import androidx.compose.foundation.Image
 import androidx.compose.foundation.background
+import androidx.compose.foundation.border
 import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.Spacer
@@ -35,6 +36,11 @@ import androidx.compose.ui.text.style.TextAlign
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
 import androidx.compose.ui.window.Dialog
+import com.airbnb.lottie.compose.LottieAnimation
+import com.airbnb.lottie.compose.LottieCompositionSpec
+import com.airbnb.lottie.compose.LottieConstants
+import com.airbnb.lottie.compose.animateLottieCompositionAsState
+import com.airbnb.lottie.compose.rememberLottieComposition
 import com.app.videodownloader.R
 
 @Composable
@@ -61,48 +67,26 @@ fun FetchingDialog(
                 Box(
                     modifier = Modifier
                         .fillMaxWidth()
-                        .height(200.dp)
+                        .height(110.dp)
                         .clip(RoundedCornerShape(16.dp))
-                        .background(Color.LightGray),
+                        .background(Color.Transparent),
                     contentAlignment = Alignment.Center
                 ) {
 
-                    Image(
-                        modifier = Modifier.fillMaxSize(),
-                        painter = painterResource(R.drawable.fetching_vd_bg),
-                        contentDescription = "fetching video background",
-                        contentScale = ContentScale.FillWidth
+                    val composition by rememberLottieComposition(
+                        LottieCompositionSpec.RawRes(R.raw.fetching_dialogue_lottie)
                     )
 
-
-                    val infiniteTransition = rememberInfiniteTransition(label = "")
-
-// rotation animation
-                    val rotation by infiniteTransition.animateFloat(
-                        initialValue = 0f,
-                        targetValue = 360f,
-                        animationSpec = infiniteRepeatable(
-                            animation = tween(2000, easing = LinearEasing)
-                        ),
-                        label = ""
+                    val progress by animateLottieCompositionAsState(
+                        composition = composition,
+                        iterations = LottieConstants.IterateForever
                     )
 
-
-                    Box(
-                        Modifier.size(50.dp).clip(CircleShape).background(Color.White.copy(alpha = 0.9f)),
-                        contentAlignment = Alignment.Center
-                    ){
-                        Icon(
-                            painter = painterResource(R.drawable.ic_loading),
-                            contentDescription = "loading",
-                            tint = Color(0xFFE00004),
-                            modifier = Modifier
-                                .size(35.dp)
-                                .graphicsLayer {
-                                    rotationZ = rotation
-                                }
-                        )
-                    }
+                    LottieAnimation(
+                        composition = composition,
+                        progress = { progress },
+                        modifier = Modifier.size(100.dp)
+                    )
                 }
 
                 Spacer(modifier = Modifier.height(30.dp))
@@ -126,9 +110,8 @@ fun FetchingDialog(
                     fontWeight = FontWeight.W400
                 )
 
-                Spacer(modifier = Modifier.height(20.dp))
+               /* Spacer(modifier = Modifier.height(20.dp))
 
-                // 🔴 Animated Progress Bar
                 val infiniteTransition = rememberInfiniteTransition()
                 val progress by infiniteTransition.animateFloat(
                     initialValue = 0f,
@@ -147,7 +130,7 @@ fun FetchingDialog(
                     color = Color(0xFFE00004),
                     trackColor = Color(0xFFF4F4F5),
                     strokeCap = ProgressIndicatorDefaults.LinearStrokeCap,
-                )
+                )*/
             }
         }
     }
