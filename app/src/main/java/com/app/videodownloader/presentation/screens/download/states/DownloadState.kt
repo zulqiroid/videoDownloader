@@ -1,5 +1,7 @@
 package com.app.videodownloader.presentation.screens.download.states
 
+import android.content.ContentUris
+import android.provider.MediaStore
 import com.app.videodownloader.domain.model.DownloadItem
 import com.app.videodownloader.domain.model.DownloadStatus
 import com.app.videodownloader.domain.model.MediaFile
@@ -46,10 +48,23 @@ fun DownloadItem.toUiItem(): DownloadUiItem {
 }
 
 fun DownloadUiItem.toMediaFile(isVideo: Boolean): MediaFile {
+    val uri = if (isVideo) {
+        ContentUris.withAppendedId(
+            MediaStore.Video.Media.EXTERNAL_CONTENT_URI,
+            id
+        )
+    } else {
+        ContentUris.withAppendedId(
+            MediaStore.Audio.Media.EXTERNAL_CONTENT_URI,
+            id
+        )
+    }
+
     return MediaFile(
         id = id,
         filePath = filePath ?: "",
         fileName = title,
-        isVideo = isVideo
+        isVideo = isVideo,
+        contentUri = uri.toString()
     )
 }

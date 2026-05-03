@@ -1,8 +1,11 @@
-package com.app.videodownloader.presentation.screens.medaPlayer.player
+package com.app.videodownloader.presentation.screens.medaPlayer.screen
 
 import android.content.Context
 import android.net.Uri
+import androidx.media3.common.AudioAttributes
+import androidx.media3.common.C
 import androidx.media3.common.MediaItem
+import androidx.media3.common.PlaybackParameters
 import androidx.media3.common.Player
 import androidx.media3.exoplayer.ExoPlayer
 import com.app.videodownloader.domain.model.MediaFile
@@ -12,9 +15,19 @@ class MediaPlayerManager(
     context: Context
 ) {
 
+    private val audioAttributes = AudioAttributes.Builder()
+        .setUsage(C.USAGE_MEDIA)
+        .setContentType(C.AUDIO_CONTENT_TYPE_MOVIE)
+        .build()
+
     val player: ExoPlayer = ExoPlayer.Builder(context.applicationContext)
         .build()
         .apply {
+            setAudioAttributes(
+                audioAttributes,
+                true
+            )
+
             repeatMode = Player.REPEAT_MODE_ONE
             playWhenReady = true
         }
@@ -40,26 +53,43 @@ class MediaPlayerManager(
     }
 
     fun forward() {
-        val duration = player.duration.takeIf { it > 0 } ?: Long.MAX_VALUE
-        val target = (player.currentPosition + 10_000L).coerceAtMost(duration)
-        player.seekTo(target)
+        val duration = player.duration.takeIf { it > 0L } ?: Long.MAX_VALUE
+        val targetPosition = (player.currentPosition + SEEK_STEP_MS).coerceAtMost(duration)
+
+        player.seekTo(targetPosition)
     }
 
     fun rewind() {
-        val target = (player.currentPosition - 10_000L).coerceAtLeast(0L)
-        player.seekTo(target)
+        val targetPosition = (player.currentPosition - SEEK_STEP_MS).coerceAtLeast(0L)
+
+        player.seekTo(targetPosition)
     }
 
     fun setVolume(volume: Float) {
         player.volume = volume.coerceIn(0f, 1f)
     }
 
-    fun release() {
-        player.release()
+    fun setPlaybackSpeed(speed: Float) {
+        val safeSpeed = speed.coerceIn(
+            minimumValue = MIN_PLAYBACK_SPEED,
+            maximumValue = MAX_PLAYBACK_SPEED
+        )
+
+        player.playbackParameters = PlaybackParameters(safeSpeed)
     }
+
     fun reset() {
         player.stop()
         player.clearMediaItems()
-        player.seekTo(0)
+    }
+
+    fun release() {
+        player.release()
+    }
+
+    companion object {
+        private const val SEEK_STEP_MS = 10_000L
+        private const val MIN_PLAYBACK_SPEED = 0.25f
+        private const val MAX_PLAYBACK_SPEED = 4f
     }
 }

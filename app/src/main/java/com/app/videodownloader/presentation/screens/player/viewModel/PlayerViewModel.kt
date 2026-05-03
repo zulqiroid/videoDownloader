@@ -11,6 +11,9 @@ import kotlinx.coroutines.channels.Channel
 import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.StateFlow
 import kotlinx.coroutines.flow.asStateFlow
+import kotlinx.coroutines.flow.collect
+import kotlinx.coroutines.flow.combine
+import kotlinx.coroutines.flow.onStart
 import kotlinx.coroutines.flow.receiveAsFlow
 import kotlinx.coroutines.flow.update
 import kotlinx.coroutines.launch
@@ -19,35 +22,42 @@ class PlayerViewModel(
     private val getVideos: GetVideosUseCase,
     private val getAudios: GetAudiosUseCase
 ) : ViewModel() {
-
     private val _state = MutableStateFlow(PlayerState())
     val state = _state.asStateFlow()
 
     init {
-        loadMedia()
+        observeMedia()
     }
 
-    private fun loadMedia() {
+    private fun observeMedia() {
         viewModelScope.launch {
-
-            _state.update { it.copy(isLoading = true) }
-
-            val videos = getVideos()
-            val audios = getAudios()
-
-            _state.update {
-                it.copy(
-                    videos = videos,
-                    audios = audios,
-                    isLoading = false
-                )
+            combine(
+                getVideos(),
+                getAudios()
+            ) { videos, audios ->
+                videos to audios
             }
+                .onStart {
+                    _state.update {
+                        it.copy(isLoading = true)
+                    }
+                }
+                .collect { (videos, audios) ->
+                    _state.update {
+                        it.copy(
+                            videos = videos,
+                            audios = audios,
+                            isLoading = false
+                        )
+                    }
+                }
         }
     }
 
     fun onTabChange(tab: PlayerTab) {
-        _state.update { it.copy(selectedTab = tab) }
+        _state.update {
+            it.copy(selectedTab = tab)
+        }
     }
-
 
 }

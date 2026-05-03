@@ -57,6 +57,7 @@ dependencies {
     implementation(libs.androidx.media3.ui)
     implementation(libs.androidx.compose.foundation)
     implementation(libs.androidx.lifecycle.process)
+    implementation(libs.androidx.constraintlayout)
     testImplementation(libs.junit)
     androidTestImplementation(libs.androidx.junit)
     androidTestImplementation(libs.androidx.espresso.core)
@@ -95,6 +96,8 @@ dependencies {
 
     implementation("io.coil-kt:coil-compose:2.7.0")
     implementation("io.coil-kt:coil-video:2.7.0")
+
+    implementation("androidx.documentfile:documentfile:1.1.0")
 
     implementation(libs.play.services.ads)
 }

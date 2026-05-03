@@ -100,10 +100,6 @@ fun VideoControlsOverlay(
         modifier = Modifier
             .fillMaxSize()
             .background(Color.Black.copy(alpha = 0.25f))
-            .padding(
-                top = WindowInsets.statusBars.asPaddingValues().calculateTopPadding(),
-                bottom = 16.dp
-            )
     ) {
 
         Row(

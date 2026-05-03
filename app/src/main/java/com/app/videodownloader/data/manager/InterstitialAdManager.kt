@@ -3,167 +3,446 @@ package com.app.videodownloader.data.manager
 import android.app.Activity
 import android.content.Context
 import android.util.Log
-import com.app.videodownloader.domain.model.AdState
+import com.app.videodownloader.domain.model.ads.AdState
+import com.app.videodownloader.domain.model.ads.InterstitialAdConfig
+import com.app.videodownloader.domain.model.ads.InterstitialAdPlacement
+import com.app.videodownloader.domain.usecases.ads.ObserveInterstitialAdConfigUseCase
 import com.google.android.gms.ads.AdError
 import com.google.android.gms.ads.AdRequest
 import com.google.android.gms.ads.FullScreenContentCallback
 import com.google.android.gms.ads.LoadAdError
+import com.google.android.gms.ads.OnPaidEventListener
 import com.google.android.gms.ads.interstitial.InterstitialAd
 import com.google.android.gms.ads.interstitial.InterstitialAdLoadCallback
+import kotlinx.coroutines.CoroutineScope
+import kotlinx.coroutines.Dispatchers
+import kotlinx.coroutines.SupervisorJob
+import kotlinx.coroutines.delay
+import kotlinx.coroutines.launch
+import kotlin.math.min
+import kotlin.math.pow
 
-/**
- * Low-level wrapper around the Google Mobile Ads SDK for Interstitial Ads.
- *
- * Responsibilities:
- *  - Load and cache a single [InterstitialAd] instance.
- *  - Guard against duplicate loads or concurrent show attempts.
- *  - Expose all lifecycle transitions through a typed [AdState] callback.
- *
- * Interstitial ads do NOT have a TTL expiry like App Open Ads,
- * but we still invalidate on dismiss/failure to enforce one-ad-at-a-time.
- */
 class InterstitialAdManager(
-    private val context: Context
+    context: Context,
+    observeInterstitialAdConfigUseCase: ObserveInterstitialAdConfigUseCase
 ) {
 
-    // ─────────────────────────────────────────────────────────────────────────
-    // Constants
-    // ─────────────────────────────────────────────────────────────────────────
+    private val appContext = context.applicationContext
 
-    companion object {
-        private const val TAG = "InterstitialAdManager"
-        private const val AD_UNIT_ID = "ca-app-pub-3940256099942544/1033173712" // test ID
-    }
+    private val managerScope = CoroutineScope(
+        SupervisorJob() + Dispatchers.Main.immediate
+    )
 
-    // ─────────────────────────────────────────────────────────────────────────
-    // Internal State
-    // ─────────────────────────────────────────────────────────────────────────
+    @Volatile
+    private var config: InterstitialAdConfig = InterstitialAdConfig.default()
 
-    @Volatile private var cachedAd: InterstitialAd? = null
-    @Volatile private var isLoadInProgress: Boolean = false
-    @Volatile private var isAdCurrentlyShowing: Boolean = false
+    @Volatile
+    private var cachedAd: InterstitialAd? = null
 
-    // ─────────────────────────────────────────────────────────────────────────
-    // Public API
-    // ─────────────────────────────────────────────────────────────────────────
+    @Volatile
+    private var isLoadingAd: Boolean = false
 
-    fun isAdReady(): Boolean = cachedAd != null
+    @Volatile
+    private var isShowingAd: Boolean = false
 
-    fun loadAd(onStateChanged: (AdState) -> Unit) {
-        when {
-            isLoadInProgress -> {
-                Log.d(TAG, "Load already in progress — skipping.")
-                return
-            }
-            isAdReady() -> {
-                Log.d(TAG, "Ad already cached — skipping load.")
-                onStateChanged(AdState.Loaded)
-                return
-            }
-            else -> startLoading(onStateChanged)
-        }
-    }
+    @Volatile
+    private var adLoadedAtMs: Long = 0L
 
-    fun showAd(activity: Activity, onStateChanged: (AdState) -> Unit) {
-        when {
-            isAdCurrentlyShowing -> {
-                Log.w(TAG, "Ad already on screen — ignoring duplicate show request.")
-                return
-            }
-            !isAdReady() -> {
-                Log.d(TAG, "No ad ready — triggering load before next opportunity.")
-                loadAd(onStateChanged)
-                return
-            }
-            else -> presentAd(activity, onStateChanged)
-        }
-    }
+    @Volatile
+    private var lastShownAtMs: Long = 0L
 
-    // ─────────────────────────────────────────────────────────────────────────
-    // Private Helpers
-    // ─────────────────────────────────────────────────────────────────────────
+    private var loadRetryAttempt: Int = 0
 
-    private fun startLoading(onStateChanged: (AdState) -> Unit) {
-        isLoadInProgress = true
-        onStateChanged(AdState.Loading)
-        Log.d(TAG, "Requesting new Interstitial Ad…")
+    private val triggerCounts = mutableMapOf<InterstitialAdPlacement, Int>()
 
-        InterstitialAd.load(
-            context,
-            AD_UNIT_ID,
-            AdRequest.Builder().build(),
-            buildLoadCallback(onStateChanged)
-        )
-    }
+    init {
+        managerScope.launch {
+            observeInterstitialAdConfigUseCase().collect { newConfig ->
+                val oldConfig = config
+                config = newConfig
 
-    private fun buildLoadCallback(
-        onStateChanged: (AdState) -> Unit
-    ): InterstitialAdLoadCallback =
-        object : InterstitialAdLoadCallback() {
+                Log.d(TAG, "Interstitial config updated: $newConfig")
 
-            override fun onAdLoaded(ad: InterstitialAd) {
-                cachedAd = ad
-                isLoadInProgress = false
-                Log.d(TAG, "Interstitial ad loaded successfully.")
-                onStateChanged(AdState.Loaded)
-            }
+                if (!newConfig.enabled) {
+                    clearCurrentAd()
+                    return@collect
+                }
 
-            override fun onAdFailedToLoad(error: LoadAdError) {
-                isLoadInProgress = false
-                Log.e(TAG, buildLoadErrorLog(error))
-                onStateChanged(AdState.LoadFailed(error.code, error.message))
+                if (oldConfig.adUnitId != newConfig.adUnitId) {
+                    clearCurrentAd()
+                    loadAd()
+                    return@collect
+                }
+
+                if (!isAdReady() && !isLoadingAd) {
+                    loadAd()
+                }
             }
         }
+    }
 
-    private fun presentAd(activity: Activity, onStateChanged: (AdState) -> Unit) {
-        val ad = cachedAd ?: run {
-            Log.e(TAG, "presentAd() called but cachedAd is null.")
-            onStateChanged(AdState.ShowFailed("Cached ad was null at presentation time."))
+    fun getCurrentConfig(): InterstitialAdConfig {
+        return config
+    }
+
+    fun isAdReady(): Boolean {
+        return cachedAd != null && !isAdExpired()
+    }
+
+    fun loadAd(
+        onStateChanged: (AdState) -> Unit = {}
+    ) {
+        val currentConfig = config
+
+        if (!currentConfig.enabled) {
+            onStateChanged(AdState.Skipped("Interstitial ads are disabled by remote config"))
             return
         }
 
-        ad.fullScreenContentCallback = buildFullScreenCallback(onStateChanged)
-        ad.show(activity)
+        if (isLoadingAd) {
+            Log.d(TAG, "Interstitial load skipped: load already in progress.")
+            return
+        }
+
+        if (isAdReady()) {
+            Log.d(TAG, "Interstitial load skipped: valid cached ad already exists.")
+            onStateChanged(AdState.Loaded)
+            return
+        }
+
+        startLoading(
+            config = currentConfig,
+            onStateChanged = onStateChanged
+        )
     }
 
-    private fun buildFullScreenCallback(
+    fun showAdIfAvailable(
+        activity: Activity,
+        placement: InterstitialAdPlacement = InterstitialAdPlacement.Generic,
+        forceShow: Boolean = false,
+        onStateChanged: (AdState) -> Unit = {},
+        onComplete: () -> Unit = {}
+    ) {
+        val currentConfig = config
+
+        if (!currentConfig.enabled) {
+            completeSkipped(
+                reason = "Interstitial ads are disabled by remote config",
+                onStateChanged = onStateChanged,
+                onComplete = onComplete
+            )
+            return
+        }
+
+        if (!currentConfig.isPlacementEnabled(placement)) {
+            completeSkipped(
+                reason = "Interstitial placement disabled: $placement",
+                onStateChanged = onStateChanged,
+                onComplete = onComplete
+            )
+            return
+        }
+
+        if (activity.isFinishing || activity.isDestroyed) {
+            completeSkipped(
+                reason = "Activity is not valid for showing interstitial",
+                onStateChanged = onStateChanged,
+                onComplete = onComplete
+            )
+            return
+        }
+
+        if (isShowingAd) {
+            completeSkipped(
+                reason = "Interstitial is already showing",
+                onStateChanged = onStateChanged,
+                onComplete = onComplete
+            )
+            return
+        }
+
+        if (!forceShow && !shouldShowForTriggerCount(currentConfig, placement)) {
+            loadAd()
+            completeSkipped(
+                reason = "Interstitial skipped by trigger count for placement: $placement",
+                onStateChanged = onStateChanged,
+                onComplete = onComplete
+            )
+            return
+        }
+
+        if (!forceShow && !canShowByFrequencyPolicy(currentConfig)) {
+            loadAd()
+            completeSkipped(
+                reason = "Interstitial skipped by frequency cap",
+                onStateChanged = onStateChanged,
+                onComplete = onComplete
+            )
+            return
+        }
+
+        if (!isAdReady()) {
+            loadAd(onStateChanged)
+            completeSkipped(
+                reason = "No interstitial ad is ready",
+                onStateChanged = onStateChanged,
+                onComplete = onComplete
+            )
+            return
+        }
+
+        presentAd(
+            activity = activity,
+            onStateChanged = onStateChanged,
+            onComplete = onComplete
+        )
+    }
+
+    private fun startLoading(
+        config: InterstitialAdConfig,
         onStateChanged: (AdState) -> Unit
-    ): FullScreenContentCallback =
-        object : FullScreenContentCallback() {
+    ) {
+        isLoadingAd = true
+        onStateChanged(AdState.Loading)
 
-            override fun onAdShowedFullScreenContent() {
-                isAdCurrentlyShowing = true
-                Log.d(TAG, "Interstitial ad is now showing.")
-                onStateChanged(AdState.Showing)
+        Log.d(TAG, "Loading Interstitial ad with unit: ${config.adUnitId}")
+
+        InterstitialAd.load(
+            appContext,
+            config.adUnitId,
+            AdRequest.Builder().build(),
+            object : InterstitialAdLoadCallback() {
+
+                override fun onAdLoaded(ad: InterstitialAd) {
+                    cachedAd = ad
+                    adLoadedAtMs = now()
+                    isLoadingAd = false
+                    loadRetryAttempt = 0
+
+                    ad.onPaidEventListener = OnPaidEventListener { adValue ->
+                        Log.d(
+                            TAG,
+                            "Interstitial paid event: valueMicros=${adValue.valueMicros}, currency=${adValue.currencyCode}"
+                        )
+                    }
+
+                    Log.d(TAG, "Interstitial ad loaded.")
+                    onStateChanged(AdState.Loaded)
+                }
+
+                override fun onAdFailedToLoad(error: LoadAdError) {
+                    cachedAd = null
+                    adLoadedAtMs = 0L
+                    isLoadingAd = false
+
+                    Log.e(
+                        TAG,
+                        "Interstitial failed to load. code=${error.code}, message=${error.message}, domain=${error.domain}"
+                    )
+
+                    onStateChanged(
+                        AdState.LoadFailed(
+                            errorCode = error.code,
+                            errorMessage = error.message
+                        )
+                    )
+
+                    scheduleRetryLoad()
+                }
             }
+        )
+    }
 
-            override fun onAdDismissedFullScreenContent() {
-                Log.d(TAG, "Interstitial ad dismissed.")
-                resetAdState()
-                onStateChanged(AdState.Dismissed)
-                // Preload next ad immediately so it's ready at the next trigger point
-                loadAd { /* fire-and-forget background preload */ }
-            }
+    private fun presentAd(
+        activity: Activity,
+        onStateChanged: (AdState) -> Unit,
+        onComplete: () -> Unit
+    ) {
+        val ad = cachedAd
 
-            override fun onAdFailedToShowFullScreenContent(error: AdError) {
-                Log.e(TAG, "Interstitial failed to show: [${error.code}] ${error.message}")
-                resetAdState()
-                onStateChanged(AdState.ShowFailed(error.message))
-                loadAd { /* recovery load */ }
+        if (ad == null) {
+            onStateChanged(AdState.ShowFailed("Cached interstitial ad was null"))
+            loadAd(onStateChanged)
+            onComplete()
+            return
+        }
+
+        var completed = false
+
+        fun completeOnce() {
+            if (!completed) {
+                completed = true
+                onComplete()
             }
         }
 
-    private fun resetAdState() {
-        cachedAd = null
-        isAdCurrentlyShowing = false
+        ad.fullScreenContentCallback = object : FullScreenContentCallback() {
+
+            override fun onAdShowedFullScreenContent() {
+                isShowingAd = true
+                lastShownAtMs = now()
+
+                Log.d(TAG, "Interstitial ad is showing.")
+                onStateChanged(AdState.Showing)
+            }
+
+            override fun onAdImpression() {
+                Log.d(TAG, "Interstitial impression recorded.")
+                onStateChanged(AdState.Impression)
+            }
+
+            override fun onAdClicked() {
+                Log.d(TAG, "Interstitial clicked.")
+                onStateChanged(AdState.Clicked)
+            }
+
+            override fun onAdDismissedFullScreenContent() {
+                Log.d(TAG, "Interstitial dismissed.")
+
+                clearCurrentAd()
+                onStateChanged(AdState.Dismissed)
+
+                loadAd()
+                completeOnce()
+            }
+
+            override fun onAdFailedToShowFullScreenContent(error: AdError) {
+                Log.e(
+                    TAG,
+                    "Interstitial failed to show. code=${error.code}, message=${error.message}"
+                )
+
+                clearCurrentAd()
+                onStateChanged(AdState.ShowFailed(error.message))
+
+                loadAd()
+                completeOnce()
+            }
+        }
+
+        try {
+            ad.show(activity)
+        } catch (exception: Exception) {
+            Log.e(TAG, "Interstitial show crashed.", exception)
+
+            clearCurrentAd()
+
+            onStateChanged(
+                AdState.ShowFailed(
+                    exception.message ?: "Unable to show interstitial"
+                )
+            )
+
+            loadAd()
+            completeOnce()
+        }
     }
 
-    private fun buildLoadErrorLog(error: LoadAdError): String = buildString {
-        appendLine("Interstitial ad failed to load.")
-        appendLine("  Code    : ${error.code}")
-        appendLine("  Message : ${error.message}")
-        appendLine("  Domain  : ${error.domain}")
-        appendLine("  Cause   : ${error.cause}")
-        appendLine("  Response: ${error.responseInfo}")
+    private fun completeSkipped(
+        reason: String,
+        onStateChanged: (AdState) -> Unit,
+        onComplete: () -> Unit
+    ) {
+        Log.d(TAG, reason)
+        onStateChanged(AdState.Skipped(reason))
+        onComplete()
+    }
+
+    private fun shouldShowForTriggerCount(
+        config: InterstitialAdConfig,
+        placement: InterstitialAdPlacement
+    ): Boolean {
+        val requiredCount = config.triggerCountForPlacement(placement)
+        val currentCount = (triggerCounts[placement] ?: 0) + 1
+
+        triggerCounts[placement] = if (currentCount >= requiredCount) {
+            0
+        } else {
+            currentCount
+        }
+
+        return currentCount >= requiredCount
+    }
+
+    private fun InterstitialAdConfig.isPlacementEnabled(
+        placement: InterstitialAdPlacement
+    ): Boolean {
+        return when (placement) {
+            InterstitialAdPlacement.TabSwitch -> showOnTabSwitch
+            InterstitialAdPlacement.PlayMedia -> showOnPlayMedia
+            InterstitialAdPlacement.DownloadClick -> showOnDownloadClick
+            InterstitialAdPlacement.ReelOpen -> showOnReelOpen
+            InterstitialAdPlacement.SocialOpen -> showOnSocialOpen
+            InterstitialAdPlacement.BackNavigation -> showOnBackNavigation
+            InterstitialAdPlacement.Generic -> true
+        }
+    }
+
+    private fun InterstitialAdConfig.triggerCountForPlacement(
+        placement: InterstitialAdPlacement
+    ): Int {
+        return when (placement) {
+            InterstitialAdPlacement.TabSwitch -> tabSwitchTriggerCount
+            InterstitialAdPlacement.PlayMedia -> playMediaTriggerCount
+            InterstitialAdPlacement.DownloadClick -> downloadClickTriggerCount
+            InterstitialAdPlacement.ReelOpen -> reelOpenTriggerCount
+            InterstitialAdPlacement.SocialOpen -> socialOpenTriggerCount
+            InterstitialAdPlacement.BackNavigation -> backNavigationTriggerCount
+            InterstitialAdPlacement.Generic -> 1
+        }.coerceAtLeast(1)
+    }
+
+    private fun scheduleRetryLoad() {
+        val currentConfig = config
+
+        if (loadRetryAttempt >= currentConfig.maxLoadRetryCount) {
+            Log.d(TAG, "Interstitial retry skipped: max retry count reached.")
+            return
+        }
+
+        loadRetryAttempt++
+
+        val exponentialDelay = currentConfig.initialRetryDelayMs *
+                2.0.pow(loadRetryAttempt - 1).toLong()
+
+        val retryDelay = min(
+            exponentialDelay,
+            currentConfig.maxRetryDelayMs
+        )
+
+        Log.d(TAG, "Scheduling Interstitial retry in $retryDelay ms.")
+
+        managerScope.launch {
+            delay(retryDelay)
+            loadAd()
+        }
+    }
+
+    private fun clearCurrentAd() {
+        cachedAd?.fullScreenContentCallback = null
+        cachedAd?.onPaidEventListener = null
+        cachedAd = null
+        adLoadedAtMs = 0L
+        isShowingAd = false
+    }
+
+    private fun isAdExpired(): Boolean {
+        val currentConfig = config
+
+        if (adLoadedAtMs == 0L) return true
+        return now() - adLoadedAtMs >= currentConfig.maxAdCacheDurationMs
+    }
+
+    private fun canShowByFrequencyPolicy(
+        config: InterstitialAdConfig
+    ): Boolean {
+        if (lastShownAtMs == 0L) return true
+        return now() - lastShownAtMs >= config.minIntervalBetweenShowsMs
+    }
+
+    private fun now(): Long = System.currentTimeMillis()
+
+    companion object {
+        private const val TAG = "InterstitialAdManager"
     }
 }

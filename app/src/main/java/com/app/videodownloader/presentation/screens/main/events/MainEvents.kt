@@ -34,4 +34,40 @@ sealed class MainEvents {
 
     data class OnMediaItemInPLayerClick(val item: MediaFile): MainEvents()
 
+
+    data object OnFeedbackClicked : MainEvents()
+    data object OnFeedbackDismissed : MainEvents()
+    data class OnFeedbackValueChanged(val value: String) : MainEvents()
+    data object OnFeedbackSubmitClicked : MainEvents()
+
+
+    data object OnRateUsClicked : MainEvents()
+
+    data class OnRateUsSelected(
+        val rating: Int
+    ) : MainEvents()
+
+    data object OnRateUsDismissed : MainEvents()
+
+    data object OnRateNowClicked : MainEvents()
+
+
+    data object OnFetchFailedRetryClicked : MainEvents()
+
+    data object OnFetchFailedPasteNewLinkClicked : MainEvents()
+
+    data object OnFetchFailedHelpClicked : MainEvents()
+
+    data object OnFetchFailedDismissed : MainEvents()
+
+    data class OnOpenMediaPlayerClicked(
+        val mediaList: List<MediaFile>,
+        val startIndex: Int,
+        val activity: android.app.Activity?
+    ) : MainEvents()
+
+    data class OnBackNavigationClicked(
+        val activity: android.app.Activity?
+    ) : MainEvents()
+
 }

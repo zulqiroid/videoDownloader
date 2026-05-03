@@ -58,7 +58,8 @@ fun CompletedCard(
     item: DownloadUiItem,
     state: DownloadState,
     viewModel: DownloadViewModel,
-    onItemCLicked: (DownloadUiItem) -> Unit
+    onItemCLicked: (DownloadUiItem) -> Unit,
+    onMoreClicked: (DownloadUiItem) -> Unit,
 ) {
 
     Row(
@@ -112,7 +113,9 @@ fun CompletedCard(
         Icon(
             imageVector = Icons.Default.MoreVert,
             contentDescription = null,
-            modifier = Modifier
+            modifier = Modifier.clickable{
+                onMoreClicked(item)
+            }
         )
     }
 }

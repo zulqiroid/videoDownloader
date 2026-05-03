@@ -26,13 +26,6 @@ class MainActivity : ComponentActivity() {
         setContent {
             VideoDownloaderTheme {
                 AppNavigation()
-//                PrivacyDialogHost()
-
-//                MainScreen()
-             /*   OnboardingScreen(
-                    onFinish = {}
-                )*/
-//                DownloaderScreen()
             }
         }
     }

@@ -1,17 +1,8 @@
 package com.app.videodownloader.presentation.screens.medaPlayer.componants
 
-import androidx.compose.foundation.background
-import androidx.compose.foundation.layout.Spacer
-import androidx.compose.foundation.layout.height
-import androidx.compose.foundation.layout.width
-import androidx.compose.foundation.shape.RoundedCornerShape
-import androidx.compose.material.icons.Icons
-import androidx.compose.material3.ExperimentalMaterial3Api
-import androidx.compose.material3.ModalBottomSheet
-import androidx.compose.material3.rememberModalBottomSheetState
+import androidx.compose.foundation.Image
 import androidx.compose.foundation.background
 import androidx.compose.foundation.clickable
-import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.Row
@@ -21,56 +12,38 @@ import androidx.compose.foundation.layout.height
 import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.layout.size
 import androidx.compose.foundation.layout.width
-import androidx.compose.foundation.lazy.LazyColumn
-import androidx.compose.foundation.lazy.items
-import androidx.compose.material.icons.automirrored.filled.ArrowBack
-import androidx.compose.material.icons.filled.ArrowBack
-import androidx.compose.material.icons.filled.Delete
-import androidx.compose.material.icons.filled.Edit
-import androidx.compose.material.icons.filled.Info
-import androidx.compose.material.icons.filled.Share
-import androidx.compose.material.icons.filled.Speed
-import androidx.compose.material3.Button
-import androidx.compose.material3.ButtonDefaults
-import androidx.compose.material3.Card
-import androidx.compose.material3.CardDefaults
-import androidx.compose.material3.Divider
+import androidx.compose.foundation.shape.CircleShape
+import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.material3.DividerDefaults
+import androidx.compose.material3.ExperimentalMaterial3Api
 import androidx.compose.material3.HorizontalDivider
 import androidx.compose.material3.Icon
-import androidx.compose.material3.IconButton
-import androidx.compose.material3.MaterialTheme
-import androidx.compose.material3.Scaffold
-import androidx.compose.material3.Surface
+import androidx.compose.material3.ModalBottomSheet
 import androidx.compose.material3.Text
-import androidx.compose.material3.TopAppBar
+import androidx.compose.material3.rememberModalBottomSheetState
 import androidx.compose.runtime.Composable
+import androidx.compose.runtime.Stable
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.clip
 import androidx.compose.ui.graphics.Color
-import androidx.compose.ui.graphics.vector.ImageVector
 import androidx.compose.ui.res.painterResource
 import androidx.compose.ui.text.font.FontWeight
+import androidx.compose.ui.text.style.TextOverflow
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
 import com.app.videodownloader.R
 import com.app.videodownloader.domain.model.MediaFile
-import com.app.videodownloader.presentation.screens.downloadGuide.events.DownloadGuideIntent
-import com.app.videodownloader.presentation.screens.downloadGuide.state.DownloadGuideState
-import com.app.videodownloader.presentation.screens.downloadGuide.state.GuideStep
 import com.app.videodownloader.presentation.screens.medaPlayer.events.VideoOptionsIntent
-import com.app.videodownloader.presentation.screens.medaPlayer.states.VideoOptionsState
-
 
 @OptIn(ExperimentalMaterial3Api::class)
 @Composable
 fun MediaPlayerBottomSheet(
     state: MediaFile,
-    onIntent: (VideoOptionsIntent) -> Unit
-){
-
-
+    playbackSpeed: Float,
+    onIntent: (VideoOptionsIntent) -> Unit,
+    modifier: Modifier = Modifier,
+) {
     val sheetState = rememberModalBottomSheetState(
         skipPartiallyExpanded = true
     )
@@ -80,165 +53,524 @@ fun MediaPlayerBottomSheet(
             onIntent(VideoOptionsIntent.OnDismiss)
         },
         sheetState = sheetState,
-        shape = RoundedCornerShape(topStart = 24.dp, topEnd = 24.dp),
-        containerColor = Color(0xFFF9FAFB),
+        shape = RoundedCornerShape(topStart = 34.dp, topEnd = 34.dp),
+        containerColor = Color.White,
         dragHandle = {
-            Spacer(Modifier.width(48.dp).height(8.dp).padding(vertical = 10.dp).background(Color(0xFFF3F4F6)))
-        }
+            BottomSheetDragHandle()
+        },
+        modifier = modifier
     ) {
-
-        Column(
-            modifier = Modifier
-                .fillMaxWidth()
-                .padding(horizontal = 20.dp, vertical = 16.dp)
-        ) {
-
-            // Header
-            Text(
-                text = state.fileName,
-                style = MaterialTheme.typography.titleMedium,
-                fontWeight = FontWeight.SemiBold
+        if (state.isVideo) {
+            VideoOptionsBottomSheetContent(
+                media = state,
+                playbackSpeed = playbackSpeed.toPlaybackSpeedLabel(),
+                onIntent = onIntent
             )
-
-            Spacer(Modifier.height(4.dp))
-
-            Text(
-                text = state.fileName,
-                style = MaterialTheme.typography.bodySmall,
-                color = Color.Gray
+        } else {
+            AudioOptionsBottomSheetContent(
+                media = state,
+                fileMeta = "MP3 • 320kbps • 8.4 MB",
+                playbackSpeed = playbackSpeed.toPlaybackSpeedLabel(),
+                onIntent = onIntent
             )
-
-            Spacer(Modifier.height(20.dp))
-
-            // Playback speed (highlighted item)
-            HighlightedActionItem(
-                icon = Icons.Default.Speed,
-                text = "Playback speed",
-                trailing = {
-                   // SpeedBadge(state.playbackSpeed)
-                },
-                onClick = { onIntent(VideoOptionsIntent.OnPlaybackSpeedClicked) }
-            )
-
-            Spacer(Modifier.height(8.dp))
-
-            // Regular actions
-            ActionItem(
-                icon = R.drawable.ic_info,
-                text = "File info"
-            ) {
-                onIntent(VideoOptionsIntent.OnFileInfoClicked)
-            }
-
-            ActionItem(
-                icon = R.drawable.ic_share,
-                text = if (state.isVideo) "Share video" else "Share track"
-            ) {
-                onIntent(VideoOptionsIntent.OnShareClicked)
-            }
-
-            ActionItem(
-                icon = R.drawable.ic_edit,
-                text = "Rename file"
-            ) {
-                onIntent(VideoOptionsIntent.OnRenameClicked)
-            }
-
-            Spacer(Modifier.height(12.dp))
-            HorizontalDivider(Modifier, DividerDefaults.Thickness, Color(0xFFE5E7EB).copy(alpha = 0.6f))
-            Spacer(Modifier.height(12.dp))
-
-            // Delete (danger)
-            ActionItem(
-                icon = R.drawable.ic_delete,
-                text = "Delete file",
-                color = Color.Red,
-            ) {
-                onIntent(VideoOptionsIntent.OnDeleteClicked)
-            }
-
-            Spacer(Modifier.height(24.dp))
         }
-
     }
 }
 
 @Composable
-fun HighlightedActionItem(
-    icon: ImageVector,
-    text: String,
-    trailing: @Composable () -> Unit,
-    onClick: () -> Unit
+private fun AudioOptionsBottomSheetContent(
+    media: MediaFile,
+    fileMeta: String,
+    playbackSpeed: String,
+    onIntent: (VideoOptionsIntent) -> Unit,
+) {
+    Column(
+        modifier = Modifier
+            .fillMaxWidth()
+            .padding(horizontal = 18.dp)
+            .padding(bottom = 30.dp)
+    ) {
+        AudioOptionsHeader(
+            fileName = media.fileName,
+            fileMeta = fileMeta
+        )
+
+        Spacer(modifier = Modifier.height(18.dp))
+
+        AudioHighlightedOptionItem(
+            icon = R.drawable.ic_queue_media,
+            title = "Add to Playing Queue",
+            onClick = {
+                onIntent(VideoOptionsIntent.OnAddToPlayingQueueClicked)
+            }
+        )
+
+        Spacer(modifier = Modifier.height(16.dp))
+
+        AudioOptionItem(
+            icon = R.drawable.ic_playback_speed,
+            title = "Playback speed",
+            trailingText = playbackSpeed,
+            onClick = {
+                onIntent(VideoOptionsIntent.OnPlaybackSpeedClicked)
+            }
+        )
+
+        Spacer(modifier = Modifier.height(14.dp))
+
+        AudioOptionItem(
+            icon = R.drawable.ic_music_note,
+            title = "Set as ringtone",
+            onClick = {
+                onIntent(VideoOptionsIntent.OnSetAsRingtoneClicked)
+            }
+        )
+
+        Spacer(modifier = Modifier.height(14.dp))
+
+        AudioOptionItem(
+            icon = R.drawable.ic_share,
+            title = "Share track",
+            onClick = {
+                onIntent(VideoOptionsIntent.OnShareClicked)
+            }
+        )
+
+        Spacer(modifier = Modifier.height(14.dp))
+
+        AudioOptionItem(
+            icon = R.drawable.ic_info,
+            title = "File info",
+            onClick = {
+                onIntent(VideoOptionsIntent.OnFileInfoClicked)
+            }
+        )
+
+        Spacer(modifier = Modifier.height(14.dp))
+
+        AudioOptionItem(
+            icon = R.drawable.ic_edit,
+            title = "Rename file",
+            onClick = {
+                onIntent(VideoOptionsIntent.OnRenameClicked)
+            }
+        )
+
+        Spacer(modifier = Modifier.height(20.dp))
+
+        HorizontalDivider(
+            thickness = DividerDefaults.Thickness,
+            color = Color(0xFFE9EDF3)
+        )
+
+        Spacer(modifier = Modifier.height(18.dp))
+
+        AudioOptionItem(
+            icon = R.drawable.ic_delete,
+            title = "Delete file",
+            iconTint = Color(0xFFE00004),
+            textColor = Color(0xFFE00004),
+            iconBackground = Color(0xFFE00004).copy(alpha = 0.08f),
+            onClick = {
+                onIntent(VideoOptionsIntent.OnDeleteClicked)
+            }
+        )
+
+        Spacer(modifier = Modifier.height(14.dp))
+    }
+}
+
+@Composable
+private fun VideoOptionsBottomSheetContent(
+    media: MediaFile,
+    playbackSpeed: String,
+    onIntent: (VideoOptionsIntent) -> Unit,
+) {
+    Column(
+        modifier = Modifier
+            .fillMaxWidth()
+            .padding(horizontal = 22.dp)
+            .padding(bottom = 30.dp)
+    ) {
+        VideoOptionsHeader(
+            fileName = media.fileName,
+            fileMeta = "1.2 GB  •  1080p  •  02:14:30"
+        )
+
+        Spacer(modifier = Modifier.height(34.dp))
+
+        PlaybackSpeedOptionItem(
+            speed = playbackSpeed,
+            onClick = {
+                onIntent(VideoOptionsIntent.OnPlaybackSpeedClicked)
+            }
+        )
+
+        Spacer(modifier = Modifier.height(18.dp))
+
+        VideoOptionItem(
+            icon = R.drawable.ic_info,
+            title = "File info",
+            onClick = {
+                onIntent(VideoOptionsIntent.OnFileInfoClicked)
+            }
+        )
+
+        Spacer(modifier = Modifier.height(18.dp))
+
+        VideoOptionItem(
+            icon = R.drawable.ic_share,
+            title = "Share video",
+            onClick = {
+                onIntent(VideoOptionsIntent.OnShareClicked)
+            }
+        )
+
+        Spacer(modifier = Modifier.height(18.dp))
+
+        VideoOptionItem(
+            icon = R.drawable.ic_edit,
+            title = "Rename file",
+            onClick = {
+                onIntent(VideoOptionsIntent.OnRenameClicked)
+            }
+        )
+
+        Spacer(modifier = Modifier.height(24.dp))
+
+        HorizontalDivider(
+            thickness = DividerDefaults.Thickness,
+            color = Color(0xFFE9EDF3)
+        )
+
+        Spacer(modifier = Modifier.height(18.dp))
+
+        VideoOptionItem(
+            icon = R.drawable.ic_delete,
+            title = "Delete file",
+            iconTint = Color(0xFFE00004),
+            textColor = Color(0xFFE00004),
+            iconBackground = Color(0xFFE00004).copy(alpha = 0.08f),
+            onClick = {
+                onIntent(VideoOptionsIntent.OnDeleteClicked)
+            }
+        )
+
+        Spacer(modifier = Modifier.height(14.dp))
+    }
+}
+
+@Composable
+private fun AudioOptionsHeader(
+    fileName: String,
+    fileMeta: String,
+) {
+    Row(
+        modifier = Modifier
+            .fillMaxWidth()
+            .padding(horizontal = 16.dp),
+        verticalAlignment = Alignment.CenterVertically
+    ) {
+        Image(
+            painter = painterResource(R.drawable.music_player_thumbnail),
+            contentDescription = null,
+            modifier = Modifier
+                .size(58.dp)
+                .clip(RoundedCornerShape(16.dp))
+        )
+
+        Spacer(modifier = Modifier.width(14.dp))
+
+        Column(
+            modifier = Modifier.weight(1f)
+        ) {
+            Text(
+                text = fileName,
+                fontSize = 20.sp,
+                fontWeight = FontWeight.W800,
+                color = Color(0xFF111827),
+                maxLines = 1,
+                overflow = TextOverflow.Ellipsis
+            )
+
+            Spacer(modifier = Modifier.height(4.dp))
+
+            Text(
+                text = fileMeta,
+                fontSize = 15.sp,
+                fontWeight = FontWeight.W500,
+                color = Color(0xFF6B7280),
+                maxLines = 1,
+                overflow = TextOverflow.Ellipsis
+            )
+        }
+    }
+}
+
+@Composable
+private fun VideoOptionsHeader(
+    fileName: String,
+    fileMeta: String,
+) {
+    Column(
+        modifier = Modifier.fillMaxWidth()
+    ) {
+        Text(
+            text = fileName,
+            fontSize = 20.sp,
+            fontWeight = FontWeight.W700,
+            color = Color(0xFF111827),
+            maxLines = 1,
+            overflow = TextOverflow.Ellipsis
+        )
+
+        Spacer(modifier = Modifier.height(6.dp))
+
+        Text(
+            text = fileMeta,
+            fontSize = 14.sp,
+            fontWeight = FontWeight.W500,
+            color = Color(0xFF6B7280),
+            maxLines = 1,
+            overflow = TextOverflow.Ellipsis
+        )
+    }
+}
+
+@Composable
+private fun AudioHighlightedOptionItem(
+    icon: Int,
+    title: String,
+    onClick: () -> Unit,
 ) {
     Row(
         modifier = Modifier
             .fillMaxWidth()
             .clip(RoundedCornerShape(16.dp))
-            .background(Color(0xFFFDEAEA))
-            .clickable { onClick() }
-            .padding(16.dp),
+            .background(Color(0xFFFFF1F3))
+            .clickable(onClick = onClick)
+            .padding(horizontal = 16.dp, vertical = 15.dp),
         verticalAlignment = Alignment.CenterVertically
     ) {
-        Icon(icon, contentDescription = null, tint = Color.Red)
-
-        Spacer(Modifier.width(12.dp))
-
-        Text(
-            text = text,
-            color = Color.Red,
-            modifier = Modifier.weight(1f)
+        AudioOptionIconContainer(
+            icon = icon,
+            iconTint = Color(0xFFE00004),
+            backgroundColor = Color(0xFFE00004).copy(alpha = 0.10f)
         )
 
-        trailing()
-    }
-}
+        Spacer(modifier = Modifier.width(18.dp))
 
-@Composable
-fun SpeedBadge(speed: String) {
-    Box(
-        modifier = Modifier
-            .clip(RoundedCornerShape(50))
-            .background(Color.Red)
-            .padding(horizontal = 10.dp, vertical = 4.dp)
-    ) {
         Text(
-            text = speed,
-            color = Color.White,
-            style = MaterialTheme.typography.labelSmall
+            text = title,
+            fontSize = 17.sp,
+            fontWeight = FontWeight.W700,
+            color = Color(0xFFE00004),
+            maxLines = 1,
+            overflow = TextOverflow.Ellipsis
         )
     }
 }
 
 @Composable
-fun ActionItem(
-    icon: Int,
-    text: String,
-    color: Color = Color.Black,
-    background: Color = Color.Transparent,
-    onClick: () -> Unit
+private fun PlaybackSpeedOptionItem(
+    speed: String,
+    onClick: () -> Unit,
 ) {
     Row(
         modifier = Modifier
             .fillMaxWidth()
-            .clip(RoundedCornerShape(12.dp))
-            .background(background)
-            .clickable { onClick() }
-            .padding(vertical = 14.dp, horizontal = 4.dp),
+            .clip(RoundedCornerShape(22.dp))
+            .background(Color(0xFFFFF1F3))
+            .clickable(onClick = onClick)
+            .padding(horizontal = 18.dp, vertical = 18.dp),
         verticalAlignment = Alignment.CenterVertically
+    ) {
+        OptionIconContainer(
+            icon = R.drawable.ic_playback_speed,
+            iconTint = Color(0xFFE00004),
+            backgroundColor = Color(0xFFE00004).copy(alpha = 0.10f)
+        )
+
+        Spacer(modifier = Modifier.width(18.dp))
+
+        Text(
+            text = "Playback speed",
+            fontSize = 16.sp,
+            fontWeight = FontWeight.W600,
+            color = Color(0xFFE00004),
+            modifier = Modifier.weight(1f)
+        )
+
+        SpeedBadge(
+            speed = speed
+        )
+    }
+}
+
+@Composable
+private fun AudioOptionItem(
+    icon: Int,
+    title: String,
+    onClick: () -> Unit,
+    modifier: Modifier = Modifier,
+    trailingText: String? = null,
+    iconTint: Color = Color(0xFF111827),
+    textColor: Color = Color(0xFF111827),
+    iconBackground: Color = Color(0xFFF3F4F6),
+) {
+    Row(
+        modifier = modifier
+            .fillMaxWidth()
+            .clip(RoundedCornerShape(16.dp))
+            .clickable(onClick = onClick)
+            .padding(horizontal = 16.dp, vertical = 10.dp),
+        verticalAlignment = Alignment.CenterVertically
+    ) {
+        AudioOptionIconContainer(
+            icon = icon,
+            iconTint = iconTint,
+            backgroundColor = iconBackground
+        )
+
+        Spacer(modifier = Modifier.width(18.dp))
+
+        Text(
+            text = title,
+            fontSize = 17.sp,
+            fontWeight = FontWeight.W500,
+            color = textColor,
+            maxLines = 1,
+            overflow = TextOverflow.Ellipsis,
+            modifier = Modifier.weight(1f)
+        )
+
+        if (trailingText != null) {
+            Text(
+                text = trailingText,
+                fontSize = 14.sp,
+                fontWeight = FontWeight.W700,
+                color = Color(0xFFE00004)
+            )
+        }
+    }
+}
+
+@Composable
+private fun VideoOptionItem(
+    icon: Int,
+    title: String,
+    onClick: () -> Unit,
+    iconTint: Color = Color(0xFF111827),
+    textColor: Color = Color(0xFF111827),
+    iconBackground: Color = Color(0xFFF3F4F6),
+) {
+    Row(
+        modifier = Modifier
+            .fillMaxWidth()
+            .clip(RoundedCornerShape(16.dp))
+            .clickable(onClick = onClick)
+            .padding(horizontal = 18.dp, vertical = 8.dp),
+        verticalAlignment = Alignment.CenterVertically
+    ) {
+        OptionIconContainer(
+            icon = icon,
+            iconTint = iconTint,
+            backgroundColor = iconBackground
+        )
+
+        Spacer(modifier = Modifier.width(18.dp))
+
+        Text(
+            text = title,
+            fontSize = 16.sp,
+            fontWeight = FontWeight.W500,
+            color = textColor,
+            maxLines = 1,
+            overflow = TextOverflow.Ellipsis
+        )
+    }
+}
+
+@Composable
+private fun AudioOptionIconContainer(
+    icon: Int,
+    iconTint: Color,
+    backgroundColor: Color,
+) {
+    Box(
+        modifier = Modifier
+            .size(44.dp)
+            .clip(CircleShape)
+            .background(backgroundColor),
+        contentAlignment = Alignment.Center
     ) {
         Icon(
             painter = painterResource(icon),
             contentDescription = null,
-            tint = color,
-            )
+            tint = iconTint,
+            modifier = Modifier.size(24.dp)
+        )
+    }
+}
 
-        Spacer(Modifier.width(16.dp))
+@Composable
+private fun OptionIconContainer(
+    icon: Int,
+    iconTint: Color,
+    backgroundColor: Color,
+) {
+    Box(
+        modifier = Modifier
+            .size(44.dp)
+            .clip(RoundedCornerShape(16.dp))
+            .background(backgroundColor),
+        contentAlignment = Alignment.Center
+    ) {
+        Icon(
+            painter = painterResource(icon),
+            contentDescription = null,
+            tint = iconTint,
+            modifier = Modifier.size(24.dp)
+        )
+    }
+}
 
+@Composable
+private fun SpeedBadge(
+    speed: String,
+) {
+    Box(
+        modifier = Modifier
+            .clip(RoundedCornerShape(100.dp))
+            .background(Color(0xFFE00004))
+            .padding(horizontal = 12.dp, vertical = 6.dp),
+        contentAlignment = Alignment.Center
+    ) {
         Text(
-            text = text,
-            color = color,
-            fontWeight = FontWeight.W500,
-            fontSize = 16.sp
-            )
+            text = speed,
+            color = Color.White,
+            fontSize = 14.sp,
+            fontWeight = FontWeight.W700
+        )
+    }
+}
+
+@Composable
+private fun BottomSheetDragHandle() {
+    Box(
+        modifier = Modifier
+            .padding(top = 14.dp, bottom = 12.dp)
+            .size(width = 54.dp, height = 5.dp)
+            .clip(RoundedCornerShape(100.dp))
+            .background(Color(0xFFE5E7EB))
+    )
+}
+
+@Stable
+private fun Float.toPlaybackSpeedLabel(): String {
+    return when {
+        this == 1f -> "1x"
+        this % 1f == 0f -> "${this.toInt()}x"
+        else -> "${this}x"
     }
 }

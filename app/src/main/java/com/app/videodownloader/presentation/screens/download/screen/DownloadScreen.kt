@@ -65,6 +65,7 @@ fun DownloadScreen(
         mediaList: List<MediaFile>,
         startIndex: Int,
     ) -> Unit,
+    onMoreClick: (MediaFile) -> Unit,
 ) {
     val state by viewModel.state.collectAsStateWithLifecycle()
 
@@ -90,19 +91,24 @@ fun DownloadScreen(
         LazyColumn {
             itemsIndexed(list, key = { _, item -> item.id }) { indexed, item ->
                 if (state.selectedTab == DownloadTab.DOWNLOADING) {
-                    DownloadingCard(item= item, state = state , viewModel = viewModel)
+                    DownloadingCard(item = item, state = state, viewModel = viewModel)
                 } else {
                     CompletedCard(
                         item = item,
-                        state = state ,
+                        state = state,
                         viewModel = viewModel,
                         onItemCLicked = {
                             sendToMedia(
                                 state.completed.map { it.toMediaFile(true) },
                                 indexed
                             )
+                        },
+                        onMoreClicked = {
+                            onMoreClick(
+                                it.toMediaFile(true)
+                            )
                         }
-                        )
+                    )
                 }
             }
         }

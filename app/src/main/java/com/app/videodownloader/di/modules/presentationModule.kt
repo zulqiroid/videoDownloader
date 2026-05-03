@@ -1,5 +1,7 @@
 package com.app.videodownloader.di.modules
 
+import com.app.videodownloader.presentation.ads.banner.viewModel.BannerAdViewModel
+import com.app.videodownloader.presentation.lifecycle.AppOpenAdLifecycleObserver
 import com.app.videodownloader.presentation.screens.downloader.viewModel.DownloaderViewModel
 import com.app.videodownloader.presentation.screens.appLanguage.viewModel.AppLanguageViewModel
 import com.app.videodownloader.presentation.screens.download.viewModel.DownloadViewModel
@@ -19,16 +21,22 @@ import org.koin.dsl.module
 
 val presentationModule  = module{
 
-    viewModel{
+    viewModel {
         SplashViewModel(
-            get(),
-            get(),get(),
-            get(),
+            firstLaunchUseCases = get(),
+            policyUseCases = get(),
+            loadAppOpenAdUseCase = get(),
+            showAppOpenAdUseCase = get(),
+            getAppOpenAdConfigUseCase = get()
         )
     }
 
     viewModel{
-        AppLanguageViewModel()
+        AppLanguageViewModel(
+            get(),
+            get(),
+            get(),
+        )
     }
 
     viewModel {
@@ -36,12 +44,16 @@ val presentationModule  = module{
     }
     viewModel {
         OnboardingViewModel(
-            get(),
-            get(),
+            firstLaunchUseCases = get(),
+            policyUseCases = get(),
+            loadNativeAdUseCase = get(),
+            observeNativeAdsUseCase = get(),
+            observeNativeAdConfigUseCase = get(),
+            clearAllNativeAdsUseCase = get()
         )
     }
     viewModel {
-        MainViewModel(get(),get(), get(),get(),get(),)
+        MainViewModel(get(), get(), get(), get(), get(), get(), get(),get(), get())
     }
 
     viewModel { HomeViewModel(get()) }
@@ -56,11 +68,16 @@ val presentationModule  = module{
     viewModel {
         PlayerViewModel(get(),get(),)
     }
+
     viewModel {
         MediaPlayerViewModel(
-            application = androidApplication()
+            application = androidApplication(),
+            renameMediaFileUseCase = get(),
+            deleteMediaFileUseCase = get(),
+            setAudioAsRingtoneUseCase = get()
         )
     }
+
     viewModel {
         SocialViewModel(
             get()
@@ -71,5 +88,17 @@ val presentationModule  = module{
     }
     viewModel {
         PremiumViewModel()
+    }
+
+    single {
+        AppOpenAdLifecycleObserver(
+            appOpenAdRepository = get()
+        )
+    }
+
+    viewModel {
+        BannerAdViewModel(
+            observeBannerAdConfigUseCase = get()
+        )
     }
 }

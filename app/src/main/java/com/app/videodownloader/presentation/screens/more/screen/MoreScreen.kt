@@ -39,7 +39,12 @@ import com.app.videodownloader.R
 import com.app.videodownloader.presentation.screens.more.componants.DrawerItem
 
 @Composable
-fun MoreScreen() {
+fun MoreScreen(
+    onNotificationClick: () -> Unit,
+    onFeedbackClick: () -> Unit,
+    onHowToDownloadClicked: () -> Unit,
+    onRateUsClick: () -> Unit,
+) {
 
     Scaffold(
         modifier = Modifier.fillMaxSize(),
@@ -49,6 +54,7 @@ fun MoreScreen() {
         Column(
             modifier = Modifier
                 .fillMaxSize()
+                .padding(bottom = paddingValues.calculateBottomPadding())
                 .padding(horizontal = 20.dp)
                 .verticalScroll(rememberScrollState())
         ) {
@@ -130,21 +136,76 @@ fun MoreScreen() {
                 fontWeight = FontWeight.W800,
                 color = Color(0xFF8B95A5)
             )
-            DrawerItem("Languages", "Choose your preferred language", R.drawable.ic_world )
-            DrawerItem("How to Download", "Step-by-step guide", R.drawable.ic_how)
-            DrawerItem("Notifications", "Set up your alerts", R.drawable.ic_bell)
+
+            DrawerItem(
+                title = "Languages",
+                description = "Choose your preferred language",
+                icon = R.drawable.ic_world,
+                onClick = {
+                    // TODO
+                }
+            )
+
+            DrawerItem(
+                title = "How to Download",
+                description = "Step-by-step guide",
+                icon = R.drawable.ic_how,
+                onClick = {
+                    onHowToDownloadClicked()
+                }
+            )
+
+            DrawerItem(
+                title = "Notifications",
+                description = "Set up your alerts",
+                icon = R.drawable.ic_bell,
+                onClick = onNotificationClick
+            )
 
             Spacer(modifier = Modifier.height(20.dp))
+
             Text(
-                text = "SUPPOT & SHARE",
+                text = "SUPPORT & SHARE",
                 fontSize = 10.sp,
                 fontWeight = FontWeight.W800,
                 color = Color(0xFF8B95A5)
             )
-            DrawerItem("Share App", "Invite friends", R.drawable.ic_share)
-            DrawerItem("Rate Us","Give feedback on the store", R.drawable.ic_star)
-            DrawerItem("Feedback","Send us your suggestions", R.drawable.ic_mail)
-            DrawerItem("Privacy Policy","Legal and usage terms",R.drawable.ic_description)
+
+            DrawerItem(
+                title = "Share App",
+                description = "Invite friends",
+                icon = R.drawable.ic_share,
+                onClick = {
+                    // TODO
+                }
+            )
+
+            DrawerItem(
+                title = "Rate Us",
+                description = "Give feedback on the store",
+                icon = R.drawable.ic_star,
+                onClick = {
+                    onRateUsClick()
+                }
+            )
+
+            DrawerItem(
+                title = "Feedback",
+                description = "Send us your suggestions",
+                icon = R.drawable.ic_mail,
+                onClick = {
+                     onFeedbackClick()
+                }
+            )
+
+            DrawerItem(
+                title = "Privacy Policy",
+                description = "Legal and usage terms",
+                icon = R.drawable.ic_description,
+                onClick = {
+                    // TODO
+                }
+            )
         }
     }
 

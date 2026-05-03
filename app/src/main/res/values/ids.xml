@@ -1,0 +1,5 @@
+<?xml version="1.0" encoding="utf-8"?>
+<resources>
+    <!-- Used by NativeAdCard to remember which NativeAd is already bound to a NativeAdView. -->
+    <item name="tag_bound_native_ad" type="id" />
+</resources>

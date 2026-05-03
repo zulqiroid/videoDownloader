@@ -5,11 +5,11 @@ import com.app.videodownloader.domain.repository.MediaRepository
 class GetVideosUseCase(
     private val repository: MediaRepository
 ) {
-    suspend operator fun invoke() = repository.getVideos()
+    suspend operator fun invoke() = repository.observeVideos()
 }
 
 class GetAudiosUseCase(
     private val repository: MediaRepository
 ) {
-    suspend operator fun invoke() = repository.getAudios()
+    suspend operator fun invoke() = repository.observeAudios()
 }

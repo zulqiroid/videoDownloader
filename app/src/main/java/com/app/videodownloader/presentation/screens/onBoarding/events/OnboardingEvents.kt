@@ -1,15 +1,12 @@
 package com.app.videodownloader.presentation.screens.onBoarding.events
 
-import com.app.videodownloader.presentation.screens.appLanguage.events.AppLanguageUiEvents
-
 sealed class OnboardingEvents {
-     object NextClicked : OnboardingEvents()
+    data object NextClicked : OnboardingEvents()
     data class PageChanged(val index: Int) : OnboardingEvents()
-     object ContinueClicked : OnboardingEvents()
-    object OnPolicyDialogueAcceptClicked : OnboardingEvents()
-    object OnBackClicked : OnboardingEvents()
-
-    object OnDialogueExitClicked: OnboardingEvents()
-    object OnDialogueCancelCLicked: OnboardingEvents()
-
+    data object ContinueClicked : OnboardingEvents()
+    data object OnPolicyDialogueAcceptClicked : OnboardingEvents()
+    data object OnBackClicked : OnboardingEvents()
+    data object OnDialogueExitClicked : OnboardingEvents()
+    data object OnDialogueCancelCLicked : OnboardingEvents()
+    data object ScreenStarted : OnboardingEvents()
 }

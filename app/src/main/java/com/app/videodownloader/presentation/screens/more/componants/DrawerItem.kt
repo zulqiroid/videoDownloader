@@ -34,14 +34,20 @@ import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
 import com.app.videodownloader.R
 
-
 @Composable
-fun DrawerItem(title: String, description: String, icon: Int) {
+fun DrawerItem(
+    title: String,
+    description: String,
+    icon: Int,
+    onClick: () -> Unit,
+    modifier: Modifier = Modifier,
+) {
 
     Row(
-        modifier = Modifier
+        modifier = modifier
             .fillMaxWidth()
             .clickable { }
+            .clickable(onClick = onClick)
             .padding(vertical = 7.dp),
         verticalAlignment = Alignment.CenterVertically
     ) {

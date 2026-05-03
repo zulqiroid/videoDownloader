@@ -97,6 +97,8 @@ fun FileOptionsDialog(
     item: MediaFile?,
     onIntent: (FileDialogIntent) -> Unit,
 ) {
+    if (item == null) return
+
     Dialog(
         onDismissRequest = { onIntent(FileDialogIntent.OnDismiss) }
     ) {
@@ -140,7 +142,7 @@ fun FileOptionsDialog(
                         contentAlignment = Alignment.Center
                     ) {
                         Icon(
-                            painter = painterResource(if (item!!.isVideo)R.drawable.ic_pictorial_reel_filled else R.drawable.ic_audio),
+                            painter = painterResource(if (item.isVideo)R.drawable.ic_pictorial_reel_filled else R.drawable.ic_audio),
                             contentDescription = null,
                             tint = Color(0xFFE00004),
                             modifier = Modifier.size(32.dp)

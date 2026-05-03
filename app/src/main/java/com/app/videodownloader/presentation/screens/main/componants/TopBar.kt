@@ -115,7 +115,8 @@ fun HomeTopBar(
 
     Row(
         modifier = Modifier
-            .padding(horizontal = 16.dp, vertical = 22.dp)
+            .padding(horizontal = 16.dp,)
+            .padding(bottom = 16.dp)
             .fillMaxWidth(),
         verticalAlignment = Alignment.CenterVertically
     ) {
@@ -188,7 +189,8 @@ fun PlayerTopBar(
 
     Row(
         modifier = Modifier
-            .padding(horizontal = 16.dp, vertical = 22.dp)
+            .padding(horizontal = 16.dp)
+            .padding(bottom = 16.dp)
             .fillMaxWidth(),
         verticalAlignment = Alignment.CenterVertically
     ) {
@@ -240,7 +242,8 @@ fun ReelsTopBar(
 
     Row(
         modifier = Modifier
-            .padding(horizontal = 16.dp, vertical = 22.dp)
+            .padding(horizontal = 16.dp)
+            .padding(bottom = 16.dp)
             .fillMaxWidth(),
         verticalAlignment = Alignment.CenterVertically
     ) {
@@ -291,7 +294,8 @@ fun DownloadTopBar(
 
     Row(
         modifier = Modifier
-            .padding(horizontal = 16.dp, vertical = 22.dp)
+            .padding(horizontal = 16.dp)
+            .padding(bottom = 16.dp)
             .fillMaxWidth(),
         verticalAlignment = Alignment.CenterVertically
     ) {
@@ -342,7 +346,8 @@ fun MoreTopBar(
 
     Row(
         modifier = Modifier
-            .padding(horizontal = 16.dp, vertical = 22.dp)
+            .padding(horizontal = 16.dp)
+            .padding(bottom = 16.dp)
             .fillMaxWidth(),
         verticalAlignment = Alignment.CenterVertically
     ) {
@@ -393,7 +398,8 @@ fun SocialTopBar(
 
     Row(
         modifier = Modifier
-            .padding(horizontal = 16.dp, vertical = 22.dp)
+            .padding(horizontal = 16.dp)
+            .padding(bottom = 16.dp)
             .fillMaxWidth(),
         verticalAlignment = Alignment.CenterVertically
     ) {
