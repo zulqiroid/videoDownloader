@@ -9,6 +9,7 @@ import com.app.videodownloader.presentation.screens.downloadGuide.viewModel.Down
 import com.app.videodownloader.presentation.screens.home.viewModel.HomeViewModel
 import com.app.videodownloader.presentation.screens.main.viewModel.MainViewModel
 import com.app.videodownloader.presentation.screens.medaPlayer.viewModel.MediaPlayerViewModel
+import com.app.videodownloader.presentation.screens.more.viewModel.MoreViewModel
 import com.app.videodownloader.presentation.screens.onBoarding.viewModel.OnboardingViewModel
 import com.app.videodownloader.presentation.screens.player.viewModel.PlayerViewModel
 import com.app.videodownloader.presentation.screens.premium.viewModel.PremiumViewModel
@@ -63,10 +64,31 @@ val presentationModule  = module{
     }
 
     viewModel {
-        DownloadViewModel(get(),get(),get(),)
+        DownloadViewModel(
+            observeDownloadsUseCase = get(),
+            getDownloadedFilesUseCase = get(),
+            cancelDownloadUseCase = get(),
+            loadNativeAdUseCase = get(),
+            observeNativeAdsUseCase = get(),
+            observeNativeAdConfigUseCase = get()
+        )
     }
     viewModel {
-        PlayerViewModel(get(),get(),)
+        PlayerViewModel(
+            getVideos = get(),
+            getAudios = get(),
+            loadNativeAdUseCase = get(),
+            observeNativeAdsUseCase = get(),
+            observeNativeAdConfigUseCase = get()
+        )
+    }
+
+    viewModel {
+        MoreViewModel(
+            loadNativeAdUseCase = get(),
+            observeNativeAdsUseCase = get(),
+            observeNativeAdConfigUseCase = get()
+        )
     }
 
     viewModel {
@@ -74,7 +96,10 @@ val presentationModule  = module{
             application = androidApplication(),
             renameMediaFileUseCase = get(),
             deleteMediaFileUseCase = get(),
-            setAudioAsRingtoneUseCase = get()
+            setAudioAsRingtoneUseCase = get(),
+            loadNativeAdUseCase = get(),
+            observeNativeAdsUseCase = get(),
+            observeNativeAdConfigUseCase = get()
         )
     }
 

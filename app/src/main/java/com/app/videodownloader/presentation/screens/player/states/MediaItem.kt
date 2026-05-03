@@ -4,12 +4,16 @@ import android.content.ContentUris
 import android.provider.MediaStore
 import com.app.videodownloader.R
 import com.app.videodownloader.domain.model.MediaFile
+import com.app.videodownloader.domain.model.ads.NativeAdConfig
+import com.google.android.gms.ads.nativead.NativeAd
 
 data class PlayerState(
     val selectedTab: PlayerTab = PlayerTab.VIDEO,
     val videos: List<PlayerUiItem> = emptyList(),
     val audios: List<PlayerUiItem> = emptyList(),
-    val isLoading: Boolean = false
+    val isLoading: Boolean = false,
+    val nativeAds: Map<String, NativeAd> = emptyMap(),
+    val nativeAdConfig: NativeAdConfig = NativeAdConfig.default(),
 )
 
 enum class PlayerTab {

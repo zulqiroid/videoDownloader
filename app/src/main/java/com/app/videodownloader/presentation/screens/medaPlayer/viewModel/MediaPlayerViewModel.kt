@@ -1,6 +1,7 @@
 package com.app.videodownloader.presentation.screens.medaPlayer.viewModel
 
 import android.app.Application
+import android.util.Log
 import androidx.lifecycle.AndroidViewModel
 import androidx.lifecycle.viewModelScope
 import androidx.media3.exoplayer.ExoPlayer
@@ -9,9 +10,13 @@ import com.app.videodownloader.domain.model.MediaFile
 import com.app.videodownloader.domain.model.RenameMediaFileResult
 import com.app.videodownloader.domain.model.RingtoneTargetType
 import com.app.videodownloader.domain.model.SetRingtoneResult
+import com.app.videodownloader.domain.model.ads.NativeAdConfig
 import com.app.videodownloader.domain.usecases.DeleteMediaFileUseCase
 import com.app.videodownloader.domain.usecases.RenameMediaFileUseCase
 import com.app.videodownloader.domain.usecases.SetAudioAsRingtoneUseCase
+import com.app.videodownloader.domain.usecases.ads.LoadNativeAdUseCase
+import com.app.videodownloader.domain.usecases.ads.ObserveNativeAdConfigUseCase
+import com.app.videodownloader.domain.usecases.ads.ObserveNativeAdsUseCase
 import com.app.videodownloader.presentation.screens.medaPlayer.events.MediaPlayerEvent
 import com.app.videodownloader.presentation.screens.medaPlayer.events.MediaPlayerNavEvent
 import com.app.videodownloader.presentation.screens.medaPlayer.events.VideoOptionsIntent
@@ -33,6 +38,9 @@ class MediaPlayerViewModel(
     private val renameMediaFileUseCase: RenameMediaFileUseCase,
     private val deleteMediaFileUseCase: DeleteMediaFileUseCase,
     private val setAudioAsRingtoneUseCase: SetAudioAsRingtoneUseCase,
+    private val loadNativeAdUseCase: LoadNativeAdUseCase,
+    private val observeNativeAdsUseCase: ObserveNativeAdsUseCase,
+    private val observeNativeAdConfigUseCase: ObserveNativeAdConfigUseCase,
 ) : AndroidViewModel(application) {
 
     private var playerManager = MediaPlayerManager(application)
@@ -49,6 +57,8 @@ class MediaPlayerViewModel(
         get() = playerManager.player
 
     init {
+        observeNativeAds()
+        observeNativeAdConfig()
         startProgressObserver()
     }
 
@@ -116,6 +126,9 @@ class MediaPlayerViewModel(
                 _state.update {
                     it.copy(showBottomSheet = true)
                 }
+            }
+            MediaPlayerEvent.OnNativeAdPageVisible -> {
+                onNativeAdPageVisible()
             }
         }
     }
@@ -951,6 +964,55 @@ class MediaPlayerViewModel(
         }
     }
 
+    private fun observeNativeAds() {
+        viewModelScope.launch {
+            observeNativeAdsUseCase().collect { nativeAds ->
+                _state.update {
+                    it.copy(nativeAds = nativeAds)
+                }
+            }
+        }
+    }
+
+    private fun observeNativeAdConfig() {
+        viewModelScope.launch {
+            observeNativeAdConfigUseCase().collect { config ->
+                _state.update {
+                    it.copy(nativeAdConfig = config)
+                }
+
+                if (config.placement(NativeAdConfig.MEDIA_PLAYER_BETWEEN_VIDEOS) != null) {
+                    loadMediaPlayerNativeAd()
+                }
+            }
+        }
+    }
+
+    private fun loadMediaPlayerNativeAd() {
+        loadNativeAdUseCase(
+            placementKey = NativeAdConfig.MEDIA_PLAYER_BETWEEN_VIDEOS,
+            onStateChanged = { adState ->
+                Log.d(TAG, "Media player native ad state: $adState")
+            }
+        )
+    }
+
+    private fun onNativeAdPageVisible() {
+        playerManager.pause()
+
+        _state.update {
+            it.copy(
+                isPlaying = false,
+                showBottomSheet = false,
+                showPlaybackSpeedDialog = false,
+                showFileInfoDialog = false,
+                showRenameFileDialog = false,
+                showDeleteFileDialog = false,
+                showSetAsRingtoneDialog = false
+            )
+        }
+    }
+
     override fun onCleared() {
         progressJob?.cancel()
         progressJob = null
@@ -966,5 +1028,6 @@ class MediaPlayerViewModel(
         private const val PROGRESS_UPDATE_INTERVAL_MS = 300L
         private const val MIN_PLAYBACK_SPEED = 0.25f
         private const val MAX_PLAYBACK_SPEED = 4f
+        private const val TAG = "MediaPlayerViewModel"
     }
 }

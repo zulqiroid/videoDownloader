@@ -30,4 +30,6 @@ sealed class MediaPlayerEvent {
 
     object OnThreeDotsClick: MediaPlayerEvent()
 
+    data object OnNativeAdPageVisible : MediaPlayerEvent()
+
  }

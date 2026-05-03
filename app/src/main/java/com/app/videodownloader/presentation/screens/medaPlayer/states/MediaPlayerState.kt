@@ -2,6 +2,8 @@ package com.app.videodownloader.presentation.screens.medaPlayer.states
 
 import com.app.videodownloader.domain.model.MediaFile
 import com.app.videodownloader.domain.model.RingtoneTargetType
+import com.app.videodownloader.domain.model.ads.NativeAdConfig
+import com.google.android.gms.ads.nativead.NativeAd
 
 data class MediaPlayerState(
     val mediaList: List<MediaFile> = emptyList(),
@@ -40,7 +42,10 @@ data class MediaPlayerState(
     val isLoading: Boolean = false,
 
     val showBottomSheet: Boolean = false,
-) {
+
+    val nativeAds: Map<String, NativeAd> = emptyMap(),
+    val nativeAdConfig: NativeAdConfig = NativeAdConfig.default(),
+    ) {
     companion object {
         const val DEFAULT_PLAYBACK_SPEED = 1f
     }

@@ -5,7 +5,9 @@ import android.provider.MediaStore
 import com.app.videodownloader.domain.model.DownloadItem
 import com.app.videodownloader.domain.model.DownloadStatus
 import com.app.videodownloader.domain.model.MediaFile
+import com.app.videodownloader.domain.model.ads.NativeAdConfig
 import com.app.videodownloader.presentation.screens.player.states.PlayerUiItem
+import com.google.android.gms.ads.nativead.NativeAd
 
 
 data class DownloadState(
@@ -13,7 +15,9 @@ data class DownloadState(
     val selectedTab: DownloadTab = DownloadTab.DOWNLOADING,
     val downloading: List<DownloadUiItem> = emptyList(),
     val completed: List<DownloadUiItem> = emptyList(),
-    val error: String? = null
+    val error: String? = null,
+    val nativeAds: Map<String, NativeAd> = emptyMap(),
+    val nativeAdConfig: NativeAdConfig = NativeAdConfig.default(),
 )
 
 

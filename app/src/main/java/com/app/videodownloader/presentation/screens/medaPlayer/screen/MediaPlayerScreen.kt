@@ -55,6 +55,12 @@ import com.app.videodownloader.domain.model.ads.BannerAdSlot
 import com.app.videodownloader.presentation.ads.banner.componants.BannerAdHost
 import com.app.videodownloader.presentation.ads.banner.viewModel.BannerAdViewModel
 import com.app.videodownloader.presentation.screens.medaPlayer.componants.SetAsRingtoneDialog
+import androidx.compose.runtime.remember
+import com.app.videodownloader.domain.model.ads.NativeAdConfig
+import com.app.videodownloader.domain.model.ads.NativeAdPlacementConfig
+import com.app.videodownloader.presentation.ads.nativeAd.NativeAdHost
+import com.app.videodownloader.presentation.ads.nativeAd.NativeAdListHelper
+import com.google.android.gms.ads.nativead.NativeAd
 
 @OptIn(ExperimentalFoundationApi::class)
 @Composable
@@ -216,21 +222,58 @@ fun MediaPlayerScreen(
         return
     }
 
-    val pagerState = rememberPagerState(
-        initialPage = state.currentIndex,
-        pageCount = { state.mediaList.size }
-    )
+    val nativePlacementKey = NativeAdConfig.MEDIA_PLAYER_BETWEEN_VIDEOS
+    val nativePlacementConfig = state.nativeAdConfig.placement(nativePlacementKey)
+    val nativeAd = state.nativeAds[nativePlacementKey]
 
-    LaunchedEffect(state.currentIndex) {
-        if (pagerState.currentPage != state.currentIndex) {
-            pagerState.animateScrollToPage(state.currentIndex)
-        }
+    val pagerItems = remember(
+        state.mediaList,
+        nativePlacementConfig?.enabled,
+        nativePlacementConfig?.style,
+        nativePlacementConfig?.position,
+        nativePlacementConfig?.listInsertionMode,
+        nativePlacementConfig?.insertAfterItemIndex,
+        nativePlacementConfig?.insertEveryNItems
+    ) {
+        buildMediaPlayerPagerItems(
+            mediaList = state.mediaList,
+            placementConfig = nativePlacementConfig
+        )
     }
 
-    LaunchedEffect(pagerState.currentPage) {
-        viewModel.onEvent(
-            MediaPlayerEvent.OnPageChanged(pagerState.currentPage)
-        )
+    val initialPagerPage = remember(
+        pagerItems,
+        startIndex
+    ) {
+        pagerItems.pageIndexForMediaIndex(startIndex)
+    }
+
+    val pagerState = rememberPagerState(
+        initialPage = initialPagerPage,
+        pageCount = { pagerItems.size }
+    )
+
+    LaunchedEffect(state.currentIndex, pagerItems) {
+        val targetPage = pagerItems.pageIndexForMediaIndex(state.currentIndex)
+
+        if (pagerState.currentPage != targetPage) {
+            pagerState.animateScrollToPage(targetPage)
+        }
+    }
+    LaunchedEffect(pagerState.currentPage, pagerItems) {
+        when (val item = pagerItems.getOrNull(pagerState.currentPage)) {
+            is MediaPlayerPagerItem.Media -> {
+                viewModel.onEvent(
+                    MediaPlayerEvent.OnPageChanged(item.mediaIndex)
+                )
+            }
+
+            MediaPlayerPagerItem.NativeAd -> {
+                viewModel.onEvent(MediaPlayerEvent.OnNativeAdPageVisible)
+            }
+
+            null -> Unit
+        }
     }
 
     BackHandler {
@@ -285,71 +328,83 @@ fun MediaPlayerScreen(
         ) {
             VerticalPager(
                 state = pagerState,
-                modifier = Modifier.fillMaxSize()
+                modifier = Modifier.fillMaxSize(),
+                beyondViewportPageCount = 0
             ) { page ->
 
-                val media = state.mediaList[page]
-                val isCurrentPage = state.currentIndex == page
+                when (val item = pagerItems[page]) {
+                    is MediaPlayerPagerItem.Media -> {
+                        val media = item.media
+                        val isCurrentPage = state.currentIndex == item.mediaIndex
 
-                Box(
-                    modifier = Modifier
-                        .fillMaxSize()
-                        .background(Color.Black)
-                ) {
-                    if (isCurrentPage) {
-                        if (media.isVideo) {
-                            VideoPlayerItem(
-                                media = media,
-                                viewModel = viewModel,
-                                onBack = {
-                                    viewModel.onEvent(MediaPlayerEvent.OnBackPressed)
-                                    backStack.removeLastOrNull()
-                                },
-                                onThreeDotsClick = {
-                                    viewModel.onEvent(MediaPlayerEvent.OnThreeDotsClick)
+                        Box(
+                            modifier = Modifier
+                                .fillMaxSize()
+                                .background(Color.Black)
+                        ) {
+                            if (isCurrentPage) {
+                                if (media.isVideo) {
+                                    VideoPlayerItem(
+                                        media = media,
+                                        viewModel = viewModel,
+                                        onBack = {
+                                            viewModel.onEvent(MediaPlayerEvent.OnBackPressed)
+                                            backStack.removeLastOrNull()
+                                        },
+                                        onThreeDotsClick = {
+                                            viewModel.onEvent(MediaPlayerEvent.OnThreeDotsClick)
+                                        }
+                                    )
+                                } else {
+                                    AudioPlayerItem(
+                                        media = media,
+                                        viewModel = viewModel,
+                                        onBack = {
+                                            viewModel.onEvent(MediaPlayerEvent.OnBackPressed)
+                                            backStack.removeLastOrNull()
+                                        },
+                                        onPlayPause = {
+                                            viewModel.onEvent(MediaPlayerEvent.OnPlayPauseClicked)
+                                        },
+                                        onForward = {
+                                            viewModel.onEvent(MediaPlayerEvent.OnForwardClicked)
+                                        },
+                                        onRewind = {
+                                            viewModel.onEvent(MediaPlayerEvent.OnRewindClicked)
+                                        },
+                                        onNext = {
+                                            viewModel.onEvent(MediaPlayerEvent.OnNextClicked)
+                                        },
+                                        onPrevious = {
+                                            viewModel.onEvent(MediaPlayerEvent.OnPreviousClicked)
+                                        },
+                                        onSeek = {
+                                            viewModel.onEvent(MediaPlayerEvent.OnSeek(it))
+                                        },
+                                        onMuteToggle = {
+                                            viewModel.onEvent(MediaPlayerEvent.OnMuteToggleClicked)
+                                        },
+                                        onVolumeChange = {
+                                            viewModel.onEvent(MediaPlayerEvent.OnVolumeChanged(it))
+                                        },
+                                        onThreeDotsClick = {
+                                            viewModel.onEvent(MediaPlayerEvent.OnThreeDotsClick)
+                                        }
+                                    )
                                 }
-                            )
-                        } else {
-                            AudioPlayerItem(
-                                media = media,
-                                viewModel = viewModel,
-                                onBack = {
-                                    viewModel.onEvent(MediaPlayerEvent.OnBackPressed)
-                                    backStack.removeLastOrNull()
-                                },
-                                onPlayPause = {
-                                    viewModel.onEvent(MediaPlayerEvent.OnPlayPauseClicked)
-                                },
-                                onForward = {
-                                    viewModel.onEvent(MediaPlayerEvent.OnForwardClicked)
-                                },
-                                onRewind = {
-                                    viewModel.onEvent(MediaPlayerEvent.OnRewindClicked)
-                                },
-                                onNext = {
-                                    viewModel.onEvent(MediaPlayerEvent.OnNextClicked)
-                                },
-                                onPrevious = {
-                                    viewModel.onEvent(MediaPlayerEvent.OnPreviousClicked)
-                                },
-                                onSeek = {
-                                    viewModel.onEvent(MediaPlayerEvent.OnSeek(it))
-                                },
-                                onMuteToggle = {
-                                    viewModel.onEvent(MediaPlayerEvent.OnMuteToggleClicked)
-                                },
-                                onVolumeChange = {
-                                    viewModel.onEvent(MediaPlayerEvent.OnVolumeChanged(it))
-                                },
-                                onThreeDotsClick = {
-                                    viewModel.onEvent(MediaPlayerEvent.OnThreeDotsClick)
-                                }
-                            )
+                            }
                         }
+                    }
+
+                    MediaPlayerPagerItem.NativeAd -> {
+                        MediaPlayerNativeAdPage(
+                            nativeAd = nativeAd,
+                            nativeAdConfig = state.nativeAdConfig,
+                            placementConfig = nativePlacementConfig
+                        )
                     }
                 }
             }
-
             val currentMedia = state.mediaList.getOrNull(state.currentIndex)
 
             if (state.showBottomSheet && currentMedia != null) {
@@ -493,4 +548,86 @@ private fun MediaFile.toMediaStoreUri(): android.net.Uri {
     }
 
     return ContentUris.withAppendedId(collectionUri, id)
+}
+
+private sealed interface MediaPlayerPagerItem {
+
+    data class Media(
+        val media: MediaFile,
+        val mediaIndex: Int
+    ) : MediaPlayerPagerItem
+
+    data object NativeAd : MediaPlayerPagerItem
+}
+
+private fun buildMediaPlayerPagerItems(
+    mediaList: List<MediaFile>,
+    placementConfig: NativeAdPlacementConfig?
+): List<MediaPlayerPagerItem> {
+    if (mediaList.isEmpty()) return emptyList()
+
+    val items = mutableListOf<MediaPlayerPagerItem>()
+
+    if (
+        placementConfig != null &&
+        NativeAdListHelper.shouldShowAdAfterItem(
+            index = -1,
+            totalItems = mediaList.size,
+            config = placementConfig
+        )
+    ) {
+        items += MediaPlayerPagerItem.NativeAd
+    }
+
+    mediaList.forEachIndexed { index, media ->
+        items += MediaPlayerPagerItem.Media(
+            media = media,
+            mediaIndex = index
+        )
+
+        if (
+            placementConfig != null &&
+            NativeAdListHelper.shouldShowAdAfterItem(
+                index = index,
+                totalItems = mediaList.size,
+                config = placementConfig
+            )
+        ) {
+            items += MediaPlayerPagerItem.NativeAd
+        }
+    }
+
+    return items
+}
+
+private fun List<MediaPlayerPagerItem>.pageIndexForMediaIndex(
+    mediaIndex: Int
+): Int {
+    return indexOfFirst { item ->
+        item is MediaPlayerPagerItem.Media && item.mediaIndex == mediaIndex
+    }.coerceAtLeast(0)
+}
+
+@Composable
+private fun MediaPlayerNativeAdPage(
+    nativeAd: NativeAd?,
+    nativeAdConfig: NativeAdConfig,
+    placementConfig: NativeAdPlacementConfig?
+) {
+    Box(
+        modifier = Modifier
+            .fillMaxSize()
+            .background(Color.Black),
+        contentAlignment = Alignment.Center
+    ) {
+        if (placementConfig != null) {
+            NativeAdHost(
+                nativeAd = nativeAd,
+                nativeAdConfig = nativeAdConfig,
+                placementConfig = placementConfig,
+                placementKey = NativeAdConfig.MEDIA_PLAYER_BETWEEN_VIDEOS,
+                modifier = Modifier.fillMaxSize()
+            )
+        }
+    }
 }

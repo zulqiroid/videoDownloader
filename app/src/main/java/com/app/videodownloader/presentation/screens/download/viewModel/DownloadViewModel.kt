@@ -1,12 +1,17 @@
     package com.app.videodownloader.presentation.screens.download.viewModel
 
+    import android.util.Log
     import androidx.lifecycle.ViewModel
     import androidx.lifecycle.viewModelScope
     import com.app.videodownloader.domain.model.DownloadItem
     import com.app.videodownloader.domain.model.DownloadStatus
+    import com.app.videodownloader.domain.model.ads.NativeAdConfig
     import com.app.videodownloader.domain.usecases.CancelDownloadUseCase
     import com.app.videodownloader.domain.usecases.GetDownloadedFilesUseCase
     import com.app.videodownloader.domain.usecases.ObserveDownloadsUseCase
+    import com.app.videodownloader.domain.usecases.ads.LoadNativeAdUseCase
+    import com.app.videodownloader.domain.usecases.ads.ObserveNativeAdConfigUseCase
+    import com.app.videodownloader.domain.usecases.ads.ObserveNativeAdsUseCase
     import com.app.videodownloader.presentation.screens.download.events.DownloadEvents
     import com.app.videodownloader.presentation.screens.download.states.DownloadState
     import com.app.videodownloader.presentation.screens.download.states.DownloadTab
@@ -20,7 +25,10 @@
     class DownloadViewModel(
         private val observeDownloadsUseCase: ObserveDownloadsUseCase,
         private val getDownloadedFilesUseCase: GetDownloadedFilesUseCase,
-        private val cancelDownloadUseCase: CancelDownloadUseCase
+        private val cancelDownloadUseCase: CancelDownloadUseCase,
+        private val loadNativeAdUseCase: LoadNativeAdUseCase,
+        private val observeNativeAdsUseCase: ObserveNativeAdsUseCase,
+        private val observeNativeAdConfigUseCase: ObserveNativeAdConfigUseCase
     ) : ViewModel() {
 
         private val _state = MutableStateFlow(DownloadState())
@@ -29,6 +37,8 @@
         init {
             loadLocalFiles()
             observeDownloads()
+            observeNativeAds()
+            observeNativeAdConfig()
         }
 
         fun onEvent(event: DownloadEvents){
@@ -131,5 +141,61 @@
             _state.update {
                 it.copy(selectedTab = tab)
             }
+        }
+
+        private fun observeNativeAds() {
+            viewModelScope.launch {
+                observeNativeAdsUseCase().collect { nativeAds ->
+                    _state.update {
+                        it.copy(nativeAds = nativeAds)
+                    }
+                }
+            }
+        }
+
+        private fun observeNativeAdConfig() {
+            viewModelScope.launch {
+                observeNativeAdConfigUseCase().collect { config ->
+                    _state.update {
+                        it.copy(nativeAdConfig = config)
+                    }
+
+                    loadVisibleNativeAds(config)
+                }
+            }
+        }
+
+        private fun loadVisibleNativeAds(
+            config: NativeAdConfig = _state.value.nativeAdConfig
+        ) {
+            loadIfEnabled(
+                config = config,
+                placementKey = NativeAdConfig.DOWNLOAD_DOWNLOADING_LIST
+            )
+
+            loadIfEnabled(
+                config = config,
+                placementKey = NativeAdConfig.DOWNLOAD_COMPLETED_LIST
+            )
+        }
+
+        private fun loadIfEnabled(
+            config: NativeAdConfig,
+            placementKey: String
+        ) {
+            if (config.placement(placementKey) == null) {
+                return
+            }
+
+            loadNativeAdUseCase(
+                placementKey = placementKey,
+                onStateChanged = { adState ->
+                    Log.d(TAG, "Download native ad state. placement=$placementKey state=$adState")
+                }
+            )
+        }
+
+        companion object {
+            private const val TAG = "DownloadViewModel"
         }
     }

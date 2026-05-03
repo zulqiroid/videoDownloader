@@ -72,16 +72,19 @@ data class NativeAdConfig(
     val mediaCornerRadiusDp: Int = 12,
 
     @SerialName("placements")
-    val placements: Map<String, NativeAdPlacementConfig> = defaultPlacements()
+    val placements: Map<String, NativeAdPlacementConfig> = defaultPlacements(),
 ) {
     fun placement(
-        key: String
+        key: String,
     ): NativeAdPlacementConfig? {
         if (!enabled) return null
         return placements[key]?.takeIf { it.enabled }
     }
 
     companion object {
+
+        const val DEFAULT_SLOT = "default"
+
         const val TEST_NATIVE_AD_UNIT_ID = "ca-app-pub-3940256099942544/2247696110"
 
         const val GENERIC = "generic"
@@ -92,6 +95,12 @@ data class NativeAdConfig(
         const val ONBOARDING_STEP_4 = "onboarding_step_4"
 
         const val APP_LANGUAGE_LIST = "app_language_list"
+        const val MEDIA_PLAYER_BETWEEN_VIDEOS = "media_player_between_videos"
+        const val PLAYER_LIST = "player_list"
+        const val MORE_TOP = "more_top"
+        const val MORE_BOTTOM = "more_bottom"
+        const val DOWNLOAD_DOWNLOADING_LIST = "download_downloading_list"
+        const val DOWNLOAD_COMPLETED_LIST = "download_completed_list"
 
         fun default(): NativeAdConfig = NativeAdConfig()
 
@@ -128,6 +137,55 @@ data class NativeAdConfig(
                     showPlaceholder = true,
                     listInsertionMode = NativeAdListInsertionMode.AfterItem,
                     insertAfterItemIndex = 0
+                ),
+                MEDIA_PLAYER_BETWEEN_VIDEOS to NativeAdPlacementConfig(
+                    enabled = true,
+                    style = NativeAdStyle.Large,
+                    position = NativeAdPosition.FullPage,
+                    showPlaceholder = true,
+                    listInsertionMode = NativeAdListInsertionMode.EveryNItems,
+                    insertEveryNItems = 3
+                ),
+                PLAYER_LIST to NativeAdPlacementConfig(
+                    enabled = true,
+                    style = NativeAdStyle.Small,
+                    position = NativeAdPosition.Bottom,
+                    showPlaceholder = true,
+                    listInsertionMode = NativeAdListInsertionMode.AfterItem,
+                    insertAfterItemIndex = 2,
+                    insertEveryNItems = 0
+                ),
+                MORE_TOP to NativeAdPlacementConfig(
+                    enabled = true,
+                    style = NativeAdStyle.Small,
+                    position = NativeAdPosition.Top,
+                    showPlaceholder = true,
+                    listInsertionMode = NativeAdListInsertionMode.Disabled
+                ),
+                MORE_BOTTOM to NativeAdPlacementConfig(
+                    enabled = true,
+                    style = NativeAdStyle.Small,
+                    position = NativeAdPosition.Bottom,
+                    showPlaceholder = true,
+                    listInsertionMode = NativeAdListInsertionMode.Disabled
+                ),
+                DOWNLOAD_DOWNLOADING_LIST to NativeAdPlacementConfig(
+                    enabled = true,
+                    style = NativeAdStyle.Small,
+                    position = NativeAdPosition.Bottom,
+                    showPlaceholder = true,
+                    listInsertionMode = NativeAdListInsertionMode.AfterItem,
+                    insertAfterItemIndex = 1,
+                    insertEveryNItems = 0
+                ),
+                DOWNLOAD_COMPLETED_LIST to NativeAdPlacementConfig(
+                    enabled = true,
+                    style = NativeAdStyle.Small,
+                    position = NativeAdPosition.Bottom,
+                    showPlaceholder = true,
+                    listInsertionMode = NativeAdListInsertionMode.AfterItem,
+                    insertAfterItemIndex = 2,
+                    insertEveryNItems = 0
                 )
             )
         }
@@ -155,7 +213,7 @@ data class NativeAdPlacementConfig(
     val insertAfterItemIndex: Int = 2,
 
     @SerialName("insert_every_n_items")
-    val insertEveryNItems: Int = 0
+    val insertEveryNItems: Int = 0,
 )
 
 @Serializable
