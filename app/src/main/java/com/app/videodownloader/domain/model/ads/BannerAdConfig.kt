@@ -82,7 +82,11 @@ data class BannerAdConfig(
                 BannerAdScreen.OnBoarding.remoteKey to BannerScreenConfig(
                     top = true,
                     bottom = true
-                )
+                ),
+                BannerAdScreen.DownloadGuide.remoteKey to BannerScreenConfig(
+                    top = true,
+                    bottom = true
+                ),
             )
         }
     }

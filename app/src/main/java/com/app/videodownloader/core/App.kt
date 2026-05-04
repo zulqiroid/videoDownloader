@@ -1,11 +1,15 @@
 package com.app.videodownloader.core
 
 import android.app.Application
+import android.content.Context
 import android.util.Log
 import androidx.lifecycle.ProcessLifecycleOwner
+ import com.app.videodownloader.data.notification.AppNotificationManager
 import com.app.videodownloader.di.appModule
 import com.app.videodownloader.domain.repository.RemoteConfigRepository
 import com.app.videodownloader.presentation.lifecycle.AppOpenAdLifecycleObserver
+import com.app.videodownloader.presentation.localization.BlockingLocaleReader
+import com.app.videodownloader.presentation.localization.LocaleContextWrapper
 import com.google.android.gms.ads.MobileAds
 import kotlinx.coroutines.CoroutineScope
 import kotlinx.coroutines.Dispatchers
@@ -18,6 +22,17 @@ class App : Application() {
 
     private lateinit var appOpenAdLifecycleObserver: AppOpenAdLifecycleObserver
 
+    override fun attachBaseContext(base: Context) {
+        val selectedLanguage = BlockingLocaleReader.readLanguage(base)
+
+        val localizedContext = LocaleContextWrapper.wrap(
+            context = base,
+            language = selectedLanguage
+        )
+
+        super.attachBaseContext(localizedContext)
+    }
+
     override fun onCreate() {
         super.onCreate()
 
@@ -28,6 +43,9 @@ class App : Application() {
         }
 
         val koin = GlobalContext.get()
+
+        val appNotificationManager: AppNotificationManager = koin.get()
+        appNotificationManager.createNotificationChannels()
 
         appOpenAdLifecycleObserver = koin.get()
 

@@ -5,5 +5,8 @@ import com.app.videodownloader.presentation.screens.splash.events.SplashNavEvent
 sealed class AppLanguageNavEvents {
     object NavigateToOnBoarding: AppLanguageNavEvents()
     object ExitApp: AppLanguageNavEvents()
+    object NavigateToBack: AppLanguageNavEvents()
+
+    object RecreateActivity : AppLanguageNavEvents()
 
 }

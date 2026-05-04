@@ -99,5 +99,7 @@ dependencies {
 
     implementation("androidx.documentfile:documentfile:1.1.0")
 
+    implementation("com.google.android.ump:user-messaging-platform:4.0.0")
+
     implementation(libs.play.services.ads)
 }

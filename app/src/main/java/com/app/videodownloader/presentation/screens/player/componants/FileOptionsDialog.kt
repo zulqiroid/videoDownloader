@@ -185,13 +185,6 @@ fun FileOptionsDialog(
                 Row(horizontalArrangement = Arrangement.spacedBy(12.dp)) {
 
                     QuickActionButton(
-                        text = "Add to Queue",
-                        icon = R.drawable.ic_queue_media,
-                        onClick = { onIntent(FileDialogIntent.OnAddToQueueClicked) },
-                        modifier = Modifier.weight(1f)
-                    )
-
-                    QuickActionButton(
                         text = "Share File",
                         icon = R.drawable.ic_share,
                         onClick = { onIntent(FileDialogIntent.OnShareClicked) },
@@ -265,13 +258,16 @@ fun QuickActionButton(
     onClick: () -> Unit,
     modifier: Modifier = Modifier,
 ) {
-    Column(
-        modifier = modifier
-            .clip(RoundedCornerShape(14.dp))
-            .background(Color(0xFFF2F2F2))
-            .clickable { onClick() }
-            .padding(vertical = 14.dp),
-        horizontalAlignment = Alignment.CenterHorizontally
+
+    Button(
+        onClick = { onClick()  },
+        modifier = Modifier
+            .fillMaxWidth()
+            .height(52.dp),
+        shape = RoundedCornerShape(14.dp),
+        colors = ButtonDefaults.buttonColors(
+            containerColor = Color(0xFFF2F2F2) // Netflix red style
+        )
     ) {
         Icon(
             painter = painterResource(icon),
@@ -279,7 +275,7 @@ fun QuickActionButton(
             tint = Color(0xFF111827),
             modifier = Modifier.size(24.dp)
         )
-        Spacer(Modifier.height(6.dp))
+        Spacer(Modifier.height(8.dp))
         Text(
             text = text,
             fontWeight = FontWeight.W700,

@@ -17,6 +17,7 @@ data class DownloadState(
     val completed: List<DownloadUiItem> = emptyList(),
     val error: String? = null,
     val nativeAds: Map<String, NativeAd> = emptyMap(),
+    val nativeAdPools: Map<String, Map<String, NativeAd>> = emptyMap(),
     val nativeAdConfig: NativeAdConfig = NativeAdConfig.default(),
 )
 

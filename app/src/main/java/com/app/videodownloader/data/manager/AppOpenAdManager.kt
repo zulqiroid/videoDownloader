@@ -5,6 +5,7 @@ import android.content.Context
 import android.util.Log
 import com.app.videodownloader.domain.model.ads.AdState
 import com.app.videodownloader.domain.model.ads.AppOpenAdConfig
+import com.app.videodownloader.domain.usecases.ads.CanRequestAdsUseCase
 import com.app.videodownloader.domain.usecases.ads.ObserveAppOpenAdConfigUseCase
  import com.google.android.gms.ads.AdError
 import com.google.android.gms.ads.AdRequest
@@ -21,7 +22,8 @@ import kotlin.math.pow
 
 class AppOpenAdManager(
     context: Context,
-    observeAppOpenAdConfigUseCase: ObserveAppOpenAdConfigUseCase
+    observeAppOpenAdConfigUseCase: ObserveAppOpenAdConfigUseCase,
+    private val canRequestAdsUseCase: CanRequestAdsUseCase
 ) {
 
     private val appContext = context.applicationContext

@@ -25,7 +25,7 @@ import kotlin.math.pow
 
 class NativeAdManager(
     context: Context,
-    private val observeNativeAdConfigUseCase: ObserveNativeAdConfigUseCase
+    observeNativeAdConfigUseCase: ObserveNativeAdConfigUseCase
 ) {
 
     private val appContext = context.applicationContext
@@ -34,137 +34,26 @@ class NativeAdManager(
         SupervisorJob() + Dispatchers.Main.immediate
     )
 
+    private val _nativeAdPools =
+        MutableStateFlow<Map<String, Map<String, NativeAd>>>(emptyMap())
+    val nativeAdPools: StateFlow<Map<String, Map<String, NativeAd>>> =
+        _nativeAdPools.asStateFlow()
+
+    /**
+     * Backward-compatible default-slot map.
+     */
     private val _nativeAds = MutableStateFlow<Map<String, NativeAd>>(emptyMap())
     val nativeAds: StateFlow<Map<String, NativeAd>> = _nativeAds.asStateFlow()
 
     @Volatile
     private var config: NativeAdConfig = NativeAdConfig.default()
 
-    private val loadingPlacements = mutableSetOf<String>()
-    private val loadedAtByPlacement = mutableMapOf<String, Long>()
-    private val retryAttemptByPlacement = mutableMapOf<String, Int>()
-    private val retryJobByPlacement = mutableMapOf<String, Job>()
+    private val loadingSlots = mutableSetOf<AdSlotKey>()
+    private val loadedAtBySlot = mutableMapOf<AdSlotKey, Long>()
+    private val retryAttemptBySlot = mutableMapOf<AdSlotKey, Int>()
+    private val retryJobBySlot = mutableMapOf<AdSlotKey, Job>()
 
     init {
-        observeRemoteConfig()
-    }
-
-    fun getCurrentConfig(): NativeAdConfig {
-        return config
-    }
-
-    fun preloadEnabledPlacements() {
-        val currentConfig = config
-
-        if (!currentConfig.enabled) {
-            clearAllAds()
-            return
-        }
-
-        clearExpiredAds()
-
-        currentConfig.placements
-            .filterValues { placementConfig -> placementConfig.enabled }
-            .keys
-            .forEach { placementKey ->
-                loadAd(placementKey)
-            }
-    }
-
-    fun isAdReady(
-        placementKey: String
-    ): Boolean {
-        val nativeAd = _nativeAds.value[placementKey] ?: return false
-
-        if (isAdExpired(placementKey)) {
-            Log.d(TAG, "Native ad expired. Clearing placement=$placementKey")
-            clearAd(placementKey)
-            return false
-        }
-
-        return nativeAd != null
-    }
-
-    fun loadAd(
-        placementKey: String,
-        onStateChanged: (AdState) -> Unit = {}
-    ) {
-        val currentConfig = config
-        val placementConfig = currentConfig.placement(placementKey)
-
-        if (!currentConfig.enabled) {
-            onStateChanged(
-                AdState.Skipped("Native ads disabled by remote config")
-            )
-            return
-        }
-
-        if (placementConfig == null) {
-            onStateChanged(
-                AdState.Skipped("Native placement disabled or missing: $placementKey")
-            )
-            clearAd(placementKey)
-            return
-        }
-
-        if (loadingPlacements.contains(placementKey)) {
-            Log.d(TAG, "Native ad load skipped. Already loading placement=$placementKey")
-            return
-        }
-
-        clearExpiredAdIfNeeded(placementKey)
-
-        if (isAdReady(placementKey)) {
-            Log.d(TAG, "Native ad load skipped. Cached ad is ready placement=$placementKey")
-            onStateChanged(AdState.Loaded)
-            return
-        }
-
-        startLoading(
-            placementKey = placementKey,
-            requestConfig = currentConfig,
-            onStateChanged = onStateChanged
-        )
-    }
-
-    fun clearAd(
-        placementKey: String
-    ) {
-        retryJobByPlacement.remove(placementKey)?.cancel()
-        loadingPlacements.remove(placementKey)
-        loadedAtByPlacement.remove(placementKey)
-        retryAttemptByPlacement.remove(placementKey)
-
-        val existingAd = _nativeAds.value[placementKey]
-        existingAd?.destroy()
-
-        _nativeAds.value = _nativeAds.value
-            .toMutableMap()
-            .apply {
-                remove(placementKey)
-            }
-
-        Log.d(TAG, "Native ad cleared placement=$placementKey")
-    }
-
-    fun clearAllAds() {
-        retryJobByPlacement.values.forEach { job -> job.cancel() }
-        retryJobByPlacement.clear()
-
-        loadingPlacements.clear()
-        loadedAtByPlacement.clear()
-        retryAttemptByPlacement.clear()
-
-        _nativeAds.value.values.forEach { nativeAd ->
-            nativeAd.destroy()
-        }
-
-        _nativeAds.value = emptyMap()
-
-        Log.d(TAG, "All native ads cleared.")
-    }
-
-    private fun observeRemoteConfig() {
         managerScope.launch {
             observeNativeAdConfigUseCase().collect { newConfig ->
                 val oldConfig = config
@@ -178,47 +67,165 @@ class NativeAdManager(
                 }
 
                 if (oldConfig.adUnitId != newConfig.adUnitId) {
-                    Log.d(TAG, "Native ad unit changed. Clearing all cached native ads.")
                     clearAllAds()
                 } else {
                     clearDisabledPlacements(newConfig)
                     clearExpiredAds()
                 }
-
-                preloadEnabledPlacements()
             }
         }
     }
 
-    private fun startLoading(
+    fun getCurrentConfig(): NativeAdConfig {
+        return config
+    }
+
+    fun loadAd(
         placementKey: String,
+        slotKey: String = NativeAdConfig.DEFAULT_SLOT,
+        onStateChanged: (AdState) -> Unit = {}
+    ) {
+        val currentConfig = config
+        val placementConfig = currentConfig.placement(placementKey)
+        val key = AdSlotKey(
+            placementKey = placementKey,
+            slotKey = slotKey
+        )
+
+        if (!currentConfig.enabled) {
+            onStateChanged(AdState.Skipped("Native ads disabled"))
+            return
+        }
+
+        if (placementConfig == null) {
+            onStateChanged(AdState.Skipped("Native placement disabled or missing: $placementKey"))
+            clearAd(placementKey, slotKey)
+            return
+        }
+
+        if (loadingSlots.contains(key)) {
+            Log.d(TAG, "Native load skipped. Already loading $key")
+            return
+        }
+
+        clearExpiredAdIfNeeded(key)
+
+        if (isAdReady(placementKey, slotKey)) {
+            onStateChanged(AdState.Loaded)
+            return
+        }
+
+        startLoading(
+            key = key,
+            requestConfig = currentConfig,
+            onStateChanged = onStateChanged
+        )
+    }
+
+    fun isAdReady(
+        placementKey: String,
+        slotKey: String = NativeAdConfig.DEFAULT_SLOT
+    ): Boolean {
+        val key = AdSlotKey(placementKey, slotKey)
+
+        val ad = _nativeAdPools.value[placementKey]?.get(slotKey)
+            ?: return false
+
+        if (isAdExpired(key)) {
+            clearAd(placementKey, slotKey)
+            return false
+        }
+
+        return ad != null
+    }
+
+    fun clearAd(
+        placementKey: String,
+        slotKey: String = NativeAdConfig.DEFAULT_SLOT
+    ) {
+        val key = AdSlotKey(placementKey, slotKey)
+
+        retryJobBySlot.remove(key)?.cancel()
+        retryAttemptBySlot.remove(key)
+        loadedAtBySlot.remove(key)
+        loadingSlots.remove(key)
+
+        val existingAd = _nativeAdPools.value[placementKey]?.get(slotKey)
+        existingAd?.destroy()
+
+        val updatedPools = _nativeAdPools.value.toMutableMap()
+        val placementAds = updatedPools[placementKey]?.toMutableMap()
+
+        placementAds?.remove(slotKey)
+
+        if (placementAds.isNullOrEmpty()) {
+            updatedPools.remove(placementKey)
+        } else {
+            updatedPools[placementKey] = placementAds
+        }
+
+        _nativeAdPools.value = updatedPools
+        syncDefaultNativeAds()
+
+        Log.d(TAG, "Native ad cleared. placement=$placementKey slot=$slotKey")
+    }
+
+    fun clearPlacement(
+        placementKey: String
+    ) {
+        val slotKeys = _nativeAdPools.value[placementKey]?.keys.orEmpty()
+
+        slotKeys.forEach { slotKey ->
+            clearAd(
+                placementKey = placementKey,
+                slotKey = slotKey
+            )
+        }
+    }
+
+    fun clearAllAds() {
+        retryJobBySlot.values.forEach { it.cancel() }
+        retryJobBySlot.clear()
+        retryAttemptBySlot.clear()
+        loadedAtBySlot.clear()
+        loadingSlots.clear()
+
+        _nativeAdPools.value.values.forEach { slotMap ->
+            slotMap.values.forEach { nativeAd ->
+                nativeAd.destroy()
+            }
+        }
+
+        _nativeAdPools.value = emptyMap()
+        _nativeAds.value = emptyMap()
+
+        Log.d(TAG, "All native ads cleared")
+    }
+
+    private fun startLoading(
+        key: AdSlotKey,
         requestConfig: NativeAdConfig,
         onStateChanged: (AdState) -> Unit
     ) {
-        loadingPlacements.add(placementKey)
+        loadingSlots.add(key)
         onStateChanged(AdState.Loading)
 
-        Log.d(
-            TAG,
-            "Loading native ad. placement=$placementKey unit=${requestConfig.adUnitId}"
-        )
+        Log.d(TAG, "Loading native ad: $key")
 
         val adLoader = AdLoader.Builder(
             appContext,
             requestConfig.adUnitId
         )
             .forNativeAd { loadedAd ->
-                loadingPlacements.remove(placementKey)
+                loadingSlots.remove(key)
 
                 val latestConfig = config
-                val placementStillEnabled = latestConfig.placement(placementKey) != null
-                val adUnitStillSame = latestConfig.adUnitId == requestConfig.adUnitId
+                val placementStillEnabled =
+                    latestConfig.placement(key.placementKey) != null
+                val adUnitStillSame =
+                    latestConfig.adUnitId == requestConfig.adUnitId
 
                 if (!latestConfig.enabled || !placementStillEnabled || !adUnitStillSame) {
-                    Log.d(
-                        TAG,
-                        "Native ad loaded but discarded because config changed. placement=$placementKey"
-                    )
                     loadedAd.destroy()
                     onStateChanged(
                         AdState.Skipped("Native ad discarded because config changed")
@@ -226,44 +233,33 @@ class NativeAdManager(
                     return@forNativeAd
                 }
 
-                val previousAd = _nativeAds.value[placementKey]
-                previousAd?.destroy()
+                putLoadedAd(
+                    key = key,
+                    nativeAd = loadedAd
+                )
 
                 loadedAd.setOnPaidEventListener { adValue ->
                     Log.d(
                         TAG,
-                        "Native paid event. placement=$placementKey " +
-                                "valueMicros=${adValue.valueMicros}, " +
-                                "currency=${adValue.currencyCode}"
+                        "Native paid event. $key valueMicros=${adValue.valueMicros}, currency=${adValue.currencyCode}"
                     )
                 }
 
-                _nativeAds.value = _nativeAds.value
-                    .toMutableMap()
-                    .apply {
-                        put(placementKey, loadedAd)
-                    }
+                loadedAtBySlot[key] = now()
+                retryAttemptBySlot[key] = 0
+                retryJobBySlot.remove(key)?.cancel()
 
-                loadedAtByPlacement[placementKey] = now()
-                retryAttemptByPlacement[placementKey] = 0
-                retryJobByPlacement.remove(placementKey)?.cancel()
-
-                Log.d(TAG, "Native ad loaded placement=$placementKey")
+                Log.d(TAG, "Native ad loaded: $key")
                 onStateChanged(AdState.Loaded)
             }
             .withAdListener(
                 object : AdListener() {
-
                     override fun onAdFailedToLoad(error: LoadAdError) {
-                        loadingPlacements.remove(placementKey)
+                        loadingSlots.remove(key)
 
                         Log.e(
                             TAG,
-                            "Native ad failed to load. " +
-                                    "placement=$placementKey, " +
-                                    "code=${error.code}, " +
-                                    "message=${error.message}, " +
-                                    "domain=${error.domain}"
+                            "Native failed. $key code=${error.code}, message=${error.message}"
                         )
 
                         onStateChanged(
@@ -273,26 +269,21 @@ class NativeAdManager(
                             )
                         )
 
-                        scheduleRetryLoad(placementKey)
+                        scheduleRetryLoad(key)
                     }
 
                     override fun onAdClicked() {
-                        Log.d(TAG, "Native ad clicked placement=$placementKey")
                         onStateChanged(AdState.Clicked)
                     }
 
                     override fun onAdImpression() {
-                        Log.d(TAG, "Native ad impression placement=$placementKey")
                         onStateChanged(AdState.Impression)
                     }
                 }
             )
             .withNativeAdOptions(
                 NativeAdOptions.Builder()
-                    // Keep AdChoices visible and predictable.
                     .setAdChoicesPlacement(NativeAdOptions.ADCHOICES_TOP_RIGHT)
-
-                    // Allows both image and video native creatives.
                     .setMediaAspectRatio(NativeAdOptions.NATIVE_MEDIA_ASPECT_RATIO_ANY)
                     .build()
             )
@@ -301,42 +292,60 @@ class NativeAdManager(
         adLoader.loadAd(AdRequest.Builder().build())
     }
 
+    private fun putLoadedAd(
+        key: AdSlotKey,
+        nativeAd: NativeAd
+    ) {
+        val currentPlacementAds =
+            _nativeAdPools.value[key.placementKey]?.toMutableMap()
+                ?: mutableMapOf()
+
+        currentPlacementAds[key.slotKey]?.destroy()
+        currentPlacementAds[key.slotKey] = nativeAd
+
+        _nativeAdPools.value = _nativeAdPools.value
+            .toMutableMap()
+            .apply {
+                put(key.placementKey, currentPlacementAds)
+            }
+
+        syncDefaultNativeAds()
+    }
+
     private fun scheduleRetryLoad(
-        placementKey: String
+        key: AdSlotKey
     ) {
         val currentConfig = config
 
         if (!currentConfig.enabled) return
-        if (currentConfig.placement(placementKey) == null) return
+        if (currentConfig.placement(key.placementKey) == null) return
 
-        val currentAttempt = retryAttemptByPlacement[placementKey] ?: 0
+        val currentAttempt = retryAttemptBySlot[key] ?: 0
 
         if (currentAttempt >= currentConfig.maxLoadRetryCount) {
-            Log.d(TAG, "Native retry skipped. Max retry reached placement=$placementKey")
+            Log.d(TAG, "Native retry skipped. Max retry reached: $key")
             return
         }
 
-        retryJobByPlacement.remove(placementKey)?.cancel()
+        retryJobBySlot.remove(key)?.cancel()
 
         val nextAttempt = currentAttempt + 1
-        retryAttemptByPlacement[placementKey] = nextAttempt
+        retryAttemptBySlot[key] = nextAttempt
 
-        val exponentialDelay = currentConfig.initialRetryDelayMs *
-                2.0.pow(nextAttempt - 1).toLong()
+        val exponentialDelay =
+            currentConfig.initialRetryDelayMs * 2.0.pow(nextAttempt - 1).toLong()
 
         val retryDelay = min(
             exponentialDelay,
             currentConfig.maxRetryDelayMs
         )
 
-        Log.d(
-            TAG,
-            "Scheduling native retry. placement=$placementKey delayMs=$retryDelay"
-        )
-
-        retryJobByPlacement[placementKey] = managerScope.launch {
+        retryJobBySlot[key] = managerScope.launch {
             delay(retryDelay)
-            loadAd(placementKey)
+            loadAd(
+                placementKey = key.placementKey,
+                slotKey = key.slotKey
+            )
         }
     }
 
@@ -344,42 +353,62 @@ class NativeAdManager(
         newConfig: NativeAdConfig
     ) {
         val enabledPlacementKeys = newConfig.placements
-            .filterValues { placementConfig -> placementConfig.enabled }
+            .filterValues { it.enabled }
             .keys
 
-        _nativeAds.value.keys
-            .filterNot { placementKey -> placementKey in enabledPlacementKeys }
+        _nativeAdPools.value.keys
+            .filterNot { it in enabledPlacementKeys }
             .forEach { placementKey ->
-                Log.d(TAG, "Clearing disabled native placement=$placementKey")
-                clearAd(placementKey)
+                clearPlacement(placementKey)
             }
     }
 
     private fun clearExpiredAds() {
-        _nativeAds.value.keys
-            .filter { placementKey -> isAdExpired(placementKey) }
-            .forEach { placementKey ->
-                Log.d(TAG, "Clearing expired native ad placement=$placementKey")
-                clearAd(placementKey)
+        loadedAtBySlot.keys
+            .filter { isAdExpired(it) }
+            .forEach { key ->
+                clearAd(
+                    placementKey = key.placementKey,
+                    slotKey = key.slotKey
+                )
             }
     }
 
     private fun clearExpiredAdIfNeeded(
-        placementKey: String
+        key: AdSlotKey
     ) {
-        if (_nativeAds.value[placementKey] != null && isAdExpired(placementKey)) {
-            clearAd(placementKey)
+        if (isAdExpired(key)) {
+            clearAd(
+                placementKey = key.placementKey,
+                slotKey = key.slotKey
+            )
         }
     }
 
     private fun isAdExpired(
-        placementKey: String
+        key: AdSlotKey
     ): Boolean {
-        val loadedAt = loadedAtByPlacement[placementKey] ?: return true
+        val loadedAt = loadedAtBySlot[key] ?: return false
         return now() - loadedAt >= config.maxAdCacheDurationMs
     }
 
+    private fun syncDefaultNativeAds() {
+        _nativeAds.value = _nativeAdPools.value.mapNotNull { entry ->
+            val defaultAd = entry.value[NativeAdConfig.DEFAULT_SLOT]
+            if (defaultAd != null) {
+                entry.key to defaultAd
+            } else {
+                null
+            }
+        }.toMap()
+    }
+
     private fun now(): Long = System.currentTimeMillis()
+
+    private data class AdSlotKey(
+        val placementKey: String,
+        val slotKey: String
+    )
 
     companion object {
         private const val TAG = "NativeAdManager"

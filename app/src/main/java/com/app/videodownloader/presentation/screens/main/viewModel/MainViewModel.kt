@@ -53,6 +53,15 @@ class MainViewModel(
 
     ) : ViewModel() {
 
+    private val _state = MutableStateFlow(MainState())
+    val state = _state.asStateFlow()
+
+    private val _navEvents = MutableSharedFlow<MainNavEvents>()
+    val navEvents = _navEvents.asSharedFlow()
+
+    private val _adState = MutableStateFlow<AdState>(AdState.Idle)
+    val adState: StateFlow<AdState> = _adState.asStateFlow()
+
     init {
         observeNotificationSettings()
         viewModelScope.launch {
@@ -62,14 +71,6 @@ class MainViewModel(
         checkPolicy()
     }
 
-    private val _adState = MutableStateFlow<AdState>(AdState.Idle)
-    val adState: StateFlow<AdState> = _adState.asStateFlow()
-
-    private val _state = MutableStateFlow(MainState())
-    val state = _state.asStateFlow()
-
-    private val _navEvents = MutableSharedFlow<MainNavEvents>()
-    val navEvents = _navEvents.asSharedFlow()
 
     fun onEvent(event: MainEvents) {
         when (event) {
@@ -271,6 +272,54 @@ class MainViewModel(
                 navigateBackToHomeWithInterstitial(
                     activity = event.activity
                 )
+            }
+
+            MainEvents.OnAppLanguageCLicked -> {
+                viewModelScope.launch {
+
+                _navEvents.emit(MainNavEvents.NavigateToAppLanguageSRC)
+                }
+            }
+            is MainEvents.OnMediaPermissionResult -> {
+                _state.update {
+                    it.copy(
+                        isMediaPermissionGranted = event.granted,
+                        showMediaPermissionDialog = !event.granted,
+                        shouldOpenMediaPermissionSettings = event.permanentlyDenied
+                    )
+                }
+            }
+
+            MainEvents.OnMediaPermissionDialogDismissed -> {
+                _state.update {
+                    it.copy(
+                        showMediaPermissionDialog = false
+                    )
+                }
+            }
+
+            MainEvents.OnMediaPermissionRequestClicked -> {
+                _state.update {
+                    it.copy(
+                        showMediaPermissionDialog = false
+                    )
+                }
+            }
+
+            MainEvents.OnMediaPermissionSettingsClicked -> {
+                _state.update {
+                    it.copy(
+                        showMediaPermissionDialog = false
+                    )
+                }
+            }
+
+            is MainEvents.OnNotificationPermissionResult -> {
+                _state.update {
+                    it.copy(
+                        isNotificationPermissionGranted = event.granted
+                    )
+                }
             }
         }
     }
@@ -1058,8 +1107,7 @@ class MainViewModel(
                 )
             }
 
-            // TODO: Connect feedback API / email / analytics later.
-            delay(500)
+            val subject = "Feedback for Video Downloader"
 
             _state.update {
                 it.copy(
@@ -1069,6 +1117,13 @@ class MainViewModel(
                     isSubmittingFeedback = false
                 )
             }
+
+            _navEvents.emit(
+                MainNavEvents.SendFeedbackEmail(
+                    subject = subject,
+                    message = message
+                )
+            )
         }
     }
 
@@ -1091,38 +1146,6 @@ class MainViewModel(
                 rateUsError = null,
                 isSubmittingRating = false
             )
-        }
-    }
-
-    private fun submitRating() {
-        val rating = _state.value.selectedRating
-
-        if (rating !in 1..5) {
-            _state.update {
-                it.copy(rateUsError = "Please select a rating")
-            }
-            return
-        }
-
-        viewModelScope.launch {
-            _state.update {
-                it.copy(
-                    isSubmittingRating = true,
-                    rateUsError = null
-                )
-            }
-
-            // TODO: Later connect Play Store review flow or open store listing.
-            delay(400)
-
-            _state.update {
-                it.copy(
-                    showRateUsDialog = false,
-                    selectedRating = DEFAULT_SELECTED_RATING,
-                    rateUsError = null,
-                    isSubmittingRating = false
-                )
-            }
         }
     }
 
@@ -1228,6 +1251,40 @@ class MainViewModel(
             },
             onComplete = action
         )
+    }
+
+
+    private fun submitRating() {
+        val rating = _state.value.selectedRating
+
+        if (rating !in 1..5) {
+            _state.update {
+                it.copy(rateUsError = "Please select a rating")
+            }
+            return
+        }
+
+        viewModelScope.launch {
+            _state.update {
+                it.copy(
+                    isSubmittingRating = true,
+                    rateUsError = null
+                )
+            }
+
+            delay(300)
+
+            _state.update {
+                it.copy(
+                    showRateUsDialog = false,
+                    selectedRating = DEFAULT_SELECTED_RATING,
+                    rateUsError = null,
+                    isSubmittingRating = false
+                )
+            }
+
+            _navEvents.emit(MainNavEvents.OpenAppStoreForRating)
+        }
     }
 
     companion object {

@@ -8,9 +8,11 @@ import com.app.videodownloader.domain.usecases.GetAudiosUseCase
 import com.app.videodownloader.domain.usecases.GetVideosUseCase
 import com.app.videodownloader.domain.usecases.ads.LoadNativeAdUseCase
 import com.app.videodownloader.domain.usecases.ads.ObserveNativeAdConfigUseCase
-import com.app.videodownloader.domain.usecases.ads.ObserveNativeAdsUseCase
+import com.app.videodownloader.domain.usecases.ads.ObserveNativeAdPoolsUseCase
+import com.app.videodownloader.presentation.ads.nativeAd.NativeAdSlotHelper
 import com.app.videodownloader.presentation.screens.player.states.PlayerState
 import com.app.videodownloader.presentation.screens.player.states.PlayerTab
+import kotlinx.coroutines.Job
 import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.asStateFlow
 import kotlinx.coroutines.flow.combine
@@ -22,21 +24,24 @@ class PlayerViewModel(
     private val getVideos: GetVideosUseCase,
     private val getAudios: GetAudiosUseCase,
     private val loadNativeAdUseCase: LoadNativeAdUseCase,
-    private val observeNativeAdsUseCase: ObserveNativeAdsUseCase,
+    private val observeNativeAdPoolsUseCase: ObserveNativeAdPoolsUseCase,
     private val observeNativeAdConfigUseCase: ObserveNativeAdConfigUseCase
 ) : ViewModel() {
 
     private val _state = MutableStateFlow(PlayerState())
     val state = _state.asStateFlow()
 
+    private var observeMediaJob: Job? = null
+
     init {
-        observeMedia()
-        observeNativeAds()
+        observeNativeAdPools()
         observeNativeAdConfig()
     }
 
-    private fun observeMedia() {
-        viewModelScope.launch {
+    fun onMediaPermissionGranted() {
+        if (observeMediaJob?.isActive == true) return
+
+        observeMediaJob = viewModelScope.launch {
             combine(
                 getVideos(),
                 getAudios()
@@ -56,15 +61,30 @@ class PlayerViewModel(
                             isLoading = false
                         )
                     }
+
+                    loadNativeSlotsForCurrentTab()
                 }
         }
     }
 
-    private fun observeNativeAds() {
+    fun onMediaPermissionDenied() {
+        observeMediaJob?.cancel()
+        observeMediaJob = null
+
+        _state.update {
+            it.copy(
+                videos = emptyList(),
+                audios = emptyList(),
+                isLoading = false
+            )
+        }
+    }
+
+    private fun observeNativeAdPools() {
         viewModelScope.launch {
-            observeNativeAdsUseCase().collect { nativeAds ->
+            observeNativeAdPoolsUseCase().collect { nativeAdPools ->
                 _state.update {
-                    it.copy(nativeAds = nativeAds)
+                    it.copy(nativeAdPools = nativeAdPools)
                 }
             }
         }
@@ -77,25 +97,47 @@ class PlayerViewModel(
                     it.copy(nativeAdConfig = config)
                 }
 
-                if (config.placement(NativeAdConfig.PLAYER_LIST) != null) {
-                    loadPlayerListNativeAd()
-                }
+                loadNativeSlotsForCurrentTab()
             }
         }
-    }
-
-    private fun loadPlayerListNativeAd() {
-        loadNativeAdUseCase(
-            placementKey = NativeAdConfig.PLAYER_LIST,
-            onStateChanged = { adState ->
-                Log.d(TAG, "Player list native ad state: $adState")
-            }
-        )
     }
 
     fun onTabChange(tab: PlayerTab) {
         _state.update {
             it.copy(selectedTab = tab)
+        }
+
+        loadNativeSlotsForCurrentTab()
+    }
+
+    private fun loadNativeSlotsForCurrentTab() {
+        val currentState = _state.value
+        val placementKey = NativeAdConfig.PLAYER_LIST
+        val placementConfig = currentState.nativeAdConfig.placement(placementKey) ?: return
+
+        val totalItems = when (currentState.selectedTab) {
+            PlayerTab.VIDEO -> currentState.videos.size
+            PlayerTab.AUDIO -> currentState.audios.size
+        }
+
+        if (totalItems <= 0) return
+
+        val slotKeys = NativeAdSlotHelper.insertionSlotKeys(
+            totalItems = totalItems,
+            config = placementConfig
+        )
+
+        slotKeys.forEach { slotKey ->
+            loadNativeAdUseCase(
+                placementKey = placementKey,
+                slotKey = slotKey,
+                onStateChanged = { adState ->
+                    Log.d(
+                        TAG,
+                        "Player native ad state. placement=$placementKey slot=$slotKey state=$adState"
+                    )
+                }
+            )
         }
     }
 

@@ -102,10 +102,11 @@ fun AudioPlayerItem(
     onMuteToggle: () -> Unit = {},
     onVolumeChange: (Float) -> Unit = {},
     onThreeDotsClick:() -> Unit,
+    onShuffleClick: () -> Unit = {},
+    onRepeatClick: () -> Unit = {},
 ) {
     val state by viewModel.state.collectAsStateWithLifecycle()
-    var showVolumeSlider by remember { mutableStateOf(false) }
-    Box(
+     Box(
         modifier = Modifier
             .fillMaxSize()
             .background(Color(0xFFF8F9FA)),
@@ -246,12 +247,15 @@ fun AudioPlayerItem(
                 Icon(
                     painter = painterResource(R.drawable.ic_shuffling),
                     contentDescription = null,
-                    tint = Color(0xFF99A1AF),
+                    tint = if (state.isShuffleEnabled) {
+                        Color(0xFFE00004)
+                    } else {
+                        Color(0xFF99A1AF)
+                    },
                     modifier = Modifier
                         .size(34.dp)
                         .clickable {
-                            showVolumeSlider = !showVolumeSlider
-                            if (!showVolumeSlider) onMuteToggle()
+                            onShuffleClick()
                         }
                 )
 
@@ -292,10 +296,15 @@ fun AudioPlayerItem(
                 Icon(
                     painter = painterResource(R.drawable.ic_repeat),
                     contentDescription = null,
-                    tint = Color(0xFF99A1AF),
+                    tint = if (state.isAudioRepeatEnabled) {
+                        Color(0xFFE00004)
+                    } else {
+                        Color(0xFF99A1AF)
+                    },
                     modifier = Modifier
                         .size(34.dp)
                         .clickable {
+                            onRepeatClick()
                         }
                 )
             }

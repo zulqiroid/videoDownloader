@@ -1,14 +1,13 @@
 package com.app.videodownloader.presentation.screens.main.componants
 
-import androidx.compose.foundation.background
 import androidx.compose.foundation.layout.Arrangement
-import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.Row
 import androidx.compose.foundation.layout.Spacer
 import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.height
 import androidx.compose.foundation.layout.padding
+import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.foundation.text.KeyboardOptions
 import androidx.compose.material3.Button
 import androidx.compose.material3.ButtonDefaults
@@ -25,11 +24,13 @@ import androidx.compose.ui.Modifier
 import androidx.compose.ui.focus.FocusRequester
 import androidx.compose.ui.focus.focusRequester
 import androidx.compose.ui.graphics.Color
+import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.text.input.ImeAction
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
 import androidx.compose.ui.window.Dialog
+import com.app.videodownloader.R
 import kotlinx.coroutines.delay
 
 @Composable
@@ -51,7 +52,7 @@ fun SendFeedbackDialog(
     ) {
         Surface(
             modifier = modifier.fillMaxWidth(0.9f),
-            shape = androidx.compose.foundation.shape.RoundedCornerShape(14.dp),
+            shape = RoundedCornerShape(14.dp),
             color = Color.White,
             tonalElevation = 8.dp
         ) {
@@ -61,7 +62,7 @@ fun SendFeedbackDialog(
                     .padding(horizontal = 28.dp, vertical = 24.dp)
             ) {
                 Text(
-                    text = "Send Feedback",
+                    text = stringResource(R.string.feedback_title),
                     fontSize = 20.sp,
                     fontWeight = FontWeight.W800,
                     color = Color(0xFF111827)
@@ -70,7 +71,7 @@ fun SendFeedbackDialog(
                 Spacer(modifier = Modifier.height(16.dp))
 
                 Text(
-                    text = "Your feedback helps us improve the app for everyone.",
+                    text = stringResource(R.string.feedback_message),
                     fontSize = 14.sp,
                     fontWeight = FontWeight.W500,
                     color = Color(0xFF6B7A90),
@@ -90,7 +91,7 @@ fun SendFeedbackDialog(
                     isError = errorMessage != null,
                     placeholder = {
                         Text(
-                            text = "Write your feedback...",
+                            text = stringResource(R.string.feedback_placeholder),
                             color = Color(0xFF111827),
                             fontSize = 14.sp,
                             fontWeight = FontWeight.W400
@@ -100,7 +101,7 @@ fun SendFeedbackDialog(
                         imeAction = ImeAction.Default
                     ),
                     maxLines = 6,
-                    shape = androidx.compose.foundation.shape.RoundedCornerShape(16.dp),
+                    shape = RoundedCornerShape(16.dp),
                     colors = OutlinedTextFieldDefaults.colors(
                         focusedContainerColor = Color(0xFFF3F6FA),
                         unfocusedContainerColor = Color(0xFFF3F6FA),
@@ -139,7 +140,7 @@ fun SendFeedbackDialog(
                         modifier = Modifier
                             .weight(1f)
                             .height(48.dp),
-                        shape = androidx.compose.foundation.shape.RoundedCornerShape(8.dp),
+                        shape = RoundedCornerShape(8.dp),
                         colors = ButtonDefaults.textButtonColors(
                             containerColor = Color(0xFFF1F4F8),
                             contentColor = Color(0xFF5B6677),
@@ -148,7 +149,7 @@ fun SendFeedbackDialog(
                         )
                     ) {
                         Text(
-                            text = "Cancel",
+                            text = stringResource(R.string.common_cancel),
                             fontSize = 14.sp,
                             fontWeight = FontWeight.W700
                         )
@@ -160,7 +161,7 @@ fun SendFeedbackDialog(
                         modifier = Modifier
                             .weight(1f)
                             .height(48.dp),
-                        shape = androidx.compose.foundation.shape.RoundedCornerShape(8.dp),
+                        shape = RoundedCornerShape(8.dp),
                         colors = ButtonDefaults.buttonColors(
                             containerColor = Color(0xFFE00004),
                             contentColor = Color.White,
@@ -178,7 +179,7 @@ fun SendFeedbackDialog(
                             )
                         } else {
                             Text(
-                                text = "Submit",
+                                text = stringResource(R.string.common_submit),
                                 fontSize = 14.sp,
                                 fontWeight = FontWeight.W800
                             )

@@ -1,5 +1,6 @@
 package com.app.videodownloader.presentation.componants
 
+import androidx.annotation.StringRes
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Row
 import androidx.compose.foundation.layout.fillMaxWidth
@@ -13,13 +14,39 @@ import androidx.compose.runtime.Composable
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.graphics.Color
+import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
+import com.app.videodownloader.R
 
 @Composable
-fun SectionHeader(text: String, supportingText: String = "See All") {
+fun SectionHeader(
+    text: String,
+    supportingText: String = stringResource(R.string.common_see_all)
+) {
+    SectionHeaderContent(
+        text = text,
+        supportingText = supportingText
+    )
+}
 
+@Composable
+fun SectionHeader(
+    @StringRes textRes: Int,
+    @StringRes supportingTextRes: Int = R.string.common_see_all
+) {
+    SectionHeaderContent(
+        text = stringResource(textRes),
+        supportingText = stringResource(supportingTextRes)
+    )
+}
+
+@Composable
+private fun SectionHeaderContent(
+    text: String,
+    supportingText: String
+) {
     Row(
         modifier = Modifier
             .fillMaxWidth()
@@ -44,9 +71,10 @@ fun SectionHeader(text: String, supportingText: String = "See All") {
                 color = Color(0xFFE00004),
                 fontWeight = FontWeight.W600
             )
+
             Icon(
                 imageVector = Icons.AutoMirrored.Filled.ArrowForward,
-                contentDescription = "Arrow forward",
+                contentDescription = stringResource(R.string.cd_arrow_forward),
                 tint = Color(0xFFE00004),
                 modifier = Modifier.size(18.dp)
             )

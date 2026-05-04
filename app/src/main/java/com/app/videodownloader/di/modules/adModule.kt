@@ -2,6 +2,7 @@ package com.app.videodownloader.di.modules
 
 import com.app.videodownloader.data.manager.AppOpenAdManager
 import com.app.videodownloader.data.manager.InterstitialAdManager
+import com.app.videodownloader.data.manager.MobileAdsInitializer
 import com.app.videodownloader.data.manager.NativeAdManager
 import com.app.videodownloader.domain.model.ads.AppOpenAdConfig
 import com.app.videodownloader.domain.repository.ads.AdManager
@@ -12,24 +13,32 @@ val adModule  = module{
 
 
     single {
-        InterstitialAdManager(
+        AppOpenAdManager(
             context = androidContext(),
-            observeInterstitialAdConfigUseCase = get()
+            observeAppOpenAdConfigUseCase = get(),
+            canRequestAdsUseCase = get()
         )
     }
 
     single {
-        AppOpenAdManager(
+        InterstitialAdManager(
             context = androidContext(),
-            observeAppOpenAdConfigUseCase = get()
+            observeInterstitialAdConfigUseCase = get(),
+            canRequestAdsUseCase = get()
         )
     }
 
     single {
         NativeAdManager(
             context = androidContext(),
-            observeNativeAdConfigUseCase = get()
+            observeNativeAdConfigUseCase = get(),
+            canRequestAdsUseCase = get()
         )
     }
 
+    single {
+        MobileAdsInitializer(
+            context = androidContext()
+        )
+    }
 }

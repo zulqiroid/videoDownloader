@@ -1,201 +1,235 @@
-    package com.app.videodownloader.presentation.screens.download.viewModel
+package com.app.videodownloader.presentation.screens.download.viewModel
 
-    import android.util.Log
-    import androidx.lifecycle.ViewModel
-    import androidx.lifecycle.viewModelScope
-    import com.app.videodownloader.domain.model.DownloadItem
-    import com.app.videodownloader.domain.model.DownloadStatus
-    import com.app.videodownloader.domain.model.ads.NativeAdConfig
-    import com.app.videodownloader.domain.usecases.CancelDownloadUseCase
-    import com.app.videodownloader.domain.usecases.GetDownloadedFilesUseCase
-    import com.app.videodownloader.domain.usecases.ObserveDownloadsUseCase
-    import com.app.videodownloader.domain.usecases.ads.LoadNativeAdUseCase
-    import com.app.videodownloader.domain.usecases.ads.ObserveNativeAdConfigUseCase
-    import com.app.videodownloader.domain.usecases.ads.ObserveNativeAdsUseCase
-    import com.app.videodownloader.presentation.screens.download.events.DownloadEvents
-    import com.app.videodownloader.presentation.screens.download.states.DownloadState
-    import com.app.videodownloader.presentation.screens.download.states.DownloadTab
-    import com.app.videodownloader.presentation.screens.download.states.DownloadUiItem
-    import com.app.videodownloader.presentation.screens.download.states.toUiItem
-    import kotlinx.coroutines.flow.MutableStateFlow
-    import kotlinx.coroutines.flow.asStateFlow
-    import kotlinx.coroutines.flow.update
-    import kotlinx.coroutines.launch
+import android.util.Log
+import androidx.lifecycle.ViewModel
+import androidx.lifecycle.viewModelScope
+import com.app.videodownloader.domain.model.DownloadItem
+import com.app.videodownloader.domain.model.DownloadStatus
+import com.app.videodownloader.domain.model.ads.NativeAdConfig
+import com.app.videodownloader.domain.usecases.CancelDownloadUseCase
+import com.app.videodownloader.domain.usecases.GetDownloadedFilesUseCase
+import com.app.videodownloader.domain.usecases.ObserveDownloadsUseCase
+import com.app.videodownloader.domain.usecases.ads.LoadNativeAdUseCase
+import com.app.videodownloader.domain.usecases.ads.ObserveNativeAdConfigUseCase
+import com.app.videodownloader.domain.usecases.ads.ObserveNativeAdPoolsUseCase
+import com.app.videodownloader.presentation.ads.nativeAd.NativeAdSlotHelper
+import com.app.videodownloader.presentation.screens.download.events.DownloadEvents
+import com.app.videodownloader.presentation.screens.download.states.DownloadState
+import com.app.videodownloader.presentation.screens.download.states.DownloadTab
+import com.app.videodownloader.presentation.screens.download.states.DownloadUiItem
+import com.app.videodownloader.presentation.screens.download.states.toUiItem
+import kotlinx.coroutines.flow.MutableStateFlow
+import kotlinx.coroutines.flow.asStateFlow
+import kotlinx.coroutines.flow.update
+import kotlinx.coroutines.launch
 
-    class DownloadViewModel(
-        private val observeDownloadsUseCase: ObserveDownloadsUseCase,
-        private val getDownloadedFilesUseCase: GetDownloadedFilesUseCase,
-        private val cancelDownloadUseCase: CancelDownloadUseCase,
-        private val loadNativeAdUseCase: LoadNativeAdUseCase,
-        private val observeNativeAdsUseCase: ObserveNativeAdsUseCase,
-        private val observeNativeAdConfigUseCase: ObserveNativeAdConfigUseCase
-    ) : ViewModel() {
+class DownloadViewModel(
+    private val observeDownloadsUseCase: ObserveDownloadsUseCase,
+    private val getDownloadedFilesUseCase: GetDownloadedFilesUseCase,
+    private val cancelDownloadUseCase: CancelDownloadUseCase,
+    private val loadNativeAdUseCase: LoadNativeAdUseCase,
+    private val observeNativeAdPoolsUseCase: ObserveNativeAdPoolsUseCase,
+    private val observeNativeAdConfigUseCase: ObserveNativeAdConfigUseCase
+) : ViewModel() {
 
-        private val _state = MutableStateFlow(DownloadState())
-        val state = _state.asStateFlow()
+    private val _state = MutableStateFlow(DownloadState())
+    val state = _state.asStateFlow()
 
-        init {
-            loadLocalFiles()
-            observeDownloads()
-            observeNativeAds()
-            observeNativeAdConfig()
-        }
+    init {
+        loadLocalFiles()
+        observeDownloads()
+        observeNativeAdPools()
+        observeNativeAdConfig()
+    }
 
-        fun onEvent(event: DownloadEvents){
-            when(event){
-                is DownloadEvents.OnDeleteDownloadingClicked -> {
-                    viewModelScope.launch {
-                        cancelDownloadUseCase(event.id)
-                    }
-                }
-                is DownloadEvents.OnPauseDownloadingClicked -> {
-                    viewModelScope.launch {
-                        cancelDownloadUseCase(event.id)
-                    }
-                }
-            }
-        }
-
-        private fun observeDownloads() {
-            viewModelScope.launch {
-
-                observeDownloadsUseCase().collect { items ->
-
-                    val (downloading, activeCompleted) = mapToUi(items)
-
-                    _state.update { current ->
-
-                        // merge existing completed (from folder) with active completed
-                        val mergedCompleted = (current.completed + activeCompleted)
-                            .distinctBy { it.id }
-
-                        current.copy(
-                            downloading = downloading,
-                            completed = mergedCompleted
-                        )
-                    }
-                }
-            }
-        }
-
-        private fun loadLocalFiles() {
-            viewModelScope.launch {
-
-                val files = getDownloadedFilesUseCase()
-
-                val uiItems = files.map { it.toUiItem() }
-
-                _state.update {
-                    it.copy(
-                        completed = uiItems
-                    )
-                }
-            }
-        }
-
-        private fun mapToUi(items: List<DownloadItem>): Pair<List<DownloadUiItem>, List<DownloadUiItem>> {
-
-            val downloading = mutableListOf<DownloadUiItem>()
-            val completed = mutableListOf<DownloadUiItem>()
-
-            items.forEach { item ->
-
-                val totalMB = item.totalBytes / (1024f * 1024f)
-                val speedMB = item.speedBytesPerSec / (1024f * 1024f)
-
-                val etaText = formatTime(item.lastEtaSeconds)
-
-                val finalTimeText = if (item.status == DownloadStatus.DOWNLOADING) {
-                    etaText?.let { "Est. $it left" } ?: "Calculating..."
-                } else {
-                    "Completed"
-                }
-
-                val ui = DownloadUiItem(
-                    id = item.id,
-                    title = item.fileName,
-                    progress = item.progress,
-                    status = item.status,
-                    sizeText = "${"%.1f".format(speedMB)} MB/s • ${"%.1f".format(totalMB)} MB",
-                    timeText = finalTimeText,
-                    filePath = item.filePath
-                )
-
-                when (item.status) {
-                    DownloadStatus.SUCCESS -> completed.add(ui)
-                    else -> downloading.add(ui)
+    fun onEvent(event: DownloadEvents) {
+        when (event) {
+            is DownloadEvents.OnDeleteDownloadingClicked -> {
+                viewModelScope.launch {
+                    cancelDownloadUseCase(event.id)
                 }
             }
 
-            return downloading to completed
-        }
-        private fun formatTime(seconds: Long): String? {
-            return when {
-                seconds <= 0 -> null
-                seconds < 60 -> "${seconds}s"
-                seconds < 3600 -> "${seconds / 60} min"
-                else -> "${seconds / 3600} hr"
-            }
-        }
-        fun updateTab(tab: DownloadTab) {
-            _state.update {
-                it.copy(selectedTab = tab)
-            }
-        }
-
-        private fun observeNativeAds() {
-            viewModelScope.launch {
-                observeNativeAdsUseCase().collect { nativeAds ->
-                    _state.update {
-                        it.copy(nativeAds = nativeAds)
-                    }
+            is DownloadEvents.OnPauseDownloadingClicked -> {
+                viewModelScope.launch {
+                    cancelDownloadUseCase(event.id)
                 }
             }
-        }
-
-        private fun observeNativeAdConfig() {
-            viewModelScope.launch {
-                observeNativeAdConfigUseCase().collect { config ->
-                    _state.update {
-                        it.copy(nativeAdConfig = config)
-                    }
-
-                    loadVisibleNativeAds(config)
-                }
-            }
-        }
-
-        private fun loadVisibleNativeAds(
-            config: NativeAdConfig = _state.value.nativeAdConfig
-        ) {
-            loadIfEnabled(
-                config = config,
-                placementKey = NativeAdConfig.DOWNLOAD_DOWNLOADING_LIST
-            )
-
-            loadIfEnabled(
-                config = config,
-                placementKey = NativeAdConfig.DOWNLOAD_COMPLETED_LIST
-            )
-        }
-
-        private fun loadIfEnabled(
-            config: NativeAdConfig,
-            placementKey: String
-        ) {
-            if (config.placement(placementKey) == null) {
-                return
-            }
-
-            loadNativeAdUseCase(
-                placementKey = placementKey,
-                onStateChanged = { adState ->
-                    Log.d(TAG, "Download native ad state. placement=$placementKey state=$adState")
-                }
-            )
-        }
-
-        companion object {
-            private const val TAG = "DownloadViewModel"
         }
     }
+
+    fun updateTab(tab: DownloadTab) {
+        _state.update {
+            it.copy(selectedTab = tab)
+        }
+
+        loadNativeSlotsForTab(tab)
+    }
+
+    private fun observeDownloads() {
+        viewModelScope.launch {
+            observeDownloadsUseCase().collect { items ->
+                val (downloading, activeCompleted) = mapToUi(items)
+
+                _state.update { current ->
+                    val mergedCompleted = (current.completed + activeCompleted)
+                        .distinctBy { it.id }
+
+                    current.copy(
+                        downloading = downloading,
+                        completed = mergedCompleted
+                    )
+                }
+
+                loadNativeSlotsForAllTabs()
+            }
+        }
+    }
+
+    private fun loadLocalFiles() {
+        viewModelScope.launch {
+            val files = getDownloadedFilesUseCase()
+            val uiItems = files.map { it.toUiItem() }
+
+            _state.update {
+                it.copy(
+                    completed = uiItems
+                )
+            }
+
+            loadNativeSlotsForAllTabs()
+        }
+    }
+
+    private fun observeNativeAdPools() {
+        viewModelScope.launch {
+            observeNativeAdPoolsUseCase().collect { nativeAdPools ->
+                _state.update {
+                    it.copy(nativeAdPools = nativeAdPools)
+                }
+            }
+        }
+    }
+
+    private fun observeNativeAdConfig() {
+        viewModelScope.launch {
+            observeNativeAdConfigUseCase().collect { config ->
+                _state.update {
+                    it.copy(nativeAdConfig = config)
+                }
+
+                loadNativeSlotsForAllTabs()
+            }
+        }
+    }
+
+    private fun loadNativeSlotsForAllTabs() {
+        loadNativeSlotsForTab(DownloadTab.DOWNLOADING)
+        loadNativeSlotsForTab(DownloadTab.COMPLETED)
+    }
+
+    private fun loadNativeSlotsForTab(
+        tab: DownloadTab
+    ) {
+        val currentState = _state.value
+
+        val placementKey = when (tab) {
+            DownloadTab.DOWNLOADING -> NativeAdConfig.DOWNLOAD_DOWNLOADING_LIST
+            DownloadTab.COMPLETED -> NativeAdConfig.DOWNLOAD_COMPLETED_LIST
+        }
+
+        val totalItems = when (tab) {
+            DownloadTab.DOWNLOADING -> currentState.downloading.size
+            DownloadTab.COMPLETED -> currentState.completed.size
+        }
+
+        val placementConfig = currentState.nativeAdConfig.placement(placementKey)
+
+        if (placementConfig == null) {
+            Log.d(TAG, "Download native skipped: placement disabled or missing. placement=$placementKey")
+            return
+        }
+
+        /*
+         * Empty state still needs one stable slot, so the empty screen can show
+         * a single native ad without relying on list indexes.
+         */
+        val slotKeys = if (totalItems <= 0) {
+            listOf(EMPTY_STATE_SLOT_KEY)
+        } else {
+            NativeAdSlotHelper.insertionSlotKeys(
+                totalItems = totalItems,
+                config = placementConfig
+            )
+        }
+
+        Log.d(
+            TAG,
+            "Download native slots to load. placement=$placementKey slots=$slotKeys totalItems=$totalItems"
+        )
+
+        slotKeys.forEach { slotKey ->
+            loadNativeAdUseCase(
+                placementKey = placementKey,
+                slotKey = slotKey,
+                onStateChanged = { adState ->
+                    Log.d(
+                        TAG,
+                        "Download native ad state. placement=$placementKey slot=$slotKey state=$adState"
+                    )
+                }
+            )
+        }
+    }
+
+    private fun mapToUi(
+        items: List<DownloadItem>
+    ): Pair<List<DownloadUiItem>, List<DownloadUiItem>> {
+        val downloading = mutableListOf<DownloadUiItem>()
+        val completed = mutableListOf<DownloadUiItem>()
+
+        items.forEach { item ->
+            val totalMB = item.totalBytes / (1024f * 1024f)
+            val speedMB = item.speedBytesPerSec / (1024f * 1024f)
+
+            val etaText = formatTime(item.lastEtaSeconds)
+
+            val finalTimeText = if (item.status == DownloadStatus.DOWNLOADING) {
+                etaText?.let { "Est. $it left" } ?: "Calculating..."
+            } else {
+                "Completed"
+            }
+
+            val ui = DownloadUiItem(
+                id = item.id,
+                title = item.fileName,
+                progress = item.progress,
+                status = item.status,
+                sizeText = "${"%.1f".format(speedMB)} MB/s • ${"%.1f".format(totalMB)} MB",
+                timeText = finalTimeText,
+                filePath = item.filePath
+            )
+
+            when (item.status) {
+                DownloadStatus.SUCCESS -> completed.add(ui)
+                else -> downloading.add(ui)
+            }
+        }
+
+        return downloading to completed
+    }
+
+    private fun formatTime(seconds: Long): String? {
+        return when {
+            seconds <= 0 -> null
+            seconds < 60 -> "${seconds}s"
+            seconds < 3600 -> "${seconds / 60} min"
+            else -> "${seconds / 3600} hr"
+        }
+    }
+
+    companion object {
+        private const val TAG = "DownloadViewModel"
+        const val EMPTY_STATE_SLOT_KEY = "empty"
+    }
+}

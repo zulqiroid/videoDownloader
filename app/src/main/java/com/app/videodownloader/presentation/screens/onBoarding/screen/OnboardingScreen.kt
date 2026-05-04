@@ -94,6 +94,7 @@ fun OnboardingScreen(
                 OnboardingNavEvent.NavigateToHome -> {
                     backStack.clear()
                     backStack.add(Screen.Main)
+                    backStack.add(Screen.Premium)
                 }
 
                 OnboardingNavEvent.ExitApp -> {

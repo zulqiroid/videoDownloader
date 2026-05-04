@@ -97,7 +97,7 @@ private fun AudioOptionsBottomSheetContent(
 
         Spacer(modifier = Modifier.height(18.dp))
 
-        AudioHighlightedOptionItem(
+    /*    AudioHighlightedOptionItem(
             icon = R.drawable.ic_queue_media,
             title = "Add to Playing Queue",
             onClick = {
@@ -105,7 +105,7 @@ private fun AudioOptionsBottomSheetContent(
             }
         )
 
-        Spacer(modifier = Modifier.height(16.dp))
+        Spacer(modifier = Modifier.height(16.dp))*/
 
         AudioOptionItem(
             icon = R.drawable.ic_playback_speed,

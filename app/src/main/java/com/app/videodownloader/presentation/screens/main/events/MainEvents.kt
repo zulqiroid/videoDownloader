@@ -43,6 +43,8 @@ sealed class MainEvents {
 
     data object OnRateUsClicked : MainEvents()
 
+    data object OnAppLanguageCLicked : MainEvents()
+
     data class OnRateUsSelected(
         val rating: Int
     ) : MainEvents()
@@ -69,5 +71,23 @@ sealed class MainEvents {
     data class OnBackNavigationClicked(
         val activity: android.app.Activity?
     ) : MainEvents()
+
+
+
+    data class OnMediaPermissionResult(
+        val granted: Boolean,
+        val permanentlyDenied: Boolean
+    ) : MainEvents()
+
+    data object OnMediaPermissionDialogDismissed : MainEvents()
+
+    data object OnMediaPermissionRequestClicked : MainEvents()
+
+    data object OnMediaPermissionSettingsClicked : MainEvents()
+
+    data class OnNotificationPermissionResult(
+        val granted: Boolean
+    ) : MainEvents()
+
 
 }

@@ -22,6 +22,7 @@ import androidx.compose.material.icons.filled.MoreVert
 import androidx.compose.material3.Icon
 import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
+import androidx.compose.runtime.LaunchedEffect
 import androidx.compose.runtime.getValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
@@ -39,6 +40,7 @@ import com.app.videodownloader.domain.model.ads.NativeAdConfig
 import com.app.videodownloader.domain.model.ads.NativeAdPlacementConfig
 import com.app.videodownloader.presentation.ads.nativeAd.NativeAdHost
 import com.app.videodownloader.presentation.ads.nativeAd.NativeAdListHelper
+import com.app.videodownloader.presentation.ads.nativeAd.NativeAdSlotHelper
 import com.app.videodownloader.presentation.screens.download.componants.VideoThumbnail
 import com.app.videodownloader.presentation.screens.player.componants.MediaTabs
 import com.app.videodownloader.presentation.screens.player.componants.PlayAllButton
@@ -53,6 +55,7 @@ import org.koin.compose.viewmodel.koinViewModel
 @Composable
 fun PlayerScreen(
     viewModel: PlayerViewModel = koinViewModel(),
+    hasMediaPermission: Boolean,
     sendToMedia: (
         mediaList: List<MediaFile>,
         startIndex: Int,
@@ -68,7 +71,16 @@ fun PlayerScreen(
 
     val nativePlacementKey = NativeAdConfig.PLAYER_LIST
     val nativePlacementConfig = state.nativeAdConfig.placement(nativePlacementKey)
-    val nativeAd = state.nativeAds[nativePlacementKey]
+    val nativeAdPool = state.nativeAdPools[nativePlacementKey].orEmpty()
+
+
+    LaunchedEffect(hasMediaPermission) {
+        if (hasMediaPermission) {
+            viewModel.onMediaPermissionGranted()
+        } else {
+            viewModel.onMediaPermissionDenied()
+        }
+    }
 
     Column(
         modifier = Modifier
@@ -105,19 +117,21 @@ fun PlayerScreen(
         LazyColumn(
             verticalArrangement = Arrangement.spacedBy(12.dp)
         ) {
-            if (
-                nativePlacementConfig != null &&
-                NativeAdListHelper.shouldShowAdAfterItem(
+            val startSlotKey = nativePlacementConfig?.let { config ->
+                NativeAdSlotHelper.slotKeyForIndex(
                     index = -1,
                     totalItems = list.size,
-                    config = nativePlacementConfig
+                    config = config
                 )
-            ) {
-                item(key = "player_native_ad_start_${state.selectedTab}") {
+            }
+
+            if (nativePlacementConfig != null && startSlotKey != null) {
+                item(key = "player_native_ad_${state.selectedTab}_$startSlotKey") {
                     PlayerNativeAdItem(
-                        nativeAd = nativeAd,
+                        nativeAd = nativeAdPool[startSlotKey],
                         nativeAdConfig = state.nativeAdConfig,
-                        placementConfig = nativePlacementConfig
+                        placementConfig = nativePlacementConfig,
+                        slotKey = startSlotKey
                     )
                 }
             }
@@ -163,18 +177,20 @@ fun PlayerScreen(
                     )
                 }
 
-                if (
-                    nativePlacementConfig != null &&
-                    NativeAdListHelper.shouldShowAdAfterItem(
+                val slotKey = nativePlacementConfig?.let { config ->
+                    NativeAdSlotHelper.slotKeyForIndex(
                         index = index,
                         totalItems = list.size,
-                        config = nativePlacementConfig
+                        config = config
                     )
-                ) {
+                }
+
+                if (nativePlacementConfig != null && slotKey != null) {
                     PlayerNativeAdItem(
-                        nativeAd = nativeAd,
+                        nativeAd = nativeAdPool[slotKey],
                         nativeAdConfig = state.nativeAdConfig,
-                        placementConfig = nativePlacementConfig
+                        placementConfig = nativePlacementConfig,
+                        slotKey = slotKey
                     )
                 }
             }
@@ -190,15 +206,17 @@ fun PlayerScreen(
 private fun PlayerNativeAdItem(
     nativeAd: NativeAd?,
     nativeAdConfig: NativeAdConfig,
-    placementConfig: NativeAdPlacementConfig
+    placementConfig: NativeAdPlacementConfig,
+    slotKey: String
 ) {
     NativeAdHost(
         nativeAd = nativeAd,
         nativeAdConfig = nativeAdConfig,
         placementConfig = placementConfig,
-        placementKey = NativeAdConfig.PLAYER_LIST
+        placementKey = "${NativeAdConfig.PLAYER_LIST}_$slotKey"
     )
 }
+
 @Composable
 fun AudioCard(
     item: PlayerUiItem,

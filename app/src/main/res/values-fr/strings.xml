@@ -1,0 +1,140 @@
+<?xml version="1.0" encoding="utf-8"?>
+<resources>
+    <string name="app_name">Téléchargeur de vidéos</string>
+
+    <string name="choose_language_title">Choisir la langue</string>
+    <string name="choose_language_subtitle">Sélectionnez votre langue préférée pour continuer</string>
+    <string name="continue_button">Continuer</string>
+
+    <string name="language_english">Anglais</string>
+    <string name="language_english_description">États-Unis, Royaume-Uni</string>
+
+    <string name="language_urdu">Ourdou</string>
+    <string name="language_urdu_description">Pakistan, Inde</string>
+
+    <string name="language_hindi">Hindi</string>
+    <string name="language_hindi_description">Inde</string>
+
+    <string name="language_arabic">Arabe</string>
+    <string name="language_arabic_description">Moyen-Orient, Afrique du Nord</string>
+
+    <string name="language_spanish">Espagnol</string>
+    <string name="language_spanish_description">Espagne, Amérique latine</string>
+
+    <string name="language_french">Français</string>
+    <string name="language_french_description">France, Canada, Afrique</string>
+
+    <string name="language_german">Allemand</string>
+    <string name="language_german_description">Allemagne</string>
+
+    <string name="language_chinese">Chinois</string>
+    <string name="language_chinese_description">Chine</string>
+
+
+    <string name="download_tab_downloading">Téléchargements (%1$d)</string>
+    <string name="download_tab_completed">Terminés (%1$d)</string>
+    <string name="download_status_downloading_with_size">Téléchargement • %1$s</string>
+    <string name="download_quality_1080p">1080p</string>
+
+    <string name="cd_play_video">Lire la vidéo</string>
+    <string name="cd_more_options">Plus d’options</string>
+    <string name="cd_pause_download">Suspendre le téléchargement</string>
+    <string name="cd_delete_download">Supprimer le téléchargement</string>
+    <string name="cd_download_thumbnail">Miniature du téléchargement</string>
+
+
+
+    <string name="download_empty_active_title">Aucun téléchargement actif</string>
+    <string name="download_empty_completed_title">Aucun téléchargement terminé</string>
+    <string name="download_empty_active_message">Vos téléchargements actifs apparaîtront ici.</string>
+    <string name="download_empty_completed_message">Les vidéos téléchargées apparaîtront ici.</string>
+
+
+
+    <string name="download_guide_title">Comment télécharger</string>
+    <string name="download_guide_got_it_button">Compris, merci !</string>
+
+    <string name="download_guide_step_copy_link_title">Copier le lien de la vidéo</string>
+    <string name="download_guide_step_copy_link_description">Ouvrez l’application de réseau social de votre choix, trouvez la vidéo que vous souhaitez enregistrer, puis appuyez sur le bouton de partage pour copier le lien.</string>
+
+    <string name="download_guide_step_paste_analyze_title">Coller et analyser</string>
+    <string name="download_guide_step_paste_analyze_description">Revenez dans cette application et collez l’URL dans le champ de recherche de l’écran d’accueil. Nous récupérerons automatiquement les détails de la vidéo pour vous.</string>
+
+    <string name="download_guide_step_select_save_title">Sélectionner et enregistrer</string>
+    <string name="download_guide_step_select_save_description">Choisissez la qualité souhaitée, comme HD, Full HD ou 4K, puis appuyez sur télécharger. La vidéo sera enregistrée directement dans votre galerie multimédia.</string>
+
+    <string name="cd_back">Retour</string>
+
+
+    <string name="home_trending_reels_title">Reels tendance</string>
+
+
+
+    <string name="common_see_all">Voir tout</string>
+    <string name="common_cancel">Annuler</string>
+    <string name="common_save">Enregistrer</string>
+    <string name="common_submit">Envoyer</string>
+    <string name="common_retry">Réessayer</string>
+    <string name="common_help">Aide</string>
+    <string name="common_pro">PRO</string>
+
+    <string name="cd_arrow_forward">Flèche vers l’avant</string>
+    <string name="cd_download_icon">Icône de téléchargement</string>
+    <string name="cd_premium">Premium</string>
+    <string name="cd_info">Informations</string>
+    <string name="cd_search">Rechercher</string>
+    <string name="cd_play">Lire</string>
+     <string name="cd_pictorial_reel">Reel illustré</string>
+
+    <string name="moving_file_title">Déplacement du fichier...</string>
+
+    <string name="download_sheet_default_title">video_m_p_4</string>
+    <string name="download_sheet_default_source">video.com</string>
+    <string name="download_sheet_select_quality">Sélectionner la qualité</string>
+    <string name="download_sheet_download_now">Télécharger maintenant</string>
+
+    <string name="main_bottom_nav_home">Accueil</string>
+    <string name="main_bottom_nav_reels">Reels</string>
+    <string name="main_bottom_nav_player">Lecteur</string>
+    <string name="main_bottom_nav_download">Téléchargements</string>
+    <string name="main_bottom_nav_more">Plus</string>
+
+    <string name="notifications_title">Notifications</string>
+    <string name="notification_download_complete_title">Téléchargement terminé</string>
+    <string name="notification_download_complete_description">Alerter lorsque la vidéo est prête</string>
+    <string name="notification_download_failed_title">Téléchargement échoué</string>
+    <string name="notification_download_failed_description">Alerter en cas d’erreur réseau</string>
+    <string name="notification_app_updates_title">Mises à jour de l’application</string>
+    <string name="notification_app_updates_description">Recevoir les nouveautés et fonctionnalités</string>
+
+    <string name="rate_us_title">Évaluez-nous</string>
+    <string name="rate_us_message">Vous aimez Video Downloader ? Donnez-nous une note !</string>
+    <string name="rate_now_button">Évaluer maintenant</string>
+    <string name="rate_later_button">Plus tard</string>
+    <string name="cd_star_rating">Note de %1$d étoile(s)</string>
+
+    <string name="feedback_title">Envoyer un commentaire</string>
+    <string name="feedback_message">Vos commentaires nous aident à améliorer l’application pour tous.</string>
+    <string name="feedback_placeholder">Écrivez votre commentaire...</string>
+
+    <string name="top_bar_app_name">Téléchargeur de vidéos</string>
+    <string name="top_bar_my_player">Mon lecteur</string>
+    <string name="top_bar_trending_reels">Reels tendance</string>
+    <string name="top_bar_downloads">Téléchargements</string>
+    <string name="top_bar_more_options">Plus d’options</string>
+    <string name="top_bar_social">Social</string>
+
+    <string name="fetching_video_title">Récupération des détails de la vidéo</string>
+    <string name="fetching_video_message">Veuillez patienter pendant la préparation de votre téléchargement.</string>
+
+    <string name="video_fetch_failed_title">Échec de récupération de la vidéo</string>
+    <string name="video_fetch_failed_default_message">Nous n’avons pas pu récupérer cette vidéo. Vérifiez le lien ou essayez une autre source.</string>
+    <string name="video_fetch_failed_paste_new_link">Coller un nouveau lien</string>
+
+
+
+    <string name="media_permission_required_title">Autorisation requise</string>
+    <string name="media_permission_required_message">Veuillez autoriser l’accès aux médias afin que nous puissions afficher vos vidéos et votre musique.</string>
+    <string name="media_permission_allow_button">Autoriser</string>
+    <string name="media_permission_open_settings_button">Ouvrir les paramètres</string>
+</resources>

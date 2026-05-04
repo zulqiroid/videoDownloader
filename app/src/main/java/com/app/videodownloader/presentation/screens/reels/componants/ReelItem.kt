@@ -6,15 +6,15 @@ import androidx.compose.foundation.interaction.MutableInteractionSource
 import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.Spacer
+import androidx.compose.foundation.layout.WindowInsets
+import androidx.compose.foundation.layout.asPaddingValues
 import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.height
+import androidx.compose.foundation.layout.navigationBars
 import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.layout.size
 import androidx.compose.material.icons.Icons
-import androidx.compose.material.icons.filled.Download
-import androidx.compose.material.icons.filled.Favorite
 import androidx.compose.material.icons.filled.PlayArrow
-import androidx.compose.material.icons.filled.Share
 import androidx.compose.material3.Icon
 import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
@@ -28,7 +28,10 @@ import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.platform.LocalContext
+import androidx.compose.ui.res.painterResource
+import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.unit.dp
+import androidx.compose.ui.unit.sp
 import androidx.compose.ui.viewinterop.AndroidView
 import androidx.media3.common.MediaItem
 import androidx.media3.common.Player
@@ -36,6 +39,7 @@ import androidx.media3.common.util.UnstableApi
 import androidx.media3.exoplayer.ExoPlayer
 import androidx.media3.ui.AspectRatioFrameLayout
 import androidx.media3.ui.PlayerView
+import com.app.videodownloader.R
 import com.app.videodownloader.presentation.screens.reels.states.ReelUi
 
 @OptIn(UnstableApi::class)
@@ -43,12 +47,17 @@ import com.app.videodownloader.presentation.screens.reels.states.ReelUi
 fun ReelItem(
     reel: ReelUi,
     isActive: Boolean,
+    onLikeClick: () -> Unit,
+    onShareClick: () -> Unit,
+    onDownloadClick: () -> Unit
 ) {
     val context = LocalContext.current
 
-    var isPlaying by remember { mutableStateOf(true) }
+    var isPlaying by remember {
+        mutableStateOf(true)
+    }
 
-    val exoPlayer = remember {
+    val exoPlayer = remember(reel.videoUrl) {
         ExoPlayer.Builder(context).build().apply {
             setMediaItem(MediaItem.fromUri(reel.videoUrl))
             prepare()
@@ -65,7 +74,8 @@ fun ReelItem(
             exoPlayer.pause()
         }
     }
-    DisposableEffect(Unit) {
+
+    DisposableEffect(exoPlayer) {
         onDispose {
             exoPlayer.release()
         }
@@ -74,6 +84,7 @@ fun ReelItem(
     Box(
         modifier = Modifier
             .fillMaxSize()
+            .padding(bottom = WindowInsets.navigationBars.asPaddingValues().calculateBottomPadding())
             .clickable(
                 indication = null,
                 interactionSource = remember { MutableInteractionSource() }
@@ -85,21 +96,28 @@ fun ReelItem(
                 } else {
                     exoPlayer.pause()
                 }
-            }) {
-
+            }
+    ) {
         AndroidView(
-            factory = {
-                PlayerView(it).apply {
+            factory = { context ->
+                PlayerView(context).apply {
                     player = exoPlayer
                     useController = false
                     resizeMode = AspectRatioFrameLayout.RESIZE_MODE_ZOOM
                 }
             },
+            update = { playerView ->
+                playerView.player = exoPlayer
+            },
             modifier = Modifier.fillMaxSize()
         )
 
-        // 🔥 Overlay UI (like your screenshot)
-        ReelOverlay(reel)
+        ReelOverlay(
+            reelUi = reel,
+            onLikeClick = onLikeClick,
+            onShareClick = onShareClick,
+            onDownloadClick = onDownloadClick
+        )
 
         if (!isPlaying) {
             Icon(
@@ -114,42 +132,88 @@ fun ReelItem(
     }
 }
 
-
 @Composable
-fun ReelOverlay(reelUi: ReelUi) {
-
-    Box(modifier = Modifier.fillMaxSize()) {
-
-        // Bottom Left (username + caption)
-        Column(
-            modifier = Modifier
-                .align(Alignment.BottomStart)
-                .padding(16.dp)
-        ) {
-            Text(reelUi.username, color = Color.White)
-            Text(reelUi.caption, color = Color.White)
-        }
-
-        // Right Actions
+fun ReelOverlay(
+    reelUi: ReelUi,
+    onLikeClick: () -> Unit,
+    onShareClick: () -> Unit,
+    onDownloadClick: () -> Unit
+) {
+    Box(
+        modifier = Modifier.fillMaxSize()
+    ) {
         Column(
             modifier = Modifier
                 .align(Alignment.BottomEnd)
                 .padding(16.dp),
             horizontalAlignment = Alignment.CenterHorizontally
         ) {
+            ReelActionButton(
+                icon = if (reelUi.isLiked) {
+                    R.drawable.ic_like_filled
+                } else {
+                    R.drawable.ic_like_outlined
+                },
+                label = reelUi.likeCount.toString(),
+                tint = if (reelUi.isLiked) {
+                    Color(0xFFE00004)
+                } else {
+                    Color.White
+                },
+                onClick = onLikeClick
+            )
 
-            Icon(Icons.Default.Favorite, contentDescription = null, tint = Color.White)
-            Text("105", color = Color.White)
+            Spacer(
+                modifier = Modifier.height(16.dp)
+            )
 
-            Spacer(Modifier.height(16.dp))
+            ReelActionButton(
+                icon = R.drawable.ic_share2,
+                label = "Share",
+                tint = Color.White,
+                onClick = onShareClick
+            )
 
-            Icon(Icons.Default.Share, contentDescription = null, tint = Color.White)
-            Text("Share", color = Color.White)
+            Spacer(
+                modifier = Modifier.height(16.dp)
+            )
 
-            Spacer(Modifier.height(16.dp))
-
-            Icon(Icons.Default.Download, contentDescription = null, tint = Color.Red)
-            Text("Download", color = Color.White)
+            ReelActionButton(
+                icon = R.drawable.ic_download_enable,
+                label = "Download",
+                tint = Color.White,
+                onClick = onDownloadClick
+            )
         }
+    }
+}
+
+@Composable
+private fun ReelActionButton(
+    icon: Int,
+    label: String,
+    tint: Color,
+    onClick: () -> Unit
+) {
+    Column(
+        modifier = Modifier.clickable(
+            indication = null,
+            interactionSource = remember { MutableInteractionSource() },
+            onClick = onClick
+        ),
+        horizontalAlignment = Alignment.CenterHorizontally
+    ) {
+        Icon(
+            painter = painterResource(icon),
+            contentDescription = label,
+            tint = tint
+        )
+
+        Text(
+            text = label,
+            color = Color.White,
+            fontSize = 14.sp,
+            fontWeight = FontWeight.W400
+        )
     }
 }

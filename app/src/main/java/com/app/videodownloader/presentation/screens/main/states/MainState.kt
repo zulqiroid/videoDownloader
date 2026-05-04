@@ -75,4 +75,10 @@ data class MainState(
     val selectedRating: Int = 4,
     val rateUsError: String? = null,
     val isSubmittingRating: Boolean = false,
+
+
+    val isMediaPermissionGranted: Boolean = false,
+    val showMediaPermissionDialog: Boolean = false,
+    val shouldOpenMediaPermissionSettings: Boolean = false,
+    val isNotificationPermissionGranted: Boolean = false,
     )

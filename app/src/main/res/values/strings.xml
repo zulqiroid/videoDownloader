@@ -1,3 +1,131 @@
+<?xml version="1.0" encoding="utf-8"?>
 <resources>
-    <string name="app_name">VideoDownloader</string>
+    <string name="app_name">Video Downloader</string>
+
+    <string name="choose_language_title">Choose Language</string>
+    <string name="choose_language_subtitle">Select your preferred language to continue</string>
+    <string name="continue_button">Continue</string>
+
+    <string name="language_english">English</string>
+    <string name="language_english_description">United States, UK</string>
+
+    <string name="language_urdu">Urdu</string>
+    <string name="language_urdu_description">Pakistan, India</string>
+
+    <string name="language_hindi">Hindi</string>
+    <string name="language_hindi_description">India</string>
+
+    <string name="language_arabic">Arabic</string>
+    <string name="language_arabic_description">Middle East, North Africa</string>
+
+    <string name="language_spanish">Spanish</string>
+    <string name="language_spanish_description">Spain, Latin America</string>
+
+    <string name="language_french">French</string>
+    <string name="language_french_description">France, Canada, Africa</string>
+
+    <string name="language_german">German</string>
+    <string name="language_german_description">Germany</string>
+
+    <string name="language_chinese">Chinese</string>
+    <string name="language_chinese_description">China</string>
+
+    <string name="download_tab_downloading">Downloading (%1$d)</string>
+    <string name="download_tab_completed">Completed (%1$d)</string>
+    <string name="download_status_downloading_with_size">Downloading • %1$s</string>
+    <string name="download_quality_1080p">1080p</string>
+
+    <string name="cd_play_video">Play video</string>
+    <string name="cd_more_options">More options</string>
+    <string name="cd_pause_download">Pause download</string>
+    <string name="cd_delete_download">Delete download</string>
+    <string name="cd_download_thumbnail">Download thumbnail</string>
+
+    <string name="download_empty_active_title">No active downloads</string>
+    <string name="download_empty_completed_title">No completed downloads</string>
+    <string name="download_empty_active_message">Your active downloads will appear here.</string>
+    <string name="download_empty_completed_message">Downloaded videos will appear here.</string>
+
+    <string name="download_guide_title">How to Download</string>
+    <string name="download_guide_got_it_button">Got It, Thanks!</string>
+
+    <string name="download_guide_step_copy_link_title">Copy Video Link</string>
+    <string name="download_guide_step_copy_link_description">Open the social media app of your choice, find the video you want to save, and tap the share button to copy the link.</string>
+
+    <string name="download_guide_step_paste_analyze_title">Paste &amp; Analyze</string>
+    <string name="download_guide_step_paste_analyze_description">Return to this app and paste the URL into the search field on the home screen. We will fetch the video details for you automatically.</string>
+
+    <string name="download_guide_step_select_save_title">Select &amp; Save</string>
+    <string name="download_guide_step_select_save_description">Choose your preferred quality, such as HD, Full HD, or 4K, and tap download. The video will be saved directly to your media gallery.</string>
+
+    <string name="cd_back">Back</string>
+
+    <string name="home_trending_reels_title">Trending Reels</string>
+
+    <string name="common_see_all">See All</string>
+    <string name="common_cancel">Cancel</string>
+    <string name="common_save">Save</string>
+    <string name="common_submit">Submit</string>
+    <string name="common_retry">Retry</string>
+    <string name="common_help">Help</string>
+    <string name="common_pro">PRO</string>
+
+    <string name="cd_arrow_forward">Arrow forward</string>
+    <string name="cd_download_icon">Download icon</string>
+    <string name="cd_premium">Premium</string>
+    <string name="cd_info">Info</string>
+    <string name="cd_search">Search</string>
+    <string name="cd_play">Play</string>
+    <string name="cd_pictorial_reel">Pictorial reel</string>
+
+    <string name="moving_file_title">Moving file...</string>
+
+    <string name="download_sheet_default_title">video_m_p_4</string>
+    <string name="download_sheet_default_source">video.com</string>
+    <string name="download_sheet_select_quality">Select Quality</string>
+    <string name="download_sheet_download_now">Download Now</string>
+
+    <string name="main_bottom_nav_home">Home</string>
+    <string name="main_bottom_nav_reels">Reels</string>
+    <string name="main_bottom_nav_player">Player</string>
+    <string name="main_bottom_nav_download">Download</string>
+    <string name="main_bottom_nav_more">More</string>
+
+    <string name="notifications_title">Notifications</string>
+    <string name="notification_download_complete_title">Download Complete</string>
+    <string name="notification_download_complete_description">Alert when video is ready</string>
+    <string name="notification_download_failed_title">Download Failed</string>
+    <string name="notification_download_failed_description">Alert on network errors</string>
+    <string name="notification_app_updates_title">App Updates</string>
+    <string name="notification_app_updates_description">Get notified about new features</string>
+
+    <string name="rate_us_title">Rate Us</string>
+    <string name="rate_us_message">Enjoying Video Downloader? Give us a rating!</string>
+    <string name="rate_now_button">Rate Now</string>
+    <string name="rate_later_button">Later</string>
+    <string name="cd_star_rating">%1$d star rating</string>
+
+    <string name="feedback_title">Send Feedback</string>
+    <string name="feedback_message">Your feedback helps us improve the app for everyone.</string>
+    <string name="feedback_placeholder">Write your feedback...</string>
+
+    <string name="top_bar_app_name">Video Downloader</string>
+    <string name="top_bar_my_player">My Player</string>
+    <string name="top_bar_trending_reels">Trending Reels</string>
+    <string name="top_bar_downloads">Downloads</string>
+    <string name="top_bar_more_options">More Options</string>
+    <string name="top_bar_social">Social</string>
+
+    <string name="fetching_video_title">Fetching Video Details</string>
+    <string name="fetching_video_message">Please wait while we prepare your download.</string>
+
+    <string name="video_fetch_failed_title">Video Fetch Failed</string>
+    <string name="video_fetch_failed_default_message">We could not fetch this video. Please check the link or try another source.</string>
+    <string name="video_fetch_failed_paste_new_link">Paste New Link</string>
+
+
+    <string name="media_permission_required_title">Permission Required</string>
+    <string name="media_permission_required_message">Please allow media permission so we can show your videos and music.</string>
+    <string name="media_permission_allow_button">Allow Permission</string>
+    <string name="media_permission_open_settings_button">Open Settings</string>
 </resources>

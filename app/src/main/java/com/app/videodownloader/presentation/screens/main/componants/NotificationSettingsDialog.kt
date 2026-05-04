@@ -1,73 +1,33 @@
 package com.app.videodownloader.presentation.screens.main.componants
 
-import androidx.activity.compose.BackHandler
-import androidx.activity.compose.LocalActivity
 import androidx.compose.foundation.clickable
 import androidx.compose.foundation.layout.Arrangement
-import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.Row
 import androidx.compose.foundation.layout.Spacer
-import androidx.compose.foundation.layout.fillMaxSize
-import androidx.compose.foundation.layout.padding
-import androidx.compose.foundation.layout.WindowInsets
-import androidx.compose.foundation.layout.navigationBars
-import androidx.compose.foundation.layout.asPaddingValues
 import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.height
-import androidx.compose.foundation.layout.statusBars
+import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.layout.width
 import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.material3.Button
 import androidx.compose.material3.ButtonDefaults
-import androidx.compose.material3.DrawerValue
 import androidx.compose.material3.HorizontalDivider
-import androidx.compose.material3.Scaffold
 import androidx.compose.material3.Surface
 import androidx.compose.material3.Switch
 import androidx.compose.material3.SwitchDefaults
 import androidx.compose.material3.Text
 import androidx.compose.material3.TextButton
-import androidx.compose.material3.rememberDrawerState
 import androidx.compose.runtime.Composable
-import androidx.compose.runtime.LaunchedEffect
-import androidx.compose.runtime.getValue
-import androidx.compose.runtime.rememberCoroutineScope
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.graphics.Color
+import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
 import androidx.compose.ui.window.Dialog
-import androidx.lifecycle.compose.collectAsStateWithLifecycle
-import androidx.navigation3.runtime.NavBackStack
-import androidx.navigation3.runtime.NavKey
-import com.app.videodownloader.presentation.componants.DownloadStartedDialog
-import com.app.videodownloader.presentation.componants.exitConfirmationDialogue.ExitConfirmationDialog
-import com.app.videodownloader.presentation.componants.privacyPolicyDialgue.PrivacyDialogHost
-import com.app.videodownloader.presentation.navigation.Screen
-import com.app.videodownloader.presentation.navigation.Screen.*
-import com.app.videodownloader.presentation.screens.download.screen.DownloadScreen
-import com.app.videodownloader.presentation.screens.home.screen.HomeScreen
-import com.app.videodownloader.presentation.screens.main.componants.DownloadBottomSheet
-import com.app.videodownloader.presentation.screens.main.componants.FetchingDialog
-import com.app.videodownloader.presentation.screens.main.componants.MainBottomBar
-import com.app.videodownloader.presentation.screens.main.componants.TopBar
-import com.app.videodownloader.presentation.screens.main.events.MainEvents
-import com.app.videodownloader.presentation.screens.main.events.MainEvents.*
-import com.app.videodownloader.presentation.screens.main.events.MainNavEvents
-import com.app.videodownloader.presentation.screens.main.states.BottomNavItem
-import com.app.videodownloader.presentation.screens.main.states.DownloadSheetState
-import com.app.videodownloader.presentation.screens.main.viewModel.MainViewModel
-import com.app.videodownloader.presentation.screens.more.screen.MoreScreen
-import com.app.videodownloader.presentation.screens.player.componants.FileOptionsDialog
-import com.app.videodownloader.presentation.screens.main.events.FileDialogIntent
-import com.app.videodownloader.presentation.screens.main.events.NotificationEvents
-import com.app.videodownloader.presentation.screens.player.screen.PlayerScreen
-import com.app.videodownloader.presentation.screens.reels.screen.ReelsScreen
-import com.app.videodownloader.presentation.screens.social.screen.Social
-import org.koin.compose.viewmodel.koinViewModel
+import com.app.videodownloader.R
 
 @Composable
 fun NotificationSettingsDialog(
@@ -104,7 +64,7 @@ fun NotificationSettingsDialog(
                     )
             ) {
                 Text(
-                    text = "Notifications",
+                    text = stringResource(R.string.notifications_title),
                     fontSize = 18.sp,
                     fontWeight = FontWeight.W600,
                     color = Color(0xFF0F172A)
@@ -113,8 +73,8 @@ fun NotificationSettingsDialog(
                 Spacer(modifier = Modifier.height(18.dp))
 
                 NotificationSettingItem(
-                    title = "Download Complete",
-                    description = "Alert when video is ready",
+                    title = stringResource(R.string.notification_download_complete_title),
+                    description = stringResource(R.string.notification_download_complete_description),
                     checked = downloadCompleteEnabled,
                     onCheckedChange = onDownloadCompleteChanged
                 )
@@ -125,8 +85,8 @@ fun NotificationSettingsDialog(
                 )
 
                 NotificationSettingItem(
-                    title = "Download Failed",
-                    description = "Alert on network errors",
+                    title = stringResource(R.string.notification_download_failed_title),
+                    description = stringResource(R.string.notification_download_failed_description),
                     checked = downloadFailedEnabled,
                     onCheckedChange = onDownloadFailedChanged
                 )
@@ -137,8 +97,8 @@ fun NotificationSettingsDialog(
                 )
 
                 NotificationSettingItem(
-                    title = "App Updates",
-                    description = "Get notified about new features",
+                    title = stringResource(R.string.notification_app_updates_title),
+                    description = stringResource(R.string.notification_app_updates_description),
                     checked = appUpdatesEnabled,
                     onCheckedChange = onAppUpdatesChanged
                 )
@@ -160,7 +120,7 @@ fun NotificationSettingsDialog(
                         modifier = Modifier.height(50.dp)
                     ) {
                         Text(
-                            text = "Cancel",
+                            text = stringResource(R.string.common_cancel),
                             fontSize = 14.sp,
                             fontWeight = FontWeight.W500,
                             modifier = Modifier.padding(horizontal = 14.dp)
@@ -179,7 +139,7 @@ fun NotificationSettingsDialog(
                         modifier = Modifier.height(50.dp)
                     ) {
                         Text(
-                            text = "Save",
+                            text = stringResource(R.string.common_save),
                             fontSize = 14.sp,
                             fontWeight = FontWeight.W500,
                             modifier = Modifier.padding(horizontal = 14.dp)

@@ -9,6 +9,8 @@ data class MediaPlayerState(
     val mediaList: List<MediaFile> = emptyList(),
     val currentIndex: Int = 0,
 
+    val screenBackgroundColor: Long = SCREEN_BACKGROUND_BLACK,
+
     val isPlaying: Boolean = true,
     val position: Long = 0L,
     val duration: Long = 0L,
@@ -44,9 +46,18 @@ data class MediaPlayerState(
     val showBottomSheet: Boolean = false,
 
     val nativeAds: Map<String, NativeAd> = emptyMap(),
+    val nativeAdPools: Map<String, Map<String, NativeAd>> = emptyMap(),
     val nativeAdConfig: NativeAdConfig = NativeAdConfig.default(),
-    ) {
+
+    val isShuffleEnabled: Boolean = false,
+    val shuffleQueue: List<Int> = emptyList(),
+    val shuffleQueuePosition: Int = 0,
+    val isAudioRepeatEnabled: Boolean = false,
+) {
     companion object {
         const val DEFAULT_PLAYBACK_SPEED = 1f
+
+        const val SCREEN_BACKGROUND_BLACK: Long = 0xFF000000
+        const val SCREEN_BACKGROUND_WHITE: Long = 0xFFFFFFFF
     }
 }

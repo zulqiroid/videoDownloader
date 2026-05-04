@@ -2,6 +2,7 @@ package com.app.videodownloader.presentation.screens.more.screen
 
 import androidx.compose.foundation.Image
 import androidx.compose.foundation.background
+import androidx.compose.foundation.clickable
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.Column
@@ -39,6 +40,12 @@ import com.app.videodownloader.presentation.screens.more.events.MoreUiEvent
 import com.app.videodownloader.presentation.screens.more.viewModel.MoreViewModel
 import com.google.android.gms.ads.nativead.NativeAd
 import org.koin.compose.viewmodel.koinViewModel
+import android.app.Activity
+import android.content.ActivityNotFoundException
+import android.content.Intent
+import android.net.Uri
+import android.widget.Toast
+import androidx.compose.ui.platform.LocalContext
 
 @Composable
 fun MoreScreen(
@@ -46,9 +53,12 @@ fun MoreScreen(
     onFeedbackClick: () -> Unit,
     onHowToDownloadClicked: () -> Unit,
     onRateUsClick: () -> Unit,
+    onAppLanguageClicked: () -> Unit,
+    onPremiumCardClick: () -> Unit,
     viewModel: MoreViewModel = koinViewModel()
 ) {
     val state by viewModel.state.collectAsState()
+    val context = LocalContext.current
 
     val topPlacementKey = NativeAdConfig.MORE_TOP
     val bottomPlacementKey = NativeAdConfig.MORE_BOTTOM
@@ -150,7 +160,9 @@ fun MoreScreen(
                     Box(
                         modifier = Modifier
                             .background(Color.Yellow, RoundedCornerShape(20.dp))
-                            .padding(horizontal = 16.dp, vertical = 6.dp)
+                            .padding(horizontal = 16.dp, vertical = 6.dp).clickable{
+                                onPremiumCardClick()
+                            }
                     ) {
                         Text("Upgrade Now", fontWeight = FontWeight.Bold)
                     }
@@ -171,7 +183,7 @@ fun MoreScreen(
                 description = "Choose your preferred language",
                 icon = R.drawable.ic_world,
                 onClick = {
-                    // TODO
+                    onAppLanguageClicked()
                 }
             )
 
@@ -205,10 +217,9 @@ fun MoreScreen(
                 description = "Invite friends",
                 icon = R.drawable.ic_share,
                 onClick = {
-                    // TODO
+                    context.shareApp()
                 }
             )
-
             DrawerItem(
                 title = "Rate Us",
                 description = "Give feedback on the store",
@@ -262,3 +273,38 @@ private fun MoreNativeAdItem(
         placementKey = placementKey
     )
 }
+
+private fun android.content.Context.shareApp() {
+    val appName = getString(R.string.app_name)
+    val packageName = packageName
+    val playStoreUrl = "https://play.google.com/store/apps/details?id=$packageName"
+
+    val shareMessage = buildString {
+        append("Check out ")
+        append(appName)
+        append(":\n")
+        append(playStoreUrl)
+    }
+
+    val shareIntent = Intent(Intent.ACTION_SEND).apply {
+        type = "text/plain"
+        putExtra(Intent.EXTRA_SUBJECT, appName)
+        putExtra(Intent.EXTRA_TEXT, shareMessage)
+    }
+
+    val chooserIntent = Intent.createChooser(
+        shareIntent,
+        "Share App"
+    )
+
+    runCatching {
+        startActivity(chooserIntent)
+    }.onFailure {
+        Toast.makeText(
+            this,
+            "No app found to share",
+            Toast.LENGTH_SHORT
+        ).show()
+    }
+}
+

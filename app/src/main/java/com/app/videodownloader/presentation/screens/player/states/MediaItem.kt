@@ -12,7 +12,7 @@ data class PlayerState(
     val videos: List<PlayerUiItem> = emptyList(),
     val audios: List<PlayerUiItem> = emptyList(),
     val isLoading: Boolean = false,
-    val nativeAds: Map<String, NativeAd> = emptyMap(),
+    val nativeAdPools: Map<String, Map<String, NativeAd>> = emptyMap(),
     val nativeAdConfig: NativeAdConfig = NativeAdConfig.default(),
 )
 

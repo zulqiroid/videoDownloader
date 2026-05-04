@@ -2,6 +2,7 @@ package com.app.videodownloader.di.modules
 
 import com.app.videodownloader.presentation.ads.banner.viewModel.BannerAdViewModel
 import com.app.videodownloader.presentation.lifecycle.AppOpenAdLifecycleObserver
+import com.app.videodownloader.presentation.localization.AppLocaleController
 import com.app.videodownloader.presentation.screens.downloader.viewModel.DownloaderViewModel
 import com.app.videodownloader.presentation.screens.appLanguage.viewModel.AppLanguageViewModel
 import com.app.videodownloader.presentation.screens.download.viewModel.DownloadViewModel
@@ -32,13 +33,17 @@ val presentationModule  = module{
         )
     }
 
-    viewModel{
+    viewModel {
         AppLanguageViewModel(
-            get(),
-            get(),
-            get(),
+            loadNativeAdUseCase = get(),
+            observeNativeAdsUseCase = get(),
+            observeNativeAdPoolsUseCase = get(),
+            observeNativeAdConfigUseCase = get(),
+            getSelectedLanguageUseCase = get(),
+            saveSelectedLanguageUseCase = get()
         )
     }
+
 
     viewModel {
         DownloaderViewModel(get(), get())
@@ -69,7 +74,7 @@ val presentationModule  = module{
             getDownloadedFilesUseCase = get(),
             cancelDownloadUseCase = get(),
             loadNativeAdUseCase = get(),
-            observeNativeAdsUseCase = get(),
+            observeNativeAdPoolsUseCase = get(),
             observeNativeAdConfigUseCase = get()
         )
     }
@@ -78,7 +83,7 @@ val presentationModule  = module{
             getVideos = get(),
             getAudios = get(),
             loadNativeAdUseCase = get(),
-            observeNativeAdsUseCase = get(),
+            observeNativeAdPoolsUseCase = get(),
             observeNativeAdConfigUseCase = get()
         )
     }
@@ -98,7 +103,7 @@ val presentationModule  = module{
             deleteMediaFileUseCase = get(),
             setAudioAsRingtoneUseCase = get(),
             loadNativeAdUseCase = get(),
-            observeNativeAdsUseCase = get(),
+            observeNativeAdPoolsUseCase = get(),
             observeNativeAdConfigUseCase = get()
         )
     }
@@ -124,6 +129,13 @@ val presentationModule  = module{
     viewModel {
         BannerAdViewModel(
             observeBannerAdConfigUseCase = get()
+        )
+    }
+
+    single {
+        AppLocaleController(
+            observeSelectedLanguage = get(),
+            applicationScope = get()
         )
     }
 }

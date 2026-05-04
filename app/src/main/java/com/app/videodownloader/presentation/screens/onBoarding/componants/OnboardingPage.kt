@@ -89,7 +89,7 @@ private fun OnboardingContentPage(
                 painter = painterResource(id = it),
                 contentDescription = null,
                 contentScale = ContentScale.FillWidth,
-                modifier = Modifier.fillMaxWidth()
+                modifier = Modifier.weight(1f)
             )
         }
 

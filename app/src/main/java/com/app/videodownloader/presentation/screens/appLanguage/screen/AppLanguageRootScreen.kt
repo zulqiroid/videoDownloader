@@ -1,6 +1,7 @@
 package com.app.videodownloader.presentation.screens.appLanguage.screen
 
 import androidx.activity.compose.BackHandler
+import androidx.activity.compose.LocalActivity
 import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.WindowInsets
@@ -18,8 +19,11 @@ import androidx.compose.runtime.collectAsState
 import androidx.compose.runtime.getValue
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.graphics.Color
+import androidx.compose.ui.res.stringResource
 import androidx.navigation3.runtime.NavBackStack
 import androidx.navigation3.runtime.NavKey
+import com.app.videodownloader.R
+import com.app.videodownloader.domain.model.FromWhichSrc
 import com.app.videodownloader.domain.model.ads.BannerAdScreen
 import com.app.videodownloader.domain.model.ads.BannerAdSlot
 import com.app.videodownloader.domain.model.ads.NativeAdConfig
@@ -27,7 +31,7 @@ import com.app.videodownloader.domain.model.ads.NativeAdPlacementConfig
 import com.app.videodownloader.presentation.ads.banner.componants.BannerAdHost
 import com.app.videodownloader.presentation.ads.banner.viewModel.BannerAdViewModel
 import com.app.videodownloader.presentation.ads.nativeAd.NativeAdHost
-import com.app.videodownloader.presentation.ads.nativeAd.NativeAdListHelper
+import com.app.videodownloader.presentation.ads.nativeAd.NativeAdSlotHelper
 import com.app.videodownloader.presentation.componants.AppButton
 import com.app.videodownloader.presentation.componants.exitConfirmationDialogue.ExitConfirmationDialog
 import com.app.videodownloader.presentation.localization.AppLanguageCodes
@@ -42,9 +46,10 @@ import org.koin.compose.viewmodel.koinViewModel
 
 @Composable
 fun AppLanguageRootScreen(
+    fromWhichScreen: FromWhichSrc,
     backStack: NavBackStack<NavKey>,
     viewModel: AppLanguageViewModel = koinViewModel(),
-    bannerAdViewModel: BannerAdViewModel = koinViewModel()
+    bannerAdViewModel: BannerAdViewModel = koinViewModel(),
 ) {
     val state by viewModel.states.collectAsState()
     val bannerState by bannerAdViewModel.state.collectAsState()
@@ -61,10 +66,17 @@ fun AppLanguageRootScreen(
         slot = BannerAdSlot.Bottom
     )
 
+    val placementKey = NativeAdConfig.APP_LANGUAGE_LIST
+    val placementConfig = state.nativeAdConfig.placement(placementKey)
+    val nativeAdPool = state.nativeAdPools[placementKey].orEmpty()
+    val languages = AppLanguageCodes.entries
+    val activity = LocalActivity.current
+
     LaunchedEffect(viewModel.navEvents) {
         viewModel.navEvents.collect { event ->
             when (event) {
                 AppLanguageNavEvents.NavigateToOnBoarding -> {
+                    activity?.recreate()
                     backStack.clear()
                     backStack.add(Screen.OnBoarding)
                 }
@@ -72,12 +84,25 @@ fun AppLanguageRootScreen(
                 AppLanguageNavEvents.ExitApp -> {
                     backStack.clear()
                 }
+
+                AppLanguageNavEvents.NavigateToBack -> {
+                    backStack.removeLastOrNull()
+                }
+
+                AppLanguageNavEvents.RecreateActivity ->{
+                    activity?.recreate()
+                    backStack.removeLastOrNull()
+                }
             }
         }
     }
 
     BackHandler {
-        viewModel.onEvent(AppLanguageUiEvents.OnBackClicked)
+        if (fromWhichScreen == FromWhichSrc.FROM_MAIN) {
+            viewModel.onEvent(AppLanguageUiEvents.OnNavigateBack)
+        } else {
+            viewModel.onEvent(AppLanguageUiEvents.OnBackClicked)
+        }
     }
 
     Scaffold(
@@ -114,27 +139,24 @@ fun AppLanguageRootScreen(
                 Column(
                     modifier = Modifier.fillMaxSize()
                 ) {
-                    val placementKey = NativeAdConfig.APP_LANGUAGE_LIST
-                    val placementConfig = state.nativeAdConfig.placement(placementKey)
-                    val nativeAd = state.nativeAds[placementKey]
-                    val languages = AppLanguageCodes.entries
-
                     LazyColumn(
                         modifier = Modifier.weight(1f)
                     ) {
-                        if (
-                            placementConfig != null &&
-                            NativeAdListHelper.shouldShowAdAfterItem(
+                        val startSlotKey = placementConfig?.let { config ->
+                            NativeAdSlotHelper.slotKeyForIndex(
                                 index = -1,
                                 totalItems = languages.size,
-                                config = placementConfig
+                                config = config
                             )
-                        ) {
-                            item(key = "native_ad_start") {
+                        }
+
+                        if (placementConfig != null && startSlotKey != null) {
+                            item(key = "app_language_native_ad_$startSlotKey") {
                                 AppLanguageNativeAdItem(
-                                    nativeAd = nativeAd,
+                                    nativeAd = nativeAdPool[startSlotKey],
                                     nativeAdConfig = state.nativeAdConfig,
-                                    placementConfig = placementConfig
+                                    placementConfig = placementConfig,
+                                    slotKey = startSlotKey
                                 )
                             }
                         }
@@ -154,18 +176,20 @@ fun AppLanguageRootScreen(
                                 }
                             )
 
-                            if (
-                                placementConfig != null &&
-                                NativeAdListHelper.shouldShowAdAfterItem(
+                            val slotKey = placementConfig?.let { config ->
+                                NativeAdSlotHelper.slotKeyForIndex(
                                     index = index,
                                     totalItems = languages.size,
-                                    config = placementConfig
+                                    config = config
                                 )
-                            ) {
+                            }
+
+                            if (placementConfig != null && slotKey != null) {
                                 AppLanguageNativeAdItem(
-                                    nativeAd = nativeAd,
+                                    nativeAd = nativeAdPool[slotKey],
                                     nativeAdConfig = state.nativeAdConfig,
-                                    placementConfig = placementConfig
+                                    placementConfig = placementConfig,
+                                    slotKey = slotKey
                                 )
                             }
                         }
@@ -176,10 +200,10 @@ fun AppLanguageRootScreen(
                     ) {
                         AppButton(
                             modifier = Modifier.fillMaxWidth(),
-                            text = "Continue",
+                            text = stringResource(R.string.continue_button),
                             onClick = {
                                 viewModel.onEvent(
-                                    AppLanguageUiEvents.OnContinueButtonClicked
+                                    AppLanguageUiEvents.OnContinueButtonClicked(fromWhichScreen)
                                 )
                             }
                         )
@@ -212,12 +236,13 @@ fun AppLanguageRootScreen(
 private fun AppLanguageNativeAdItem(
     nativeAd: NativeAd?,
     nativeAdConfig: NativeAdConfig,
-    placementConfig: NativeAdPlacementConfig
+    placementConfig: NativeAdPlacementConfig,
+    slotKey: String,
 ) {
     NativeAdHost(
         nativeAd = nativeAd,
         nativeAdConfig = nativeAdConfig,
         placementConfig = placementConfig,
-        placementKey = NativeAdConfig.APP_LANGUAGE_LIST
+        placementKey = "${NativeAdConfig.APP_LANGUAGE_LIST}_$slotKey"
     )
 }

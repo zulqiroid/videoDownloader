@@ -15,14 +15,9 @@ import androidx.compose.foundation.layout.size
 import androidx.compose.foundation.layout.width
 import androidx.compose.foundation.shape.CircleShape
 import androidx.compose.foundation.shape.RoundedCornerShape
-import androidx.compose.material.icons.Icons
-import androidx.compose.material.icons.filled.Download
-import androidx.compose.material3.Button
-import androidx.compose.material3.ButtonDefaults
 import androidx.compose.material3.ExperimentalMaterial3Api
 import androidx.compose.material3.Icon
 import androidx.compose.material3.ModalBottomSheet
-import androidx.compose.material3.SegmentedButtonDefaults.Icon
 import androidx.compose.material3.Text
 import androidx.compose.material3.TextButton
 import androidx.compose.material3.rememberModalBottomSheetState
@@ -33,6 +28,7 @@ import androidx.compose.ui.draw.clip
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.layout.ContentScale
 import androidx.compose.ui.res.painterResource
+import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
@@ -50,9 +46,7 @@ fun DownloadBottomSheet(
     onSelect: (Int) -> Unit,
     onDownload: () -> Unit,
 ) {
-
     if (!state.isVisible) return
-
 
     val sheetState = rememberModalBottomSheetState(
         skipPartiallyExpanded = true
@@ -64,19 +58,22 @@ fun DownloadBottomSheet(
         shape = RoundedCornerShape(topStart = 24.dp, topEnd = 24.dp),
         containerColor = Color(0xFFF9FAFB),
         dragHandle = {
-            Spacer(Modifier.width(48.dp).height(8.dp).background(Color(0xFFF3F4F6)))
+            Spacer(
+                modifier = Modifier
+                    .width(48.dp)
+                    .height(8.dp)
+                    .background(Color(0xFFF3F4F6))
+            )
         }
     ) {
-
         Column(
             modifier = Modifier
                 .fillMaxWidth()
                 .padding(16.dp)
         ) {
-
-            // 🔹 Header
-            Row(verticalAlignment = Alignment.CenterVertically) {
-
+            Row(
+                verticalAlignment = Alignment.CenterVertically
+            ) {
                 AsyncImage(
                     model = state.thumbnail ?: painterResource(R.drawable.placeholder_image),
                     contentDescription = null,
@@ -87,83 +84,78 @@ fun DownloadBottomSheet(
                     contentScale = ContentScale.Crop
                 )
 
-                Spacer(Modifier.width(12.dp))
+                Spacer(modifier = Modifier.width(12.dp))
 
                 Column {
                     Text(
-                        text = if (state.title.isNullOrBlank()) "video_m_p_4" else state.title,
+                        text = state.title?.takeIf { it.isNotBlank() }
+                            ?: stringResource(R.string.download_sheet_default_title),
                         fontWeight = FontWeight.SemiBold,
                         fontSize = 16.sp,
                         maxLines = 2
                     )
 
-                    Spacer(Modifier.height(4.dp))
+                    Spacer(modifier = Modifier.height(4.dp))
 
                     Row(
                         horizontalArrangement = Arrangement.spacedBy(10.dp),
                         verticalAlignment = Alignment.CenterVertically
                     ) {
-
                         Icon(
                             painter = painterResource(R.drawable.ic_pic_reel),
-                            contentDescription = "pictorial reel",
-                            tint = Color(0xFf71717A),
+                            contentDescription = stringResource(R.string.cd_pictorial_reel),
+                            tint = Color(0xFF71717A),
                             modifier = Modifier.size(15.dp)
                         )
+
                         Text(
-                            text = state.source ?: "video.com",
+                            text = state.source?.takeIf { it.isNotBlank() }
+                                ?: stringResource(R.string.download_sheet_default_source),
                             fontSize = 12.sp,
                             color = Color(0xFF71717A),
                             fontWeight = FontWeight.W400
                         )
                     }
-
                 }
             }
 
-            Spacer(Modifier.height(20.dp))
+            Spacer(modifier = Modifier.height(20.dp))
 
             Text(
-                text = "Select Quality",
+                text = stringResource(R.string.download_sheet_select_quality),
                 fontSize = 14.sp,
                 color = Color(0xFF71717A),
                 fontWeight = FontWeight.W600
             )
 
-            Spacer(Modifier.height(12.dp))
+            Spacer(modifier = Modifier.height(12.dp))
 
-            // 🔥 Options List
             state.options.forEachIndexed { index, item ->
                 DownloadOptionItem(
                     item = item,
                     isSelected = state.selectedIndex == index,
                     onClick = { onSelect(index) }
                 )
-                Spacer(Modifier.height(10.dp))
+
+                Spacer(modifier = Modifier.height(10.dp))
             }
 
-            Spacer(Modifier.height(20.dp))
-
-            // 🔴 Download Button
+            Spacer(modifier = Modifier.height(20.dp))
 
             AppButton(
-                modifier = Modifier
-                    .fillMaxWidth(),
-                text = "Download Now",
-                onClick = {
-                    onDownload()
-                }
+                modifier = Modifier.fillMaxWidth(),
+                text = stringResource(R.string.download_sheet_download_now),
+                onClick = onDownload
             )
 
-            Spacer(Modifier.height(10.dp))
+            Spacer(modifier = Modifier.height(10.dp))
 
-            // Cancel
             TextButton(
                 onClick = onDismiss,
                 modifier = Modifier.fillMaxWidth()
             ) {
                 Text(
-                    text = "Cancel",
+                    text = stringResource(R.string.common_cancel),
                     color = Color(0xFF71717A),
                     fontSize = 22.sp,
                     fontWeight = FontWeight.W600
@@ -173,38 +165,44 @@ fun DownloadBottomSheet(
     }
 }
 
-
 @Composable
 fun DownloadOptionItem(
     item: DownloadOptionUi,
     isSelected: Boolean,
     onClick: () -> Unit,
 ) {
-
     val borderColor = if (isSelected) Color(0xFFE00004) else Color(0xFFE4E4E7)
-    val bgColor =
-        if (isSelected) Color(0xFFE00004).copy(alpha = 0.1f) else Color(0xFFF4F4F5).copy(alpha = 0.3f)
+    val bgColor = if (isSelected) {
+        Color(0xFFE00004).copy(alpha = 0.1f)
+    } else {
+        Color(0xFFF4F4F5).copy(alpha = 0.3f)
+    }
 
     Row(
         modifier = Modifier
             .fillMaxWidth()
             .clip(RoundedCornerShape(16.dp))
             .background(bgColor)
-            .border(if (isSelected) 2.dp else 1.dp, borderColor, RoundedCornerShape(16.dp))
+            .border(
+                width = if (isSelected) 2.dp else 1.dp,
+                color = borderColor,
+                shape = RoundedCornerShape(16.dp)
+            )
             .clickable { onClick() }
             .padding(14.dp),
         verticalAlignment = Alignment.CenterVertically
     ) {
-
-        // Icon Circle
         Box(
             modifier = Modifier
                 .size(40.dp)
                 .clip(CircleShape)
-                .background(if (isSelected) Color(0xFFE00004).copy(alpha = 0.1f) else Color.White)
+                .background(
+                    if (isSelected) Color(0xFFE00004).copy(alpha = 0.1f) else Color.White
+                )
                 .border(
                     width = 1.dp,
-                    color = if (isSelected) Color.Transparent else Color(0xFFE4E4E7)
+                    color = if (isSelected) Color.Transparent else Color(0xFFE4E4E7),
+                    shape = CircleShape
                 ),
             contentAlignment = Alignment.Center
         ) {
@@ -213,7 +211,11 @@ fun DownloadOptionItem(
                     if (item.isMP3) {
                         R.drawable.ic_audio
                     } else {
-                        if (isSelected) R.drawable.ic_vd_bundle_filled else R.drawable.ic_vd_bundle_outlined
+                        if (isSelected) {
+                            R.drawable.ic_vd_bundle_filled
+                        } else {
+                            R.drawable.ic_vd_bundle_outlined
+                        }
                     }
                 ),
                 contentDescription = null,
@@ -222,11 +224,14 @@ fun DownloadOptionItem(
             )
         }
 
-        Spacer(Modifier.width(12.dp))
+        Spacer(modifier = Modifier.width(12.dp))
 
-        Column(modifier = Modifier.weight(1f)) {
-
-            Row(verticalAlignment = Alignment.CenterVertically) {
+        Column(
+            modifier = Modifier.weight(1f)
+        ) {
+            Row(
+                verticalAlignment = Alignment.CenterVertically
+            ) {
                 Text(
                     text = item.quality,
                     fontWeight = FontWeight.W700,
@@ -235,14 +240,19 @@ fun DownloadOptionItem(
                 )
 
                 if (item.isPro) {
-                    Spacer(Modifier.width(6.dp))
+                    Spacer(modifier = Modifier.width(6.dp))
+
                     Box(
                         modifier = Modifier
                             .clip(RoundedCornerShape(6.dp))
                             .background(Color.Red)
                             .padding(horizontal = 6.dp, vertical = 2.dp)
                     ) {
-                        Text("PRO", color = Color.White, fontSize = 10.sp)
+                        Text(
+                            text = stringResource(R.string.common_pro),
+                            color = Color.White,
+                            fontSize = 10.sp
+                        )
                     }
                 }
             }
@@ -255,7 +265,6 @@ fun DownloadOptionItem(
             )
         }
 
-        // Radio Indicator
         Box(
             modifier = Modifier
                 .size(20.dp)

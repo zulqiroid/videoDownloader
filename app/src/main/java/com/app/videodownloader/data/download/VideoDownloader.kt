@@ -4,7 +4,8 @@ import android.app.DownloadManager
 import android.content.Context
 import android.net.Uri
 import android.os.Environment
- import io.ktor.client.HttpClient
+import android.util.Log
+import io.ktor.client.HttpClient
  import io.ktor.client.request.get
 import io.ktor.client.request.header
 import io.ktor.client.request.headers
@@ -23,6 +24,8 @@ class VideoDownloader(
 
 
     suspend fun downloadVideo(url: String) {
+
+        Log.d("video to be download","the url is downloading : $url ")
 
         val request = DownloadManager.Request(Uri.parse(url))
             .setTitle("Downloading Video")

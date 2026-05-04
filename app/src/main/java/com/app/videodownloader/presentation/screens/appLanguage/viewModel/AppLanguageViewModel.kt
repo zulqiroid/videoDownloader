@@ -1,10 +1,18 @@
 package com.app.videodownloader.presentation.screens.appLanguage.viewModel
 
+import android.util.Log
 import androidx.lifecycle.ViewModel
 import androidx.lifecycle.viewModelScope
+import com.app.videodownloader.domain.model.FromWhichSrc
+import com.app.videodownloader.domain.model.ads.NativeAdConfig
 import com.app.videodownloader.domain.usecases.ads.LoadNativeAdUseCase
 import com.app.videodownloader.domain.usecases.ads.ObserveNativeAdConfigUseCase
+import com.app.videodownloader.domain.usecases.ads.ObserveNativeAdPoolsUseCase
 import com.app.videodownloader.domain.usecases.ads.ObserveNativeAdsUseCase
+import com.app.videodownloader.domain.usecases.dataStore.appLanguage.GetSelectedLanguageUseCase
+import com.app.videodownloader.domain.usecases.dataStore.appLanguage.SaveSelectedLanguageUseCase
+import com.app.videodownloader.presentation.ads.nativeAd.NativeAdSlotHelper
+import com.app.videodownloader.presentation.localization.AppLanguageCodes
 import com.app.videodownloader.presentation.screens.appLanguage.events.AppLanguageNavEvents
 import com.app.videodownloader.presentation.screens.appLanguage.events.AppLanguageUiEvents
 import com.app.videodownloader.presentation.screens.appLanguage.states.AppLanguageStates
@@ -18,8 +26,11 @@ import kotlinx.coroutines.launch
 class AppLanguageViewModel(
     private val loadNativeAdUseCase: LoadNativeAdUseCase,
     private val observeNativeAdsUseCase: ObserveNativeAdsUseCase,
-    private val observeNativeAdConfigUseCase: ObserveNativeAdConfigUseCase
-) : ViewModel() {
+    private val observeNativeAdPoolsUseCase: ObserveNativeAdPoolsUseCase,
+    private val observeNativeAdConfigUseCase: ObserveNativeAdConfigUseCase,
+    private val getSelectedLanguageUseCase: GetSelectedLanguageUseCase,
+    private val saveSelectedLanguageUseCase: SaveSelectedLanguageUseCase
+) : ViewModel()     {
 
     private val _states = MutableStateFlow(AppLanguageStates())
     val states = _states.asStateFlow()
@@ -28,16 +39,40 @@ class AppLanguageViewModel(
     val navEvents = _navEvents.asSharedFlow()
 
     init {
+        loadSavedLanguage()
         observeNativeAds()
+        observeNativeAdPools()
         observeNativeConfig()
-        loadNativeAd()
+        observeNativeConfig()
+    }
+
+    private fun loadSavedLanguage() {
+        viewModelScope.launch {
+            val savedLanguage = getSelectedLanguageUseCase()
+
+            _states.update { currentState ->
+                currentState.copy(
+                    selectedLanguage = savedLanguage
+                )
+            }
+        }
     }
 
     private fun observeNativeAds() {
         viewModelScope.launch {
             observeNativeAdsUseCase().collect { ads ->
-                _states.update {
-                    it.copy(nativeAds = ads)
+                _states.update { currentState ->
+                    currentState.copy(nativeAds = ads)
+                }
+            }
+        }
+    }
+
+    private fun observeNativeAdPools() {
+        viewModelScope.launch {
+            observeNativeAdPoolsUseCase().collect { pools ->
+                _states.update { currentState ->
+                    currentState.copy(nativeAdPools = pools)
                 }
             }
         }
@@ -46,17 +81,47 @@ class AppLanguageViewModel(
     private fun observeNativeConfig() {
         viewModelScope.launch {
             observeNativeAdConfigUseCase().collect { config ->
-                _states.update {
-                    it.copy(nativeAdConfig = config)
+                _states.update { currentState ->
+                    currentState.copy(nativeAdConfig = config)
                 }
+
+                loadAppLanguageNativeSlots()
             }
         }
     }
 
-    private fun loadNativeAd() {
-        viewModelScope.launch {
+    private fun loadAppLanguageNativeSlots() {
+        val currentState = _states.value
+        val placementKey = NativeAdConfig.APP_LANGUAGE_LIST
+        val placementConfig = currentState.nativeAdConfig.placement(placementKey)
+
+        if (placementConfig == null) {
+            Log.d(TAG, "App language native skipped: placement disabled or missing.")
+            return
+        }
+
+        val totalItems = AppLanguageCodes.entries.size
+
+        val slotKeys = NativeAdSlotHelper.insertionSlotKeys(
+            totalItems = totalItems,
+            config = placementConfig
+        )
+
+        Log.d(
+            TAG,
+            "App language native slots to load: $slotKeys, totalItems=$totalItems"
+        )
+
+        slotKeys.forEach { slotKey ->
             loadNativeAdUseCase(
-                placementKey = "app_language_list"
+                placementKey = placementKey,
+                slotKey = slotKey,
+                onStateChanged = { adState ->
+                    Log.d(
+                        TAG,
+                        "App language native ad state. placement=$placementKey slot=$slotKey state=$adState"
+                    )
+                }
             )
         }
     }
@@ -64,37 +129,89 @@ class AppLanguageViewModel(
     fun onEvent(event: AppLanguageUiEvents) {
         when (event) {
             is AppLanguageUiEvents.OnLanguageItemClicked -> {
-                _states.update {
-                    it.copy(selectedLanguage = event.language)
-                }
+                onLanguageSelected(event.language)
             }
 
-            AppLanguageUiEvents.OnContinueButtonClicked -> {
-                viewModelScope.launch {
-                    _navEvents.emit(AppLanguageNavEvents.NavigateToOnBoarding)
-                }
+            is AppLanguageUiEvents.OnContinueButtonClicked -> {
+                onContinueClicked(event.src)
             }
 
             AppLanguageUiEvents.OnBackClicked -> {
-                _states.update {
-                    it.copy(showExitDialogue = true)
-                }
+                showExitDialog()
             }
 
             AppLanguageUiEvents.OnDialogueCancelCLicked -> {
-                _states.update {
-                    it.copy(showExitDialogue = false)
-                }
+                hideExitDialog()
             }
 
             AppLanguageUiEvents.OnDialogueExitClicked -> {
+                onExitClicked()
+            }
+
+            AppLanguageUiEvents.OnNavigateBack -> {
                 viewModelScope.launch {
-                    _states.update {
-                        it.copy(showExitDialogue = false)
+                    _navEvents.emit(AppLanguageNavEvents.NavigateToBack)
+                    _states.update{
+                        it.copy(
+                            selectedLanguage =  AppLanguageCodes.DEFAULT
+                        )
                     }
-                    _navEvents.emit(AppLanguageNavEvents.ExitApp)
                 }
             }
         }
+    }
+
+    private fun onLanguageSelected(language: AppLanguageCodes) {
+        _states.update { currentState ->
+            currentState.copy(
+                selectedLanguage = language
+            )
+        }
+    }
+
+    private fun onContinueClicked(fromWhichScreen: FromWhichSrc) {
+        viewModelScope.launch {
+            val selectedLanguage = _states.value.selectedLanguage
+
+            saveSelectedLanguageUseCase(selectedLanguage)
+
+            when (fromWhichScreen) {
+                FromWhichSrc.FROM_MAIN -> {
+                    _navEvents.emit(AppLanguageNavEvents.RecreateActivity)
+                }
+
+                FromWhichSrc.FROM_SPLASH -> {
+                    _navEvents.emit(AppLanguageNavEvents.NavigateToOnBoarding)
+                }
+
+                else -> Unit
+            }
+        }
+    }
+
+    private fun showExitDialog() {
+        _states.update { currentState ->
+            currentState.copy(showExitDialogue = true)
+        }
+    }
+
+    private fun hideExitDialog() {
+        _states.update { currentState ->
+            currentState.copy(showExitDialogue = false)
+        }
+    }
+
+    private fun onExitClicked() {
+        viewModelScope.launch {
+            _states.update { currentState ->
+                currentState.copy(showExitDialogue = false)
+            }
+
+            _navEvents.emit(AppLanguageNavEvents.ExitApp)
+        }
+    }
+
+    companion object {
+        private const val TAG = "AppLanguageViewModel"
     }
 }

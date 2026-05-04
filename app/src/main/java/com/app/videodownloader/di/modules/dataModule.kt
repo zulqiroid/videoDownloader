@@ -1,15 +1,20 @@
 package com.app.videodownloader.di.modules
 
+import com.app.videodownloader.core.coroutines.AppCoroutineScopes
 import com.app.videodownloader.core.network.provideHttpClient
 import com.app.videodownloader.data.download.VideoDownloader
+import com.app.videodownloader.data.local.dataSource.AppLanguageLocalDataSource
+import com.app.videodownloader.data.local.dataStore.AppLanguageLocalDataSourceImpl
 import com.app.videodownloader.data.local.dataStore.AppPreferences
 import com.app.videodownloader.data.local.dataStore.dataStore
 import com.app.videodownloader.data.local.dataStore.notification.NotificationSettingsLocalDataSource
 import com.app.videodownloader.data.local.dataStore.notification.NotificationSettingsLocalDataSourceImpl
 import com.app.videodownloader.data.manager.AppOpenAdManager
+import com.app.videodownloader.data.notification.AppNotificationManager
 import com.app.videodownloader.data.remote.PlatformDetector
 import com.app.videodownloader.data.remote.ReelsApi
 import com.app.videodownloader.data.remote.DownloaderApi
+import com.app.videodownloader.data.repository.implementation.AppLanguageRepositoryImpl
 import com.app.videodownloader.data.repository.implementation.ads.AdRepositoryImpl
 import com.app.videodownloader.data.repository.implementation.DataStoreRepoImpl
 import com.app.videodownloader.data.repository.implementation.DownloaderRepositoryImpl
@@ -22,6 +27,8 @@ import com.app.videodownloader.data.repository.implementation.VideoDownloadRepos
 import com.app.videodownloader.data.repository.implementation.ads.AppOpenAdRepositoryImpl
 import com.app.videodownloader.data.repository.implementation.ads.InterstitialAdRepositoryImpl
 import com.app.videodownloader.data.repository.implementation.ads.NativeAdRepositoryImpl
+import com.app.videodownloader.data.repository.implementation.ads.UmpAdsConsentRepositoryImpl
+import com.app.videodownloader.domain.repository.AppLanguageRepository
 import com.app.videodownloader.domain.repository.ads.AdManager
 import com.app.videodownloader.domain.repository.ads.AdRepository
 import com.app.videodownloader.domain.repository.DataStoreRepository
@@ -32,6 +39,7 @@ import com.app.videodownloader.domain.repository.NotificationSettingsRepository
 import com.app.videodownloader.domain.repository.ReelRepository
 import com.app.videodownloader.domain.repository.RemoteConfigRepository
 import com.app.videodownloader.domain.repository.VideoDownloadRepository
+import com.app.videodownloader.domain.repository.ads.AdsConsentRepository
 import com.app.videodownloader.domain.repository.ads.AppOpenAdRepository
 import com.app.videodownloader.domain.repository.ads.InterstitialAdRepository
 import com.app.videodownloader.domain.repository.ads.NativeAdRepository
@@ -114,4 +122,36 @@ val dataModule = module{
             nativeAdManager = get()
         )
     }
+
+    single {
+        AppCoroutineScopes.applicationScope
+    }
+
+    single<AppLanguageLocalDataSource> {
+        AppLanguageLocalDataSourceImpl(
+            dataStore = get()
+        )
+    }
+
+    single<AppLanguageRepository> {
+        AppLanguageRepositoryImpl(
+            localDataSource = get()
+        )
+    }
+
+    single {
+        AppNotificationManager(
+            context = androidContext()
+        )
+    }
+
+
+
+    single<AdsConsentRepository> {
+        UmpAdsConsentRepositoryImpl(
+            context = androidContext()
+        )
+    }
+
+
 }

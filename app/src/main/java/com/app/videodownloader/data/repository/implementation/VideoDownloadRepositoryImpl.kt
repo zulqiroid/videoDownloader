@@ -4,6 +4,7 @@ import android.app.DownloadManager
 import android.content.Context
 import android.net.Uri
 import android.os.Environment
+import android.util.Log
 import com.app.videodownloader.domain.model.DownloadItem
 import com.app.videodownloader.domain.model.DownloadStatus
 import com.app.videodownloader.domain.repository.VideoDownloadRepository
@@ -28,6 +29,8 @@ class VideoDownloadRepositoryImpl(
     override fun observeDownloads(): Flow<List<DownloadItem>> = downloads
 
     override suspend fun startDownload(url: String): Long {
+
+        Log.d("video to be download", "the downloading video link is $url")
 
         val dm = context.getSystemService(Context.DOWNLOAD_SERVICE) as DownloadManager
 

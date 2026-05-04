@@ -1,4 +1,4 @@
-    package com.app.videodownloader.presentation.screens.premium.state
+package com.app.videodownloader.presentation.screens.premium.state
 
 data class PremiumState(
     val isLoading: Boolean = false,
@@ -8,8 +8,22 @@ data class PremiumState(
     val error: String? = null
 )
 
-enum class PlanType {
-    WEEKLY, MONTHLY, YEARLY
+enum class PlanType(
+    val title: String,
+    val badge: String
+) {
+    WEEKLY(
+        title = "Weekly",
+        badge = "Basic"
+    ),
+    MONTHLY(
+        title = "Monthly",
+        badge = "Popular"
+    ),
+    YEARLY(
+        title = "Yearly",
+        badge = "Best Choice"
+    )
 }
 
 data class Plan(

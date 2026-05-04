@@ -1,5 +1,6 @@
 package com.app.videodownloader.presentation.navigation
 import androidx.navigation3.runtime.NavKey
+import com.app.videodownloader.domain.model.FromWhichSrc
 import com.app.videodownloader.domain.model.MediaFile
 import kotlinx.serialization.Serializable
 
@@ -10,7 +11,7 @@ sealed class Screen : NavKey {
     object Splash : Screen()
 
     @Serializable
-    object AppLanguage : Screen()
+    data class AppLanguage(val src: FromWhichSrc) : Screen()
 
     @Serializable
     object OnBoarding : Screen()

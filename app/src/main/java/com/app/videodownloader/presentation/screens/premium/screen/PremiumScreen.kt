@@ -100,9 +100,13 @@ import com.app.videodownloader.presentation.screens.medaPlayer.events.VideoOptio
 import com.app.videodownloader.presentation.screens.medaPlayer.states.MediaPlayerState
 import com.app.videodownloader.presentation.screens.medaPlayer.viewModel.MediaPlayerViewModel
 import com.app.videodownloader.presentation.screens.premium.events.PremiumIntent
+import com.app.videodownloader.presentation.screens.premium.state.Plan
+import com.app.videodownloader.presentation.screens.premium.state.PlanType
 import com.app.videodownloader.presentation.screens.premium.state.PremiumState
 import kotlinx.coroutines.delay
 import org.koin.compose.viewmodel.koinViewModel
+import kotlin.collections.forEachIndexed
+import kotlin.collections.lastIndex
 
 
 @Composable
@@ -110,7 +114,6 @@ fun PremiumScreen(
     state: PremiumState,
     onIntent: (PremiumIntent) -> Unit,
 ) {
-
     Scaffold(
         modifier = Modifier.fillMaxSize(),
         containerColor = Color.Black,
@@ -119,38 +122,67 @@ fun PremiumScreen(
                 modifier = Modifier
                     .fillMaxWidth()
                     .padding(horizontal = 20.dp)
-                    .padding(top = WindowInsets.statusBars.asPaddingValues().calculateTopPadding()),
-                horizontalArrangement = Arrangement.SpaceBetween
+                    .padding(
+                        top = WindowInsets.statusBars
+                            .asPaddingValues()
+                            .calculateTopPadding()
+                    ),
+                horizontalArrangement = Arrangement.SpaceBetween,
+                verticalAlignment = Alignment.CenterVertically
             ) {
                 CircleIconButton(
-                    Icons.Default.Close,
-                    onClick = { onIntent(PremiumIntent.OnCloseClicked) })
+                    icon = Icons.Default.Close,
+                    onClick = {
+                        onIntent(PremiumIntent.OnCloseClicked)
+                    }
+                )
+
                 Text(
                     text = "Restore",
                     color = Color.White,
                     fontSize = 16.sp,
-                    fontWeight = FontWeight.W500
+                    fontWeight = FontWeight.W500,
+                    modifier = Modifier.clickable {
+                        onIntent(PremiumIntent.OnRestoreClicked)
+                    }
                 )
             }
         },
         bottomBar = {
             Column(
-                modifier = Modifier.fillMaxWidth().padding(horizontal = 20.dp).padding(bottom = WindowInsets.systemGestures.asPaddingValues().calculateBottomPadding()),
+                modifier = Modifier
+                    .fillMaxWidth()
+                    .padding(horizontal = 20.dp)
+                    .padding(
+                        bottom = WindowInsets.systemGestures
+                            .asPaddingValues()
+                            .calculateBottomPadding()
+                    ),
                 horizontalAlignment = Alignment.CenterHorizontally,
                 verticalArrangement = Arrangement.Center
             ) {
                 Button(
-                    onClick = {},
+                    onClick = {
+                        if (!state.isPurchaseInProgress) {
+                            onIntent(PremiumIntent.OnUpgradeClicked)
+                        }
+                    },
+                    enabled = !state.isPurchaseInProgress,
                     modifier = Modifier
                         .fillMaxWidth()
                         .height(60.dp),
                     shape = RoundedCornerShape(28.dp),
                     colors = ButtonDefaults.buttonColors(
-                        containerColor = Color(0xFFE00004)
+                        containerColor = Color(0xFFE00004),
+                        disabledContainerColor = Color(0xFFE00004).copy(alpha = 0.45f)
                     )
                 ) {
                     Text(
-                        text = "Upgrade",
+                        text = if (state.isPurchaseInProgress) {
+                            "Processing..."
+                        } else {
+                            "Upgrade"
+                        },
                         fontSize = 18.sp,
                         fontWeight = FontWeight.W700,
                         color = Color.White
@@ -159,12 +191,11 @@ fun PremiumScreen(
 
                 Spacer(Modifier.height(12.dp))
 
-                // 📜 Terms
                 Text(
                     text = "By continuing, you agree to our Terms of Service and Privacy Policy.",
                     color = Color(0xFFA0A0A0).copy(alpha = 0.6f),
                     fontSize = 11.sp,
-                    fontWeight = FontWeight.W400 ,
+                    fontWeight = FontWeight.W400,
                     textAlign = TextAlign.Center,
                     modifier = Modifier.fillMaxWidth()
                 )
@@ -176,16 +207,15 @@ fun PremiumScreen(
                 .fillMaxSize()
                 .background(Color.Black)
         ) {
-
-            // 🌄 Background Image
             Image(
-                painter = painterResource(id = R.drawable.premium_bg_img),
+                painter = painterResource(id = R.drawable.premium_src_bg),
                 contentDescription = null,
                 contentScale = ContentScale.FillWidth,
                 modifier = Modifier
                     .fillMaxWidth()
                     .align(Alignment.TopCenter)
             )
+
             Box(
                 modifier = Modifier
                     .fillMaxSize()
@@ -202,7 +232,6 @@ fun PremiumScreen(
                     )
             )
 
-            // 📦 Content
             Column(
                 modifier = Modifier
                     .padding(paddingValues)
@@ -210,15 +239,14 @@ fun PremiumScreen(
                     .fillMaxWidth()
                     .align(Alignment.BottomCenter)
                     .padding(horizontal = 20.dp)
-
             ) {
-
                 Column(
-                    modifier = Modifier.fillMaxWidth().padding(30.dp),
+                    modifier = Modifier
+                        .fillMaxWidth()
+                        .padding(30.dp),
                     horizontalAlignment = Alignment.CenterHorizontally,
                     verticalArrangement = Arrangement.Center
                 ) {
-
                     Text(
                         text = "Unlimited Access",
                         color = Color.White,
@@ -239,7 +267,6 @@ fun PremiumScreen(
 
                 Spacer(Modifier.weight(1f))
 
-                // ✅ Features
                 FeatureItem("Ads Free!")
                 FeatureItem("10x Faster Downloads")
                 FeatureItem("Unlimited Downloads")
@@ -247,17 +274,21 @@ fun PremiumScreen(
 
                 Spacer(Modifier.height(28.dp))
 
-                // 💳 Pricing Cards
-                PricingRow()
+                PricingRow(
+                    plans = state.plans,
+                    selectedPlan = state.selectedPlan,
+                    onPlanSelected = { planType ->
+                        onIntent(PremiumIntent.OnPlanSelected(planType))
+                    }
+                )
 
                 Spacer(Modifier.height(20.dp))
 
-                // 📄 Small text
                 Text(
                     text = "Cancel anytime. Auto-renew after trial.",
                     color = Color(0xFFA0A0A0),
                     fontSize = 12.sp,
-                    fontWeight = FontWeight.W400 ,
+                    fontWeight = FontWeight.W400,
                     textAlign = TextAlign.Center,
                     modifier = Modifier.fillMaxWidth()
                 )
@@ -289,9 +320,10 @@ fun FeatureItem(text: String) {
         modifier = Modifier.padding(vertical = 6.dp)
     ) {
         Icon(
-            imageVector = Icons.Default.Check,
+            painter = painterResource(R.drawable.ic_check_box),
             contentDescription = null,
-            tint = Color(0xFFE50914)
+            tint = Color(0xFFE00004),
+            modifier = Modifier.size(28.dp)
         )
         Spacer(Modifier.width(10.dp))
         Text(
@@ -304,83 +336,116 @@ fun FeatureItem(text: String) {
 }
 
 @Composable
-fun PricingRow() {
+fun PricingRow(
+    plans: List<Plan>,
+    selectedPlan: PlanType,
+    onPlanSelected: (PlanType) -> Unit,
+) {
     Row(
+        modifier = Modifier.fillMaxWidth(),
         horizontalArrangement = Arrangement.Center,
         verticalAlignment = Alignment.Bottom
     ) {
-        PricingCard("Weekly", "$4.99", false, Modifier.weight(1f))
-        Spacer(modifier = Modifier.padding(8.dp))
-        PricingCard("Monthly", "$12.99", true, Modifier.weight(1f))
-        Spacer(modifier = Modifier.padding(8.dp))
-        PricingCard("Yearly", "$49.99", false, Modifier.weight(1f))
+        plans.forEachIndexed { index, plan ->
+            PricingCard(
+                title = plan.type.title,
+                badge = plan.type.badge,
+                price = plan.price,
+                isSelected = selectedPlan == plan.type,
+                modifier = Modifier.weight(1f),
+                onClick = {
+                    onPlanSelected(plan.type)
+                }
+            )
+
+            if (index != plans.lastIndex) {
+                Spacer(modifier = Modifier.width(8.dp))
+            }
+        }
     }
 }
-
 @Composable
 fun PricingCard(
     title: String,
+    badge: String,
     price: String,
     isSelected: Boolean,
+    onClick: () -> Unit,
     modifier: Modifier = Modifier,
 ) {
-    Box(modifier = modifier) {
-
-        Column(
-            modifier = Modifier
-                .clip(RoundedCornerShape(16.dp))
-                .background(
-                    if (isSelected) Color(0xFF1E1E1E)
-                    else Color(0xFF1E1E1E).copy(alpha = 0.6f)
-                )
-                .border(
-                    width = if (isSelected) 0.8.dp else 1.dp,
-                    color = if (isSelected)Color(0xFFE00004).copy(alpha = 0.5f) else Color.Gray,
-                    shape = RoundedCornerShape(16.dp)
-                )
-                .fillMaxWidth(),
-            horizontalAlignment = Alignment.CenterHorizontally,
-        ) {
-
-
-            if (isSelected) {
-                Box(
-                    modifier = Modifier.fillMaxWidth().clip(
+    Column(
+        modifier = modifier
+            .clip(RoundedCornerShape(16.dp))
+            .background(
+                if (isSelected) {
+                    Color(0xFF1E1E1E)
+                } else {
+                    Color(0xFF1E1E1E).copy(alpha = 0.6f)
+                }
+            )
+            .border(
+                width = if (isSelected) 1.2.dp else 1.dp,
+                color = if (isSelected) {
+                    Color(0xFFE00004)
+                } else {
+                    Color.Gray.copy(alpha = 0.45f)
+                },
+                shape = RoundedCornerShape(16.dp)
+            )
+            .clickable {
+                onClick()
+            }
+            .fillMaxWidth(),
+        horizontalAlignment = Alignment.CenterHorizontally,
+    ) {
+        if (isSelected) {
+            Box(
+                modifier = Modifier
+                    .fillMaxWidth()
+                    .clip(
                         RoundedCornerShape(
-                            topStart = 16.dp, topEnd = 16.dp
+                            topStart = 16.dp,
+                            topEnd = 16.dp
                         )
                     )
-                        .background(Color(0xFFE00004)),
-                    contentAlignment = Alignment.Center
-                ) {
-                    Text(
-                        "Popular",
-                        color = Color.White,
-                        fontSize = 10.sp,
-                        fontWeight = FontWeight.W700
+                    .background(
+                        if (isSelected) {
+                            Color(0xFFE00004)
+                        } else {
+                            Color.White.copy(alpha = 0.08f)
+                        }
                     )
-                }
+                    .padding(vertical = 4.dp),
+                contentAlignment = Alignment.Center
+            ) {
+                Text(
+                    text = badge,
+                    color = if (isSelected) Color.White else Color(0xFFA0A0A0),
+                    fontSize = 10.sp,
+                    fontWeight = FontWeight.W700,
+                    maxLines = 1
+                )
             }
-            Spacer(Modifier.height(16.dp))
-
-            Text(
-                title,
-                color = if (isSelected) Color(0xFFE00004) else Color(0xFFA0A0A0),
-                fontSize = 12.sp,
-                fontWeight = FontWeight.W600
-            )
-            Spacer(Modifier.height(6.dp))
-            Text(
-                price,
-                color = Color.White,
-                 fontSize = if (isSelected) 24.sp else 18.sp,
-                fontWeight = FontWeight.W700
-
-            )
-
-            Spacer(Modifier.height(16.dp))
-
         }
 
+        Spacer(Modifier.height(16.dp))
+
+        Text(
+            text = title,
+            color = if (isSelected) Color(0xFFE00004) else Color(0xFFA0A0A0),
+            fontSize = 12.sp,
+            fontWeight = FontWeight.W600
+        )
+
+        Spacer(Modifier.height(6.dp))
+
+        Text(
+            text = price,
+            color = Color.White,
+            fontSize = if (isSelected) 24.sp else 18.sp,
+            fontWeight = FontWeight.W700
+        )
+
+        Spacer(Modifier.height(16.dp))
     }
 }

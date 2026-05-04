@@ -21,6 +21,7 @@ import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.clip
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.res.painterResource
+import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
@@ -140,7 +141,7 @@ fun HomeTopBar(
             modifier = Modifier.size(10.dp)
         )
         Text(
-            text = "Video Downloader",
+            text = stringResource(R.string.top_bar_app_name),
             fontSize = 20.sp,
             color = Color(0xFF1F2937),
             fontWeight = FontWeight.W700
@@ -196,7 +197,7 @@ fun PlayerTopBar(
     ) {
 
         Text(
-            text = "My Player",
+            text = stringResource(R.string.top_bar_my_player),
             fontSize = 20.sp,
             color = Color(0xFF1F2937),
             fontWeight = FontWeight.W700
@@ -249,7 +250,7 @@ fun ReelsTopBar(
     ) {
 
         Text(
-            text = "Trending Reels",
+            text = stringResource(R.string.top_bar_trending_reels),
             fontSize = 20.sp,
             color = Color(0xFF1F2937),
             fontWeight = FontWeight.W700
@@ -301,7 +302,7 @@ fun DownloadTopBar(
     ) {
 
         Text(
-            text = "Downloads",
+            text = stringResource(R.string.top_bar_downloads),
             fontSize = 20.sp,
             color = Color(0xFF1F2937),
             fontWeight = FontWeight.W700
@@ -353,7 +354,7 @@ fun MoreTopBar(
     ) {
 
         Text(
-            text = "More Options",
+            text = stringResource(R.string.top_bar_more_options),
             fontSize = 20.sp,
             color = Color(0xFF1F2937),
             fontWeight = FontWeight.W700
@@ -373,17 +374,6 @@ fun MoreTopBar(
                 painter = painterResource(R.drawable.ic_crown),
                 contentDescription = "premium icon",
                 tint = Color(0xFFFBBF24),
-                modifier = Modifier.size(24.dp)
-            )
-        }
-        IconButton(
-            onClick = {},
-
-            ) {
-            Icon(
-                painter = painterResource(R.drawable.ic_search),
-                contentDescription = "info icon",
-                tint = Color(0xFF6B7280),
                 modifier = Modifier.size(24.dp)
             )
         }

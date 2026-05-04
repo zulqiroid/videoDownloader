@@ -28,12 +28,18 @@ class MediaPlayerManager(
                 true
             )
 
-            repeatMode = Player.REPEAT_MODE_ONE
             playWhenReady = true
+            repeatMode = Player.REPEAT_MODE_OFF
         }
 
     fun play(media: MediaFile) {
         val uri = Uri.fromFile(File(media.filePath))
+
+        player.repeatMode = if (media.isVideo) {
+            Player.REPEAT_MODE_ONE
+        } else {
+            Player.REPEAT_MODE_OFF
+        }
 
         player.setMediaItem(MediaItem.fromUri(uri))
         player.prepare()

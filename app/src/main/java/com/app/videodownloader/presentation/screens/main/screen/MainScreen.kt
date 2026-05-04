@@ -1,10 +1,18 @@
 package com.app.videodownloader.presentation.screens.main.screen
 
+import android.Manifest
 import android.app.Activity
+import android.content.ActivityNotFoundException
 import android.content.ContentUris
+import android.content.Context
 import android.content.Intent
+import android.content.pm.PackageManager
+import android.net.Uri
 import android.os.Build
 import android.provider.MediaStore
+import android.provider.Settings
+import android.util.Log
+import android.widget.Toast
 import androidx.activity.compose.BackHandler
 import androidx.activity.compose.LocalActivity
 import androidx.activity.compose.rememberLauncherForActivityResult
@@ -25,16 +33,22 @@ import androidx.compose.material3.DrawerValue
 import androidx.compose.material3.Scaffold
 import androidx.compose.material3.rememberDrawerState
 import androidx.compose.runtime.Composable
+import androidx.compose.runtime.DisposableEffect
 import androidx.compose.runtime.LaunchedEffect
 import androidx.compose.runtime.getValue
+import androidx.compose.runtime.remember
 import androidx.compose.runtime.rememberCoroutineScope
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.graphics.Color
+import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.unit.dp
+import androidx.core.app.ActivityCompat
+import androidx.core.content.ContextCompat
 import androidx.lifecycle.compose.collectAsStateWithLifecycle
 import androidx.navigation3.runtime.NavBackStack
 import androidx.navigation3.runtime.NavKey
+import com.app.videodownloader.domain.model.FromWhichSrc
 import com.app.videodownloader.domain.model.MediaFile
 import com.app.videodownloader.domain.model.ads.BannerAdScreen
 import com.app.videodownloader.domain.model.ads.BannerAdSlot
@@ -50,6 +64,7 @@ import com.app.videodownloader.presentation.screens.home.screen.HomeScreen
 import com.app.videodownloader.presentation.screens.main.componants.DownloadBottomSheet
 import com.app.videodownloader.presentation.screens.main.componants.FetchingDialog
 import com.app.videodownloader.presentation.screens.main.componants.MainBottomBar
+import com.app.videodownloader.presentation.screens.main.componants.MediaPermissionRequiredDialog
 import com.app.videodownloader.presentation.screens.main.componants.MovingFileDialog
 import com.app.videodownloader.presentation.screens.main.componants.NotificationSettingsDialog
 import com.app.videodownloader.presentation.screens.main.componants.RateUsDialog
@@ -97,13 +112,81 @@ fun MainScreen(
         slot = BannerAdSlot.Bottom
     )
 
-    val topBannerHeight = if (showTopBanner) 70.dp else 0.dp
     val bottomBannerHeight = if (showBottomBanner) 70.dp else 0.dp
 
     val drawerState = rememberDrawerState(DrawerValue.Closed)
     val scope = rememberCoroutineScope()
 
     val activity = LocalActivity.current
+    val context = LocalContext.current
+    val mediaPermissions = remember { requiredMediaPermissions() }
+
+    val mediaPermissionLauncher = rememberLauncherForActivityResult(
+        contract = ActivityResultContracts.RequestMultiplePermissions()
+    ) { result ->
+        val granted = result.values.all { it }
+
+        val permanentlyDenied = activity?.isMediaPermissionPermanentlyDenied() == true
+
+        viewModel.onEvent(
+            MainEvents.OnMediaPermissionResult(
+                granted = granted,
+                permanentlyDenied = !granted && permanentlyDenied
+            )
+        )
+    }
+
+    val notificationPermissionLauncher = rememberLauncherForActivityResult(
+        contract = ActivityResultContracts.RequestPermission()
+    ) { granted ->
+        viewModel.onEvent(
+            MainEvents.OnNotificationPermissionResult(
+                granted = granted
+            )
+        )
+    }
+
+
+    LaunchedEffect(Unit) {
+        val hasMediaPermission = context.hasMediaPermissions()
+
+        viewModel.onEvent(
+            MainEvents.OnMediaPermissionResult(
+                granted = hasMediaPermission,
+                permanentlyDenied = false
+            )
+        )
+
+        if (!hasMediaPermission) {
+            mediaPermissionLauncher.launch(mediaPermissions)
+        }
+
+        if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.TIRAMISU) {
+            val hasNotificationPermission = ContextCompat.checkSelfPermission(
+                context,
+                Manifest.permission.POST_NOTIFICATIONS
+            ) == PackageManager.PERMISSION_GRANTED
+
+            viewModel.onEvent(
+                MainEvents.OnNotificationPermissionResult(
+                    granted = hasNotificationPermission
+                )
+            )
+
+            if (!hasNotificationPermission) {
+                notificationPermissionLauncher.launch(
+                    Manifest.permission.POST_NOTIFICATIONS
+                )
+            }
+        } else {
+            viewModel.onEvent(
+                MainEvents.OnNotificationPermissionResult(
+                    granted = true
+                )
+            )
+        }
+    }
+
     LaunchedEffect(state.isDrawerOpen) {
         if (state.isDrawerOpen) {
             drawerState.open()
@@ -254,6 +337,25 @@ fun MainScreen(
                         )
                     )
                 }
+
+                MainNavEvents.NavigateToAppLanguageSRC -> {
+
+                    backStack.add(
+                        Screen.AppLanguage(
+                            FromWhichSrc.FROM_MAIN
+                        )
+                    )
+                }
+
+                MainNavEvents.OpenAppStoreForRating -> {
+                    activity?.openAppStoreForRating()
+                }
+                is MainNavEvents.SendFeedbackEmail -> {
+                    activity?.sendFeedbackEmail(
+                        subject = event.subject,
+                        message = event.message
+                    )
+                }
             }
         }
     }
@@ -342,6 +444,7 @@ fun MainScreen(
 
                     BottomNavItem.Player -> {
                         PlayerScreen(
+                            hasMediaPermission = state.isMediaPermissionGranted,
                             sendToMedia = { mediaList, startIndex ->
                                 viewModel.onEvent(
                                     MainEvents.OnOpenMediaPlayerClicked(
@@ -359,7 +462,22 @@ fun MainScreen(
 
                     BottomNavItem.Reels -> {
                         ReelsScreen(
-                            selectedReel = state.selectedReel
+                            selectedReel = state.selectedReel,
+                            onDownloadClick = { url ->
+                                viewModel.onEvent(
+                                    MainEvents.OnDownLoadInBottomSheetClicked(url)
+                                )
+                            },
+                            onShareClick = { url ->
+                                activity?.shareText(
+                                    text = url,
+                                    chooserTitle = "Share Reel"
+                                ) ?: Toast.makeText(
+                                    activity,
+                                    "Unable to share this reel",
+                                    Toast.LENGTH_SHORT
+                                ).show()
+                            }
                         )
                     }
 
@@ -393,6 +511,12 @@ fun MainScreen(
                             },
                             onRateUsClick = {
                                 viewModel.onEvent(MainEvents.OnRateUsClicked)
+                            },
+                            onAppLanguageClicked = {
+                                viewModel.onEvent(MainEvents.OnAppLanguageCLicked)
+                            },
+                            onPremiumCardClick = {
+                                backStack.add(Screen.Premium)
                             }
                         )
                     }
@@ -413,6 +537,29 @@ fun MainScreen(
                 }
             }
 
+
+            val lifecycleOwner = androidx.lifecycle.compose.LocalLifecycleOwner.current
+
+            DisposableEffect(lifecycleOwner) {
+                val observer = androidx.lifecycle.LifecycleEventObserver { _, event ->
+                    if (event == androidx.lifecycle.Lifecycle.Event.ON_RESUME) {
+                        val hasMediaPermission = context.hasMediaPermissions()
+
+                        viewModel.onEvent(
+                            MainEvents.OnMediaPermissionResult(
+                                granted = hasMediaPermission,
+                                permanentlyDenied = false
+                            )
+                        )
+                    }
+                }
+
+                lifecycleOwner.lifecycle.addObserver(observer)
+
+                onDispose {
+                    lifecycleOwner.lifecycle.removeObserver(observer)
+                }
+            }
 
             if (state.selectedTab != BottomNavItem.Social) {
                 MainBottomBar(
@@ -454,6 +601,7 @@ fun MainScreen(
                         viewModel.onEvent(MainEvents.OnOptionSelected(it))
                     },
                     onDownload = {
+                        Log.d("the video to be downloaded", "${state.videoData?.downloadOptions?.firstOrNull()?.url}")
                         viewModel.onEvent(
                             MainEvents.OnDownLoadInBottomSheetClicked(
                                 state.videoData?.downloadOptions?.firstOrNull()?.url ?: ""
@@ -622,6 +770,23 @@ fun MainScreen(
                 )
             }
 
+
+            MediaPermissionRequiredDialog(
+                visible = state.showMediaPermissionDialog,
+                openSettings = state.shouldOpenMediaPermissionSettings,
+                onAllowClick = {
+                    viewModel.onEvent(MainEvents.OnMediaPermissionRequestClicked)
+                    mediaPermissionLauncher.launch(mediaPermissions)
+                },
+                onSettingsClick = {
+                    viewModel.onEvent(MainEvents.OnMediaPermissionSettingsClicked)
+                    activity?.openAppSettings()
+                },
+                onDismiss = {
+                    viewModel.onEvent(MainEvents.OnMediaPermissionDialogDismissed)
+                }
+            )
+
             if (state.showFetchFailedDialog) {
                 VideoFetchFailedDialog(
                     errorMessage = state.fetchErrorMessage,
@@ -696,3 +861,135 @@ private fun BottomNavItem.toBannerAdScreen(): BannerAdScreen {
         BottomNavItem.Social -> BannerAdScreen.Social
     }
 }
+
+
+private fun android.app.Activity.shareText(
+    text: String,
+    chooserTitle: String,
+) {
+    if (text.isBlank()) return
+
+    val shareIntent = Intent(Intent.ACTION_SEND).apply {
+        type = "text/plain"
+        putExtra(Intent.EXTRA_TEXT, text)
+    }
+
+    val chooser = Intent.createChooser(
+        shareIntent,
+        chooserTitle
+    )
+
+    if (shareIntent.resolveActivity(packageManager) != null) {
+        startActivity(chooser)
+    }
+}
+
+
+private fun requiredMediaPermissions(): Array<String> {
+    return if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.TIRAMISU) {
+        arrayOf(
+            Manifest.permission.READ_MEDIA_VIDEO,
+            Manifest.permission.READ_MEDIA_AUDIO
+        )
+    } else {
+        arrayOf(
+            Manifest.permission.READ_EXTERNAL_STORAGE
+        )
+    }
+}
+
+private fun Context.hasMediaPermissions(): Boolean {
+    return requiredMediaPermissions().all { permission ->
+        ContextCompat.checkSelfPermission(
+            this,
+            permission
+        ) == PackageManager.PERMISSION_GRANTED
+    }
+}
+
+private fun Activity.isMediaPermissionPermanentlyDenied(): Boolean {
+    return requiredMediaPermissions().any { permission ->
+        !ActivityCompat.shouldShowRequestPermissionRationale(this, permission) &&
+                ContextCompat.checkSelfPermission(this, permission) != PackageManager.PERMISSION_GRANTED
+    }
+}
+
+private fun Activity.openAppSettings() {
+    val intent = Intent(
+        Settings.ACTION_APPLICATION_DETAILS_SETTINGS,
+        Uri.fromParts("package", packageName, null)
+    )
+    startActivity(intent)
+}
+
+
+private fun Activity.openAppStoreForRating() {
+    val marketUri = Uri.parse("market://details?id=$packageName")
+    val webUri = Uri.parse("https://play.google.com/store/apps/details?id=$packageName")
+
+    val marketIntent = Intent(Intent.ACTION_VIEW, marketUri).apply {
+        addFlags(Intent.FLAG_ACTIVITY_NO_HISTORY)
+        addFlags(Intent.FLAG_ACTIVITY_NEW_DOCUMENT)
+        addFlags(Intent.FLAG_ACTIVITY_MULTIPLE_TASK)
+    }
+
+    try {
+        startActivity(marketIntent)
+    } catch (_: ActivityNotFoundException) {
+        startActivity(
+            Intent(Intent.ACTION_VIEW, webUri)
+        )
+    }
+}
+
+
+private fun Activity.sendFeedbackEmail(
+    subject: String,
+    message: String
+) {
+    val appVersion = runCatching {
+        packageManager.getPackageInfo(packageName, 0).versionName ?: "Unknown"
+    }.getOrDefault("Unknown")
+
+    val deviceInfo = buildString {
+        appendLine()
+        appendLine()
+        appendLine("---")
+        appendLine("App Version: $appVersion")
+        appendLine("Package: $packageName")
+        appendLine("Android: ${Build.VERSION.RELEASE} (SDK ${Build.VERSION.SDK_INT})")
+        appendLine("Device: ${Build.MANUFACTURER} ${Build.MODEL}")
+    }
+
+    val feedbackBody = message + deviceInfo
+
+    val emailIntent = Intent(Intent.ACTION_SENDTO).apply {
+        data = Uri.parse(
+            "mailto:${Uri.encode(SUPPORT_EMAIL)}" +
+                    "?subject=${Uri.encode(subject)}" +
+                    "&body=${Uri.encode(feedbackBody)}"
+        )
+    }
+
+    val chooserIntent = Intent.createChooser(
+        emailIntent,
+        "Send Feedback"
+    )
+
+    try {
+        startActivity(chooserIntent)
+    } catch (_: ActivityNotFoundException) {
+        Toast.makeText(
+            this,
+            "No email app found",
+            Toast.LENGTH_SHORT
+        ).show()
+    } catch (_: Exception) {
+        Toast.makeText(
+            this,
+            "Unable to open email app",
+            Toast.LENGTH_SHORT
+        ).show()
+    }
+}
+private const val SUPPORT_EMAIL = "kzulqarnain527@gmail.com"

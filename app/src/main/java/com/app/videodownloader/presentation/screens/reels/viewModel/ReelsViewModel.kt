@@ -21,51 +21,117 @@ class ReelsViewModel(
 
     fun onEvent(event: ReelsEvent) {
         when (event) {
-            ReelsEvent.LoadReels -> loadReels()
-            is ReelsEvent.OnPageChanged -> {
-                _state.update { it.copy(currentIndex = event.index) }
+            ReelsEvent.LoadReels -> {
+                loadReels()
             }
+
+            is ReelsEvent.OnPageChanged -> {
+                onPageChanged(event.index)
+            }
+
+            is ReelsEvent.OnLikeClicked -> {
+                onLikeClicked(event.reelId)
+            }
+        }
+    }
+
+    private fun onPageChanged(index: Int) {
+        _state.update { currentState ->
+            currentState.copy(
+                currentIndex = index.coerceIn(
+                    minimumValue = 0,
+                    maximumValue = (currentState.reels.size - 1).coerceAtLeast(0)
+                )
+            )
         }
     }
 
     private fun loadReels() {
         viewModelScope.launch {
-            _state.update { it.copy(isLoading = true) }
+            _state.update { currentState ->
+                currentState.copy(isLoading = true)
+            }
 
             val categories = getReelsUseCase()
 
+            val likedIds = _state.value.likedReelIds
+
             val reels = categories
-                .flatMap { it.reels }
-                .map {
+                .flatMap { category -> category.reels }
+                .distinctBy { reel -> reel.id }
+                .map { reel ->
+                    val isLiked = likedIds.contains(reel.id)
+
                     ReelUi(
-                        id = it.id,
-                        videoUrl = it.videoUrl,
-                        username = "User", // replace with API later
-                        caption = ""
+                        id = reel.id,
+                        videoUrl = reel.videoUrl,
+                        username = "User",
+                        caption = "",
+                        isLiked = isLiked,
+                        likeCount = if (isLiked) DEFAULT_LIKE_COUNT + 1 else DEFAULT_LIKE_COUNT
                     )
                 }
 
-            _state.update {
-                it.copy(
+            _state.update { currentState ->
+                currentState.copy(
                     reels = reels,
-                    isLoading = false
+                    isLoading = false,
+                    currentIndex = currentState.currentIndex.coerceIn(
+                        minimumValue = 0,
+                        maximumValue = (reels.size - 1).coerceAtLeast(0)
+                    )
                 )
             }
         }
     }
 
-    fun setCurrentIndex(selectedReel: Reel?) {
+    private fun onLikeClicked(reelId: String) {
+        _state.update { currentState ->
+            val wasLiked = currentState.likedReelIds.contains(reelId)
 
+            val updatedLikedIds = if (wasLiked) {
+                currentState.likedReelIds - reelId
+            } else {
+                currentState.likedReelIds + reelId
+            }
+
+            val updatedReels = currentState.reels.map { reel ->
+                if (reel.id != reelId) {
+                    reel
+                } else {
+                    reel.copy(
+                        isLiked = !wasLiked,
+                        likeCount = if (wasLiked) {
+                            (reel.likeCount - 1).coerceAtLeast(0)
+                        } else {
+                            reel.likeCount + 1
+                        }
+                    )
+                }
+            }
+
+            currentState.copy(
+                likedReelIds = updatedLikedIds,
+                reels = updatedReels
+            )
+        }
+    }
+
+    fun setCurrentIndex(selectedReel: Reel?) {
         if (selectedReel == null) return
 
-        val index = _state.value.reels.indexOfFirst {
-            it.id == selectedReel.id
+        val index = _state.value.reels.indexOfFirst { reel ->
+            reel.id == selectedReel.id
         }
 
         if (index != -1) {
-            _state.update {
-                it.copy(currentIndex = index)
+            _state.update { currentState ->
+                currentState.copy(currentIndex = index)
             }
         }
+    }
+
+    companion object {
+        private const val DEFAULT_LIKE_COUNT = 105
     }
 }

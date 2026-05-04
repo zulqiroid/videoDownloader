@@ -1,0 +1,138 @@
+<?xml version="1.0" encoding="utf-8"?>
+<resources>
+    <string name="app_name">视频下载器</string>
+
+    <string name="choose_language_title">选择语言</string>
+    <string name="choose_language_subtitle">请选择您的首选语言以继续</string>
+    <string name="continue_button">继续</string>
+
+    <string name="language_english">英语</string>
+    <string name="language_english_description">美国、英国</string>
+
+    <string name="language_urdu">乌尔都语</string>
+    <string name="language_urdu_description">巴基斯坦、印度</string>
+
+    <string name="language_hindi">印地语</string>
+    <string name="language_hindi_description">印度</string>
+
+    <string name="language_arabic">阿拉伯语</string>
+    <string name="language_arabic_description">中东、北非</string>
+
+    <string name="language_spanish">西班牙语</string>
+    <string name="language_spanish_description">西班牙、拉丁美洲</string>
+
+    <string name="language_french">法语</string>
+    <string name="language_french_description">法国、加拿大、非洲</string>
+
+    <string name="language_german">德语</string>
+    <string name="language_german_description">德国</string>
+
+    <string name="language_chinese">中文</string>
+    <string name="language_chinese_description">中国</string>
+
+
+
+    <string name="download_tab_downloading">下载中 (%1$d)</string>
+    <string name="download_tab_completed">已完成 (%1$d)</string>
+    <string name="download_status_downloading_with_size">正在下载 • %1$s</string>
+    <string name="download_quality_1080p">1080p</string>
+
+    <string name="cd_play_video">播放视频</string>
+    <string name="cd_more_options">更多选项</string>
+    <string name="cd_pause_download">暂停下载</string>
+    <string name="cd_delete_download">删除下载</string>
+    <string name="cd_download_thumbnail">下载缩略图</string>
+
+
+    <string name="download_empty_active_title">没有正在下载的内容</string>
+    <string name="download_empty_completed_title">没有已完成的下载</string>
+    <string name="download_empty_active_message">您正在下载的内容将显示在这里。</string>
+    <string name="download_empty_completed_message">已下载的视频将显示在这里。</string>
+
+
+
+    <string name="download_guide_title">如何下载</string>
+    <string name="download_guide_got_it_button">明白了，谢谢！</string>
+
+    <string name="download_guide_step_copy_link_title">复制视频链接</string>
+    <string name="download_guide_step_copy_link_description">打开你选择的社交媒体应用，找到想要保存的视频，然后点击分享按钮复制链接。</string>
+
+    <string name="download_guide_step_paste_analyze_title">粘贴并分析</string>
+    <string name="download_guide_step_paste_analyze_description">返回此应用，并将 URL 粘贴到首页的搜索框中。我们会自动为你获取视频详情。</string>
+
+    <string name="download_guide_step_select_save_title">选择并保存</string>
+    <string name="download_guide_step_select_save_description">选择你偏好的质量，例如 HD、Full HD 或 4K，然后点击下载。视频将直接保存到你的媒体图库中。</string>
+
+    <string name="cd_back">返回</string>
+
+    <string name="home_trending_reels_title">热门短视频</string>
+
+
+    <string name="common_see_all">查看全部</string>
+    <string name="common_cancel">取消</string>
+    <string name="common_save">保存</string>
+    <string name="common_submit">提交</string>
+    <string name="common_retry">重试</string>
+    <string name="common_help">帮助</string>
+    <string name="common_pro">PRO</string>
+
+    <string name="cd_arrow_forward">前进箭头</string>
+    <string name="cd_download_icon">下载图标</string>
+    <string name="cd_premium">高级版</string>
+    <string name="cd_info">信息</string>
+    <string name="cd_search">搜索</string>
+    <string name="cd_play">播放</string>
+     <string name="cd_pictorial_reel">图文短视频</string>
+
+    <string name="moving_file_title">正在移动文件...</string>
+
+    <string name="download_sheet_default_title">video_m_p_4</string>
+    <string name="download_sheet_default_source">video.com</string>
+    <string name="download_sheet_select_quality">选择质量</string>
+    <string name="download_sheet_download_now">立即下载</string>
+
+    <string name="main_bottom_nav_home">首页</string>
+    <string name="main_bottom_nav_reels">短视频</string>
+    <string name="main_bottom_nav_player">播放器</string>
+    <string name="main_bottom_nav_download">下载</string>
+    <string name="main_bottom_nav_more">更多</string>
+
+    <string name="notifications_title">通知</string>
+    <string name="notification_download_complete_title">下载完成</string>
+    <string name="notification_download_complete_description">视频准备好时提醒</string>
+    <string name="notification_download_failed_title">下载失败</string>
+    <string name="notification_download_failed_description">网络错误时提醒</string>
+    <string name="notification_app_updates_title">应用更新</string>
+    <string name="notification_app_updates_description">获取新功能通知</string>
+
+    <string name="rate_us_title">给我们评分</string>
+    <string name="rate_us_message">喜欢 Video Downloader 吗？给我们一个评分吧！</string>
+    <string name="rate_now_button">立即评分</string>
+    <string name="rate_later_button">稍后</string>
+    <string name="cd_star_rating">%1$d 星评分</string>
+
+    <string name="feedback_title">发送反馈</string>
+    <string name="feedback_message">你的反馈可以帮助我们为所有人改进应用。</string>
+    <string name="feedback_placeholder">写下你的反馈...</string>
+
+    <string name="top_bar_app_name">视频下载器</string>
+    <string name="top_bar_my_player">我的播放器</string>
+    <string name="top_bar_trending_reels">热门短视频</string>
+    <string name="top_bar_downloads">下载</string>
+    <string name="top_bar_more_options">更多选项</string>
+    <string name="top_bar_social">社交</string>
+
+    <string name="fetching_video_title">正在获取视频详情</string>
+    <string name="fetching_video_message">请稍候，我们正在准备你的下载。</string>
+
+    <string name="video_fetch_failed_title">视频获取失败</string>
+    <string name="video_fetch_failed_default_message">我们无法获取此视频。请检查链接或尝试其他来源。</string>
+    <string name="video_fetch_failed_paste_new_link">粘贴新链接</string>
+
+
+
+    <string name="media_permission_required_title">需要权限</string>
+    <string name="media_permission_required_message">请允许媒体权限，以便我们显示你的视频和音乐。</string>
+    <string name="media_permission_allow_button">允许权限</string>
+    <string name="media_permission_open_settings_button">打开设置</string>
+</resources>

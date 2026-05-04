@@ -1,0 +1,138 @@
+<?xml version="1.0" encoding="utf-8"?>
+<resources>
+    <string name="app_name">वीडियो डाउनलोडर</string>
+
+    <string name="choose_language_title">भाषा चुनें</string>
+    <string name="choose_language_subtitle">जारी रखने के लिए अपनी पसंदीदा भाषा चुनें</string>
+    <string name="continue_button">जारी रखें</string>
+
+    <string name="language_english">अंग्रेज़ी</string>
+    <string name="language_english_description">अमेरिका, यूके</string>
+
+    <string name="language_urdu">उर्दू</string>
+    <string name="language_urdu_description">पाकिस्तान, भारत</string>
+
+    <string name="language_hindi">हिंदी</string>
+    <string name="language_hindi_description">भारत</string>
+
+    <string name="language_arabic">अरबी</string>
+    <string name="language_arabic_description">मध्य पूर्व, उत्तरी अफ्रीका</string>
+
+    <string name="language_spanish">स्पेनिश</string>
+    <string name="language_spanish_description">स्पेन, लैटिन अमेरिका</string>
+
+    <string name="language_french">फ्रेंच</string>
+    <string name="language_french_description">फ्रांस, कनाडा, अफ्रीका</string>
+
+    <string name="language_german">जर्मन</string>
+    <string name="language_german_description">जर्मनी</string>
+
+    <string name="language_chinese">चीनी</string>
+    <string name="language_chinese_description">चीन</string>
+
+
+    <string name="download_tab_downloading">डाउनलोड हो रहे हैं (%1$d)</string>
+    <string name="download_tab_completed">पूर्ण (%1$d)</string>
+    <string name="download_status_downloading_with_size">डाउनलोड हो रहा है • %1$s</string>
+    <string name="download_quality_1080p">1080p</string>
+
+    <string name="cd_play_video">वीडियो चलाएँ</string>
+    <string name="cd_more_options">अधिक विकल्प</string>
+    <string name="cd_pause_download">डाउनलोड रोकें</string>
+    <string name="cd_delete_download">डाउनलोड हटाएँ</string>
+    <string name="cd_download_thumbnail">डाउनलोड थंबनेल</string>
+
+
+
+    <string name="download_empty_active_title">कोई सक्रिय डाउनलोड नहीं</string>
+    <string name="download_empty_completed_title">कोई पूर्ण डाउनलोड नहीं</string>
+    <string name="download_empty_active_message">आपके सक्रिय डाउनलोड यहाँ दिखाई देंगे।</string>
+    <string name="download_empty_completed_message">डाउनलोड किए गए वीडियो यहाँ दिखाई देंगे।</string>
+
+
+    <string name="download_guide_title">डाउनलोड कैसे करें</string>
+    <string name="download_guide_got_it_button">समझ गया, धन्यवाद!</string>
+
+    <string name="download_guide_step_copy_link_title">वीडियो लिंक कॉपी करें</string>
+    <string name="download_guide_step_copy_link_description">अपनी पसंद का सोशल मीडिया ऐप खोलें, वह वीडियो ढूंढें जिसे आप सेव करना चाहते हैं, और लिंक कॉपी करने के लिए शेयर बटन पर टैप करें।</string>
+
+    <string name="download_guide_step_paste_analyze_title">पेस्ट करें और विश्लेषण करें</string>
+    <string name="download_guide_step_paste_analyze_description">इस ऐप पर वापस आएँ और होम स्क्रीन के सर्च फील्ड में URL पेस्ट करें। हम आपके लिए वीडियो की जानकारी अपने आप प्राप्त कर लेंगे।</string>
+
+    <string name="download_guide_step_select_save_title">चुनें और सेव करें</string>
+    <string name="download_guide_step_select_save_description">अपनी पसंद की क्वालिटी, जैसे HD, Full HD, या 4K चुनें, और डाउनलोड पर टैप करें। वीडियो सीधे आपकी मीडिया गैलरी में सेव हो जाएगा।</string>
+
+    <string name="cd_back">वापस</string>
+
+
+    <string name="home_trending_reels_title">ट्रेंडिंग रील्स</string>
+
+
+
+    <string name="common_see_all">सब देखें</string>
+    <string name="common_cancel">रद्द करें</string>
+    <string name="common_save">सेव करें</string>
+    <string name="common_submit">सबमिट करें</string>
+    <string name="common_retry">फिर कोशिश करें</string>
+    <string name="common_help">मदद</string>
+    <string name="common_pro">PRO</string>
+
+    <string name="cd_arrow_forward">आगे का तीर</string>
+    <string name="cd_download_icon">डाउनलोड आइकन</string>
+    <string name="cd_premium">प्रीमियम</string>
+    <string name="cd_info">जानकारी</string>
+    <string name="cd_search">खोजें</string>
+    <string name="cd_play">चलाएँ</string>
+     <string name="cd_pictorial_reel">चित्रात्मक रील</string>
+
+    <string name="moving_file_title">फ़ाइल स्थानांतरित हो रही है...</string>
+
+    <string name="download_sheet_default_title">video_m_p_4</string>
+    <string name="download_sheet_default_source">video.com</string>
+    <string name="download_sheet_select_quality">क्वालिटी चुनें</string>
+    <string name="download_sheet_download_now">अभी डाउनलोड करें</string>
+
+    <string name="main_bottom_nav_home">होम</string>
+    <string name="main_bottom_nav_reels">रील्स</string>
+    <string name="main_bottom_nav_player">प्लेयर</string>
+    <string name="main_bottom_nav_download">डाउनलोड</string>
+    <string name="main_bottom_nav_more">अधिक</string>
+
+    <string name="notifications_title">नोटिफिकेशन</string>
+    <string name="notification_download_complete_title">डाउनलोड पूरा हुआ</string>
+    <string name="notification_download_complete_description">वीडियो तैयार होने पर अलर्ट करें</string>
+    <string name="notification_download_failed_title">डाउनलोड विफल</string>
+    <string name="notification_download_failed_description">नेटवर्क त्रुटि पर अलर्ट करें</string>
+    <string name="notification_app_updates_title">ऐप अपडेट</string>
+    <string name="notification_app_updates_description">नई सुविधाओं के बारे में सूचना पाएँ</string>
+
+    <string name="rate_us_title">हमें रेट करें</string>
+    <string name="rate_us_message">क्या आपको वीडियो डाउनलोडर पसंद आ रहा है? हमें रेटिंग दें!</string>
+    <string name="rate_now_button">अभी रेट करें</string>
+    <string name="rate_later_button">बाद में</string>
+    <string name="cd_star_rating">%1$d स्टार रेटिंग</string>
+
+    <string name="feedback_title">फीडबैक भेजें</string>
+    <string name="feedback_message">आपका फीडबैक हमें ऐप को सभी के लिए बेहतर बनाने में मदद करता है।</string>
+    <string name="feedback_placeholder">अपना फीडबैक लिखें...</string>
+
+    <string name="top_bar_app_name">वीडियो डाउनलोडर</string>
+    <string name="top_bar_my_player">मेरा प्लेयर</string>
+    <string name="top_bar_trending_reels">ट्रेंडिंग रील्स</string>
+    <string name="top_bar_downloads">डाउनलोड</string>
+    <string name="top_bar_more_options">अधिक विकल्प</string>
+    <string name="top_bar_social">सोशल</string>
+
+    <string name="fetching_video_title">वीडियो विवरण प्राप्त हो रहा है</string>
+    <string name="fetching_video_message">कृपया प्रतीक्षा करें, हम आपका डाउनलोड तैयार कर रहे हैं।</string>
+
+    <string name="video_fetch_failed_title">वीडियो प्राप्त नहीं हुआ</string>
+    <string name="video_fetch_failed_default_message">हम यह वीडियो प्राप्त नहीं कर सके। कृपया लिंक जांचें या कोई दूसरा स्रोत आज़माएँ।</string>
+    <string name="video_fetch_failed_paste_new_link">नया लिंक पेस्ट करें</string>
+
+
+    <string name="media_permission_required_title">अनुमति आवश्यक है</string>
+    <string name="media_permission_required_message">कृपया मीडिया अनुमति दें ताकि हम आपकी वीडियो और संगीत दिखा सकें।</string>
+    <string name="media_permission_allow_button">अनुमति दें</string>
+    <string name="media_permission_open_settings_button">सेटिंग्स खोलें</string>
+</resources>

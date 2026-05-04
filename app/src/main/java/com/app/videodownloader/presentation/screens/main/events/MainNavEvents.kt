@@ -38,4 +38,14 @@ sealed class MainNavEvents {
         val mediaList: List<MediaFile>,
         val startIndex: Int
     ) : MainNavEvents()
+
+    object NavigateToAppLanguageSRC : MainNavEvents()
+
+    data object OpenAppStoreForRating : MainNavEvents()
+
+    data class SendFeedbackEmail(
+        val subject: String,
+        val message: String
+    ) : MainNavEvents()
+
 }

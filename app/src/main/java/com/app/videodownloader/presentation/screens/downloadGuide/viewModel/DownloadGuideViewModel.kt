@@ -7,6 +7,7 @@ import com.app.videodownloader.presentation.screens.downloadGuide.state.Download
 import com.app.videodownloader.presentation.screens.downloadGuide.state.GuideStep
 import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.StateFlow
+import kotlinx.coroutines.flow.asStateFlow
 
 class DownloadGuideViewModel : ViewModel() {
 
@@ -14,33 +15,34 @@ class DownloadGuideViewModel : ViewModel() {
         DownloadGuideState(
             steps = listOf(
                 GuideStep(
-                    title = "Copy Video Link",
-                    description = "Open the social media app of your choice, find the video you want to save, and tap the share button to copy the link.",
+                    titleRes = R.string.download_guide_step_copy_link_title,
+                    descriptionRes = R.string.download_guide_step_copy_link_description,
                     icon = R.drawable.ic_audio
                 ),
                 GuideStep(
-                    title = "Paste & Analyze",
-                    description = "Return to this app and paste the URL into the search field on the home screen. We'll fetch the video details for you automatically.",
+                    titleRes = R.string.download_guide_step_paste_analyze_title,
+                    descriptionRes = R.string.download_guide_step_paste_analyze_description,
                     icon = R.drawable.ic_audio
                 ),
                 GuideStep(
-                    title = "Select & Save",
-                    description = "Choose your preferred quality (HD, Full HD, or 4K) and tap download. The video will be saved directly to your media gallery.",
+                    titleRes = R.string.download_guide_step_select_save_title,
+                    descriptionRes = R.string.download_guide_step_select_save_description,
                     icon = R.drawable.ic_audio
                 )
             )
         )
     )
 
-    val state: StateFlow<DownloadGuideState> = _state
+    val state: StateFlow<DownloadGuideState> = _state.asStateFlow()
 
     fun onIntent(intent: DownloadGuideIntent) {
         when (intent) {
             DownloadGuideIntent.OnBackClicked -> {
-                // handle navigation
+                // Navigation is handled by route/root screen.
             }
+
             DownloadGuideIntent.OnGotItClicked -> {
-                // handle navigation
+                // Navigation is handled by route/root screen.
             }
         }
     }

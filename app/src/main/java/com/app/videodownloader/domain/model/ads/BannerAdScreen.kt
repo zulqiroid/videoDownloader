@@ -14,6 +14,8 @@ enum class BannerAdScreen(
     AppLanguage("app_language"),
 
     OnBoarding("onboarding"),
+
+    DownloadGuide("download_guide")
 }
 
 enum class BannerAdSlot {

@@ -14,20 +14,35 @@ class NativeAdRepositoryImpl(
     override val nativeAds: StateFlow<Map<String, NativeAd>>
         get() = nativeAdManager.nativeAds
 
+    override val nativeAdPools: StateFlow<Map<String, Map<String, NativeAd>>>
+        get() = nativeAdManager.nativeAdPools
+
     override fun loadAd(
         placementKey: String,
+        slotKey: String,
         onStateChanged: (AdState) -> Unit
     ) {
         nativeAdManager.loadAd(
             placementKey = placementKey,
+            slotKey = slotKey,
             onStateChanged = onStateChanged
         )
     }
 
     override fun clearAd(
+        placementKey: String,
+        slotKey: String
+    ) {
+        nativeAdManager.clearAd(
+            placementKey = placementKey,
+            slotKey = slotKey
+        )
+    }
+
+    override fun clearPlacement(
         placementKey: String
     ) {
-        nativeAdManager.clearAd(placementKey)
+        nativeAdManager.clearPlacement(placementKey)
     }
 
     override fun clearAllAds() {
@@ -35,9 +50,13 @@ class NativeAdRepositoryImpl(
     }
 
     override fun isAdReady(
-        placementKey: String
+        placementKey: String,
+        slotKey: String
     ): Boolean {
-        return nativeAdManager.isAdReady(placementKey)
+        return nativeAdManager.isAdReady(
+            placementKey = placementKey,
+            slotKey = slotKey
+        )
     }
 
     override fun getCurrentConfig(): NativeAdConfig {

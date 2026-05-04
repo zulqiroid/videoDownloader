@@ -1,6 +1,7 @@
 package com.app.videodownloader.core.utils
 
 import androidx.datastore.preferences.core.booleanPreferencesKey
+import androidx.datastore.preferences.core.stringPreferencesKey
 
 object DataStoreKeys {
 
@@ -17,4 +18,9 @@ object DataStoreKeys {
 
     val APP_UPDATES_ENABLED =
         booleanPreferencesKey("app_updates_notification_enabled")
+
+
+
+    val SELECTED_LANGUAGE_CODE =
+        stringPreferencesKey("selected_language_code")
 }

@@ -60,7 +60,16 @@ import com.app.videodownloader.domain.model.ads.NativeAdConfig
 import com.app.videodownloader.domain.model.ads.NativeAdPlacementConfig
 import com.app.videodownloader.presentation.ads.nativeAd.NativeAdHost
 import com.app.videodownloader.presentation.ads.nativeAd.NativeAdListHelper
+import com.app.videodownloader.presentation.ads.nativeAd.NativeAdSlotHelper
 import com.google.android.gms.ads.nativead.NativeAd
+import android.content.pm.ActivityInfo
+import android.content.res.Configuration
+import android.util.Log
+import androidx.compose.runtime.DisposableEffect
+import androidx.compose.ui.platform.LocalConfiguration
+import androidx.compose.foundation.layout.PaddingValues
+import androidx.compose.runtime.mutableStateOf
+import androidx.compose.runtime.setValue
 
 @OptIn(ExperimentalFoundationApi::class)
 @Composable
@@ -75,27 +84,51 @@ fun MediaPlayerScreen(
     val state by viewModel.state.collectAsStateWithLifecycle()
     val activity = LocalActivity.current
 
+    var isLandscapeMode by remember {
+        mutableStateOf(false)
+    }
+
+    val configuration = LocalConfiguration.current
+    val isDeviceLandscape = configuration.orientation == Configuration.ORIENTATION_LANDSCAPE
+    val isLandscape = isLandscapeMode || isDeviceLandscape
+
+    fun setRequestedOrientation(orientation: Int) {
+        activity?.requestedOrientation = orientation
+    }
+
+    fun enterLandscape() {
+        isLandscapeMode = true
+        activity?.requestedOrientation = ActivityInfo.SCREEN_ORIENTATION_LANDSCAPE
+    }
+
+    fun enterPortrait() {
+        isLandscapeMode = false
+        activity?.requestedOrientation = ActivityInfo.SCREEN_ORIENTATION_PORTRAIT
+    }
+
+    fun exitPlayer() {
+        activity?.requestedOrientation = ActivityInfo.SCREEN_ORIENTATION_UNSPECIFIED
+        viewModel.onEvent(MediaPlayerEvent.OnBackPressed)
+        backStack.removeLastOrNull()
+    }
+
     val bannerState by bannerAdViewModel.state.collectAsState()
 
     val bannerScreen = BannerAdScreen.MediaPlayer
 
-    val showTopBanner = bannerState.config.isEnabled(
+    val showTopBanner = !isLandscape && bannerState.config.isEnabled(
         screen = bannerScreen,
         slot = BannerAdSlot.Top
     )
 
-    val showBottomBanner = bannerState.config.isEnabled(
+    val showBottomBanner = !isLandscape && bannerState.config.isEnabled(
         screen = bannerScreen,
         slot = BannerAdSlot.Bottom
     )
 
-    val currentMedia = state.mediaList.getOrNull(state.currentIndex)
+    val screenBackgroundColor = Color(state.screenBackgroundColor)
 
-    val screenBackgroundColor = if (currentMedia?.isVideo == true) {
-        Color.Black
-    } else {
-        Color.White
-    }
+
 
     val writePermissionLauncher = rememberLauncherForActivityResult(
         contract = ActivityResultContracts.StartIntentSenderForResult()
@@ -224,7 +257,7 @@ fun MediaPlayerScreen(
 
     val nativePlacementKey = NativeAdConfig.MEDIA_PLAYER_BETWEEN_VIDEOS
     val nativePlacementConfig = state.nativeAdConfig.placement(nativePlacementKey)
-    val nativeAd = state.nativeAds[nativePlacementKey]
+    val nativeAdPool = state.nativeAdPools[nativePlacementKey].orEmpty()
 
     val pagerItems = remember(
         state.mediaList,
@@ -247,7 +280,6 @@ fun MediaPlayerScreen(
     ) {
         pagerItems.pageIndexForMediaIndex(startIndex)
     }
-
     val pagerState = rememberPagerState(
         initialPage = initialPagerPage,
         pageCount = { pagerItems.size }
@@ -260,6 +292,7 @@ fun MediaPlayerScreen(
             pagerState.animateScrollToPage(targetPage)
         }
     }
+
     LaunchedEffect(pagerState.currentPage, pagerItems) {
         when (val item = pagerItems.getOrNull(pagerState.currentPage)) {
             is MediaPlayerPagerItem.Media -> {
@@ -268,7 +301,7 @@ fun MediaPlayerScreen(
                 )
             }
 
-            MediaPlayerPagerItem.NativeAd -> {
+            is MediaPlayerPagerItem.NativeAd -> {
                 viewModel.onEvent(MediaPlayerEvent.OnNativeAdPageVisible)
             }
 
@@ -277,236 +310,96 @@ fun MediaPlayerScreen(
     }
 
     BackHandler {
-        viewModel.onEvent(MediaPlayerEvent.OnBackPressed)
-        backStack.removeLastOrNull()
+        if (isLandscape) {
+            enterPortrait()
+        } else {
+            exitPlayer()
+        }
     }
 
-    Scaffold(
-        modifier = Modifier.fillMaxSize(),
-        containerColor = screenBackgroundColor,
-        topBar = {
-            Column(
-                modifier = Modifier.padding(
-                    top = WindowInsets.statusBars.asPaddingValues().calculateTopPadding()
-                ),
-                verticalArrangement = Arrangement.Center,
-                horizontalAlignment = Alignment.CenterHorizontally
-            ) {
-                if (showTopBanner){
-                    BannerAdHost(
-                        config = bannerState.config,
-                        screen = bannerScreen,
-                        slot = BannerAdSlot.Top
-                    )
-                }
-            }
-        },
-        bottomBar = {
-            Column(
-                modifier = Modifier.padding(
-                    top = WindowInsets.navigationBars.asPaddingValues().calculateBottomPadding()
-                ),
-                verticalArrangement = Arrangement.Center,
-                horizontalAlignment = Alignment.CenterHorizontally
-            ) {
-                if (showBottomBanner){
-                    BannerAdHost(
-                        config = bannerState.config,
-                        screen = bannerScreen,
-                        slot = BannerAdSlot.Bottom
-                    )
-                }
-            }
-        }
-    ) { paddingValues ->
-
+    if (isLandscape) {
         Box(
             modifier = Modifier
                 .fillMaxSize()
-                .background(Color.Black)
-                .padding(paddingValues)
+                .background(screenBackgroundColor)
         ) {
-            VerticalPager(
-                state = pagerState,
-                modifier = Modifier.fillMaxSize(),
-                beyondViewportPageCount = 0
-            ) { page ->
-
-                when (val item = pagerItems[page]) {
-                    is MediaPlayerPagerItem.Media -> {
-                        val media = item.media
-                        val isCurrentPage = state.currentIndex == item.mediaIndex
-
-                        Box(
-                            modifier = Modifier
-                                .fillMaxSize()
-                                .background(Color.Black)
-                        ) {
-                            if (isCurrentPage) {
-                                if (media.isVideo) {
-                                    VideoPlayerItem(
-                                        media = media,
-                                        viewModel = viewModel,
-                                        onBack = {
-                                            viewModel.onEvent(MediaPlayerEvent.OnBackPressed)
-                                            backStack.removeLastOrNull()
-                                        },
-                                        onThreeDotsClick = {
-                                            viewModel.onEvent(MediaPlayerEvent.OnThreeDotsClick)
-                                        }
-                                    )
-                                } else {
-                                    AudioPlayerItem(
-                                        media = media,
-                                        viewModel = viewModel,
-                                        onBack = {
-                                            viewModel.onEvent(MediaPlayerEvent.OnBackPressed)
-                                            backStack.removeLastOrNull()
-                                        },
-                                        onPlayPause = {
-                                            viewModel.onEvent(MediaPlayerEvent.OnPlayPauseClicked)
-                                        },
-                                        onForward = {
-                                            viewModel.onEvent(MediaPlayerEvent.OnForwardClicked)
-                                        },
-                                        onRewind = {
-                                            viewModel.onEvent(MediaPlayerEvent.OnRewindClicked)
-                                        },
-                                        onNext = {
-                                            viewModel.onEvent(MediaPlayerEvent.OnNextClicked)
-                                        },
-                                        onPrevious = {
-                                            viewModel.onEvent(MediaPlayerEvent.OnPreviousClicked)
-                                        },
-                                        onSeek = {
-                                            viewModel.onEvent(MediaPlayerEvent.OnSeek(it))
-                                        },
-                                        onMuteToggle = {
-                                            viewModel.onEvent(MediaPlayerEvent.OnMuteToggleClicked)
-                                        },
-                                        onVolumeChange = {
-                                            viewModel.onEvent(MediaPlayerEvent.OnVolumeChanged(it))
-                                        },
-                                        onThreeDotsClick = {
-                                            viewModel.onEvent(MediaPlayerEvent.OnThreeDotsClick)
-                                        }
-                                    )
-                                }
-                            }
-                        }
+            MediaPlayerContent(
+                state = state,
+                pagerItems = pagerItems,
+                pagerState = pagerState,
+                nativeAdPool = nativeAdPool,
+                nativeAdConfig = state.nativeAdConfig,
+                nativePlacementConfig = nativePlacementConfig,
+                screenBackgroundColor = screenBackgroundColor,
+                isLandscape = true,
+                viewModel = viewModel,
+                enterPortrait = ::enterPortrait,
+                enterLandscape = ::enterLandscape,
+                exitPlayer = ::exitPlayer
+            )
+        }
+    } else {
+        Scaffold(
+            modifier = Modifier.fillMaxSize(),
+            containerColor = screenBackgroundColor,
+            topBar = {
+                if (showTopBanner) {
+                    Column(
+                        modifier = Modifier  .background(screenBackgroundColor).padding(
+                            top = WindowInsets.statusBars
+                                .asPaddingValues()
+                                .calculateTopPadding()
+                        ),
+                        verticalArrangement = Arrangement.Center,
+                        horizontalAlignment = Alignment.CenterHorizontally
+                    ) {
+                        BannerAdHost(
+                            config = bannerState.config,
+                            screen = bannerScreen,
+                            slot = BannerAdSlot.Top
+                        )
                     }
-
-                    MediaPlayerPagerItem.NativeAd -> {
-                        MediaPlayerNativeAdPage(
-                            nativeAd = nativeAd,
-                            nativeAdConfig = state.nativeAdConfig,
-                            placementConfig = nativePlacementConfig
+                }
+            },
+            bottomBar = {
+                if (showBottomBanner) {
+                    Column(
+                        modifier = Modifier  .background(screenBackgroundColor).padding(
+                            bottom = WindowInsets.navigationBars
+                                .asPaddingValues()
+                                .calculateBottomPadding()
+                        ),
+                        verticalArrangement = Arrangement.Center,
+                        horizontalAlignment = Alignment.CenterHorizontally
+                    ) {
+                        BannerAdHost(
+                            config = bannerState.config,
+                            screen = bannerScreen,
+                            slot = BannerAdSlot.Bottom
                         )
                     }
                 }
             }
-            val currentMedia = state.mediaList.getOrNull(state.currentIndex)
-
-            if (state.showBottomSheet && currentMedia != null) {
-                MediaPlayerBottomSheet(
-                    state = currentMedia,
-                    playbackSpeed = state.playbackSpeed,
-                    onIntent = viewModel::onBottomSheetIntent
-                )
-            }
-
-            if (state.showPlaybackSpeedDialog) {
-                PlaybackSpeedDialog(
-                    selectedSpeed = state.playbackSpeed,
-                    onSpeedSelected = { speed ->
-                        viewModel.onBottomSheetIntent(
-                            VideoOptionsIntent.OnPlaybackSpeedSelected(speed)
-                        )
-                    },
-                    onResetClicked = {
-                        viewModel.onBottomSheetIntent(
-                            VideoOptionsIntent.OnPlaybackSpeedResetClicked
-                        )
-                    },
-                    onDismiss = {
-                        viewModel.onBottomSheetIntent(
-                            VideoOptionsIntent.OnPlaybackSpeedDialogDismissed
-                        )
-                    }
-                )
-            }
-
-            if (state.showFileInfoDialog) {
-                FileInformationDialog(
-                    item = state.fileInfoMediaItem,
-                    onDismiss = {
-                        viewModel.onBottomSheetIntent(
-                            VideoOptionsIntent.OnFileInfoDismissed
-                        )
-                    }
-                )
-            }
-
-            if (state.showRenameFileDialog) {
-                RenameFileDialog(
-                    fileName = state.renameDraftName,
-                    errorMessage = state.renameError,
-                    isLoading = state.isRenamingFile,
-                    onValueChange = { value ->
-                        viewModel.onBottomSheetIntent(
-                            VideoOptionsIntent.OnRenameValueChanged(value)
-                        )
-                    },
-                    onDismiss = {
-                        viewModel.onBottomSheetIntent(
-                            VideoOptionsIntent.OnRenameDismissed
-                        )
-                    },
-                    onConfirmClick = {
-                        viewModel.onBottomSheetIntent(
-                            VideoOptionsIntent.OnRenameConfirmClicked
-                        )
-                    }
-                )
-            }
-
-            if (state.showDeleteFileDialog) {
-                DeleteFileDialog(
-                    isLoading = state.isDeletingFile,
-                    errorMessage = state.deleteFileError,
-                    onCancelClick = {
-                        viewModel.onBottomSheetIntent(
-                            VideoOptionsIntent.OnDeleteDismissed
-                        )
-                    },
-                    onDeleteClick = {
-                        viewModel.onBottomSheetIntent(
-                            VideoOptionsIntent.OnDeleteConfirmClicked
-                        )
-                    }
-                )
-            }
-
-            if (state.showSetAsRingtoneDialog) {
-                SetAsRingtoneDialog(
-                    selectedType = state.selectedRingtoneTargetType,
-                    isLoading = state.isSettingRingtone,
-                    errorMessage = state.setRingtoneError,
-                    onTypeSelected = { type ->
-                        viewModel.onBottomSheetIntent(
-                            VideoOptionsIntent.OnRingtoneTargetSelected(type)
-                        )
-                    },
-                    onDismiss = {
-                        viewModel.onBottomSheetIntent(
-                            VideoOptionsIntent.OnSetAsRingtoneDismissed
-                        )
-                    },
-                    onConfirmClick = {
-                        viewModel.onBottomSheetIntent(
-                            VideoOptionsIntent.OnSetAsRingtoneConfirmClicked
-                        )
-                    }
+        ) { paddingValues ->
+            Box(
+                modifier = Modifier
+                    .fillMaxSize()
+                    .background(Color.Black)
+                    .padding(paddingValues)
+            ) {
+                MediaPlayerContent(
+                    state = state,
+                    pagerItems = pagerItems,
+                    pagerState = pagerState,
+                    nativeAdPool = nativeAdPool,
+                    nativeAdConfig = state.nativeAdConfig,
+                    nativePlacementConfig = nativePlacementConfig,
+                    screenBackgroundColor = screenBackgroundColor,
+                    isLandscape = false,
+                    viewModel = viewModel,
+                    enterPortrait = ::enterPortrait,
+                    enterLandscape = ::enterLandscape,
+                    exitPlayer = ::exitPlayer
                 )
             }
         }
@@ -550,6 +443,33 @@ private fun MediaFile.toMediaStoreUri(): android.net.Uri {
     return ContentUris.withAppendedId(collectionUri, id)
 }
 
+
+@Composable
+private fun MediaPlayerNativeAdPage(
+    nativeAd: NativeAd?,
+    nativeAdConfig: NativeAdConfig,
+    placementConfig: NativeAdPlacementConfig?,
+    slotKey: String
+) {
+    Box(
+        modifier = Modifier
+            .fillMaxSize()
+            .background(Color.Black),
+        contentAlignment = Alignment.Center
+    ) {
+        if (placementConfig != null) {
+            NativeAdHost(
+                nativeAd = nativeAd,
+                nativeAdConfig = nativeAdConfig,
+                placementConfig = placementConfig,
+                placementKey = "${NativeAdConfig.MEDIA_PLAYER_BETWEEN_VIDEOS}_$slotKey",
+                modifier = Modifier.fillMaxSize()
+            )
+        }
+    }
+}
+
+
 private sealed interface MediaPlayerPagerItem {
 
     data class Media(
@@ -557,7 +477,9 @@ private sealed interface MediaPlayerPagerItem {
         val mediaIndex: Int
     ) : MediaPlayerPagerItem
 
-    data object NativeAd : MediaPlayerPagerItem
+    data class NativeAd(
+        val slotKey: String
+    ) : MediaPlayerPagerItem
 }
 
 private fun buildMediaPlayerPagerItems(
@@ -568,15 +490,18 @@ private fun buildMediaPlayerPagerItems(
 
     val items = mutableListOf<MediaPlayerPagerItem>()
 
-    if (
-        placementConfig != null &&
-        NativeAdListHelper.shouldShowAdAfterItem(
+    if (placementConfig != null) {
+        val startSlotKey = NativeAdSlotHelper.slotKeyForIndex(
             index = -1,
             totalItems = mediaList.size,
             config = placementConfig
         )
-    ) {
-        items += MediaPlayerPagerItem.NativeAd
+
+        if (startSlotKey != null) {
+            items += MediaPlayerPagerItem.NativeAd(
+                slotKey = startSlotKey
+            )
+        }
     }
 
     mediaList.forEachIndexed { index, media ->
@@ -585,15 +510,18 @@ private fun buildMediaPlayerPagerItems(
             mediaIndex = index
         )
 
-        if (
-            placementConfig != null &&
-            NativeAdListHelper.shouldShowAdAfterItem(
+        if (placementConfig != null) {
+            val slotKey = NativeAdSlotHelper.slotKeyForIndex(
                 index = index,
                 totalItems = mediaList.size,
                 config = placementConfig
             )
-        ) {
-            items += MediaPlayerPagerItem.NativeAd
+
+            if (slotKey != null) {
+                items += MediaPlayerPagerItem.NativeAd(
+                    slotKey = slotKey
+                )
+            }
         }
     }
 
@@ -608,25 +536,229 @@ private fun List<MediaPlayerPagerItem>.pageIndexForMediaIndex(
     }.coerceAtLeast(0)
 }
 
+
+@OptIn(ExperimentalFoundationApi::class)
 @Composable
-private fun MediaPlayerNativeAdPage(
-    nativeAd: NativeAd?,
+private fun MediaPlayerContent(
+    state: com.app.videodownloader.presentation.screens.medaPlayer.states.MediaPlayerState,
+    pagerItems: List<MediaPlayerPagerItem>,
+    pagerState: androidx.compose.foundation.pager.PagerState,
+    nativeAdPool: Map<String, NativeAd>,
     nativeAdConfig: NativeAdConfig,
-    placementConfig: NativeAdPlacementConfig?
+    nativePlacementConfig: NativeAdPlacementConfig?,
+    screenBackgroundColor: Color,
+    isLandscape: Boolean,
+    viewModel: MediaPlayerViewModel,
+    enterPortrait: () -> Unit,
+    enterLandscape: () -> Unit,
+    exitPlayer: () -> Unit,
 ) {
     Box(
         modifier = Modifier
             .fillMaxSize()
-            .background(Color.Black),
-        contentAlignment = Alignment.Center
+            .background(Color.Black)
     ) {
-        if (placementConfig != null) {
-            NativeAdHost(
-                nativeAd = nativeAd,
-                nativeAdConfig = nativeAdConfig,
-                placementConfig = placementConfig,
-                placementKey = NativeAdConfig.MEDIA_PLAYER_BETWEEN_VIDEOS,
-                modifier = Modifier.fillMaxSize()
+        VerticalPager(
+            state = pagerState,
+            modifier = Modifier.fillMaxSize(),
+            beyondViewportPageCount = 0
+        ) { page ->
+
+            when (val item = pagerItems[page]) {
+                is MediaPlayerPagerItem.Media -> {
+                    val media = item.media
+                    val isCurrentPage = state.currentIndex == item.mediaIndex
+
+                    Box(
+                        modifier = Modifier
+                            .fillMaxSize()
+                            .background(screenBackgroundColor)
+                    ) {
+                        if (isCurrentPage) {
+                            if (media.isVideo) {
+                                VideoPlayerItem(
+                                    media = media,
+                                    viewModel = viewModel,
+                                    isLandscape = isLandscape,
+                                    onBack = {
+                                        if (isLandscape) {
+                                            enterPortrait()
+                                        } else {
+                                            exitPlayer()
+                                        }
+                                    },
+                                    onRotateClick = {
+                                        if (isLandscape) {
+                                            enterPortrait()
+                                        } else {
+                                            enterLandscape()
+                                        }
+                                    },
+                                    onThreeDotsClick = {
+                                        viewModel.onEvent(MediaPlayerEvent.OnThreeDotsClick)
+                                    }
+                                )
+                            } else {
+                                AudioPlayerItem(
+                                    media = media,
+                                    viewModel = viewModel,
+                                    onBack = {
+                                        exitPlayer()
+                                    },
+                                    onPlayPause = {
+                                        viewModel.onEvent(MediaPlayerEvent.OnPlayPauseClicked)
+                                    },
+                                    onForward = {
+                                        viewModel.onEvent(MediaPlayerEvent.OnForwardClicked)
+                                    },
+                                    onRewind = {
+                                        viewModel.onEvent(MediaPlayerEvent.OnRewindClicked)
+                                    },
+                                    onNext = {
+                                        viewModel.onEvent(MediaPlayerEvent.OnNextClicked)
+                                    },
+                                    onPrevious = {
+                                        viewModel.onEvent(MediaPlayerEvent.OnPreviousClicked)
+                                    },
+                                    onSeek = {
+                                        viewModel.onEvent(MediaPlayerEvent.OnSeek(it))
+                                    },
+                                    onMuteToggle = {
+                                        viewModel.onEvent(MediaPlayerEvent.OnMuteToggleClicked)
+                                    },
+                                    onVolumeChange = {
+                                        viewModel.onEvent(MediaPlayerEvent.OnVolumeChanged(it))
+                                    },
+                                    onThreeDotsClick = {
+                                        viewModel.onEvent(MediaPlayerEvent.OnThreeDotsClick)
+                                    },
+                                    onShuffleClick = {
+                                        viewModel.onEvent(MediaPlayerEvent.OnShuffleClicked)
+                                    },
+                                    onRepeatClick = {
+                                        viewModel.onEvent(MediaPlayerEvent.OnAudioRepeatClicked)
+                                    },
+                                )
+                            }
+                        }
+                    }
+                }
+
+                is MediaPlayerPagerItem.NativeAd -> {
+                    if (!isLandscape) {
+                        MediaPlayerNativeAdPage(
+                            nativeAd = nativeAdPool[item.slotKey],
+                            nativeAdConfig = nativeAdConfig,
+                            placementConfig = nativePlacementConfig,
+                            slotKey = item.slotKey
+                        )
+                    }
+                }
+            }
+        }
+
+        val currentMedia = state.mediaList.getOrNull(state.currentIndex)
+
+        if (state.showBottomSheet && currentMedia != null) {
+            MediaPlayerBottomSheet(
+                state = currentMedia,
+                playbackSpeed = state.playbackSpeed,
+                onIntent = viewModel::onBottomSheetIntent
+            )
+        }
+
+        if (state.showPlaybackSpeedDialog) {
+            PlaybackSpeedDialog(
+                selectedSpeed = state.playbackSpeed,
+                onSpeedSelected = { speed ->
+                    viewModel.onBottomSheetIntent(
+                        VideoOptionsIntent.OnPlaybackSpeedSelected(speed)
+                    )
+                },
+                onResetClicked = {
+                    viewModel.onBottomSheetIntent(
+                        VideoOptionsIntent.OnPlaybackSpeedResetClicked
+                    )
+                },
+                onDismiss = {
+                    viewModel.onBottomSheetIntent(
+                        VideoOptionsIntent.OnPlaybackSpeedDialogDismissed
+                    )
+                }
+            )
+        }
+
+        if (state.showFileInfoDialog) {
+            FileInformationDialog(
+                item = state.fileInfoMediaItem,
+                onDismiss = {
+                    viewModel.onBottomSheetIntent(
+                        VideoOptionsIntent.OnFileInfoDismissed
+                    )
+                }
+            )
+        }
+
+        if (state.showRenameFileDialog) {
+            RenameFileDialog(
+                fileName = state.renameDraftName,
+                errorMessage = state.renameError,
+                isLoading = state.isRenamingFile,
+                onValueChange = { value ->
+                    viewModel.onBottomSheetIntent(
+                        VideoOptionsIntent.OnRenameValueChanged(value)
+                    )
+                },
+                onDismiss = {
+                    viewModel.onBottomSheetIntent(
+                        VideoOptionsIntent.OnRenameDismissed
+                    )
+                },
+                onConfirmClick = {
+                    viewModel.onBottomSheetIntent(
+                        VideoOptionsIntent.OnRenameConfirmClicked
+                    )
+                }
+            )
+        }
+
+        if (state.showDeleteFileDialog) {
+            DeleteFileDialog(
+                isLoading = state.isDeletingFile,
+                errorMessage = state.deleteFileError,
+                onCancelClick = {
+                    viewModel.onBottomSheetIntent(
+                        VideoOptionsIntent.OnDeleteDismissed
+                    )
+                },
+                onDeleteClick = {
+                    viewModel.onBottomSheetIntent(
+                        VideoOptionsIntent.OnDeleteConfirmClicked
+                    )
+                }
+            )
+        }
+
+        if (state.showSetAsRingtoneDialog) {
+            SetAsRingtoneDialog(
+                selectedType = state.selectedRingtoneTargetType,
+                isLoading = state.isSettingRingtone,
+                errorMessage = state.setRingtoneError,
+                onTypeSelected = { type ->
+                    viewModel.onBottomSheetIntent(
+                        VideoOptionsIntent.OnRingtoneTargetSelected(type)
+                    )
+                },
+                onDismiss = {
+                    viewModel.onBottomSheetIntent(
+                        VideoOptionsIntent.OnSetAsRingtoneDismissed
+                    )
+                },
+                onConfirmClick = {
+                    viewModel.onBottomSheetIntent(
+                        VideoOptionsIntent.OnSetAsRingtoneConfirmClicked
+                    )
+                }
             )
         }
     }

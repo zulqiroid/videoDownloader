@@ -29,6 +29,7 @@ import androidx.lifecycle.compose.collectAsStateWithLifecycle
 import androidx.navigation3.runtime.NavBackStack
 import androidx.navigation3.runtime.NavKey
 import com.app.videodownloader.R
+import com.app.videodownloader.domain.model.FromWhichSrc
 import com.app.videodownloader.presentation.componants.AppButton
 import com.app.videodownloader.presentation.componants.exitConfirmationDialogue.ExitConfirmationDialog
 import com.app.videodownloader.presentation.componants.privacyPolicyDialgue.PrivacyDialogHost
@@ -51,7 +52,7 @@ fun SplashScreen(
             when (it) {
                 SplashNavEvents.NavigateToLanguageSRC -> {
                     backStack.clear()
-                    backStack.add(Screen.AppLanguage)
+                    backStack.add(Screen.AppLanguage(FromWhichSrc.FROM_SPLASH))
                 }
 
                 SplashNavEvents.ExitApp -> {

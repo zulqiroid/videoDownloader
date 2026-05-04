@@ -9,18 +9,26 @@ package com.app.videodownloader.di.modules
  import com.app.videodownloader.domain.usecases.GetVideosUseCase
  import com.app.videodownloader.domain.usecases.MoveMediaFileUseCase
  import com.app.videodownloader.domain.usecases.NotificationSettingsUseCases
+ import com.app.videodownloader.domain.usecases.NotificationTriggerUseCases
  import com.app.videodownloader.domain.usecases.ObserveDownloadsUseCase
  import com.app.videodownloader.domain.usecases.ObserveNotificationSettingsUseCase
  import com.app.videodownloader.domain.usecases.RenameMediaFileUseCase
  import com.app.videodownloader.domain.usecases.SetAudioAsRingtoneUseCase
+ import com.app.videodownloader.domain.usecases.ShowAppUpdateNotificationUseCase
+ import com.app.videodownloader.domain.usecases.ShowDownloadCompleteNotificationUseCase
+ import com.app.videodownloader.domain.usecases.ShowDownloadFailedNotificationUseCase
  import com.app.videodownloader.domain.usecases.StartDownloadUseCase
  import com.app.videodownloader.domain.usecases.UpdateNotificationSettingsUseCase
+ import com.app.videodownloader.domain.usecases.ads.AdsConsentUseCases
+ import com.app.videodownloader.domain.usecases.ads.CanRequestAdsUseCase
  import com.app.videodownloader.domain.usecases.ads.ClearAllNativeAdsUseCase
  import com.app.videodownloader.domain.usecases.ads.ClearNativeAdUseCase
  import com.app.videodownloader.domain.usecases.ads.GetAppOpenAdConfigUseCase
  import com.app.videodownloader.domain.usecases.ads.GetBannerAdConfigUseCase
  import com.app.videodownloader.domain.usecases.ads.GetInterstitialAdConfigUseCase
  import com.app.videodownloader.domain.usecases.ads.GetNativeAdConfigUseCase
+ import com.app.videodownloader.domain.usecases.ads.InitializeMobileAdsUseCase
+ import com.app.videodownloader.domain.usecases.ads.IsPrivacyOptionsRequiredUseCase
  import com.app.videodownloader.domain.usecases.ads.LoadAppOpenAdUseCase
  import com.app.videodownloader.domain.usecases.ads.LoadInterstitialAdUseCase
  import com.app.videodownloader.domain.usecases.ads.LoadNativeAdUseCase
@@ -28,9 +36,17 @@ package com.app.videodownloader.di.modules
  import com.app.videodownloader.domain.usecases.ads.ObserveBannerAdConfigUseCase
  import com.app.videodownloader.domain.usecases.ads.ObserveInterstitialAdConfigUseCase
  import com.app.videodownloader.domain.usecases.ads.ObserveNativeAdConfigUseCase
-  import com.app.videodownloader.domain.usecases.ads.ObserveNativeAdsUseCase
+ import com.app.videodownloader.domain.usecases.ads.ObserveNativeAdPoolsUseCase
+ import com.app.videodownloader.domain.usecases.ads.ObserveNativeAdsUseCase
+ import com.app.videodownloader.domain.usecases.ads.RequestAdsConsentUseCase
+ import com.app.videodownloader.domain.usecases.ads.ResetAdsConsentForTestingUseCase
  import com.app.videodownloader.domain.usecases.ads.ShowAppOpenAdUseCase
  import com.app.videodownloader.domain.usecases.ads.ShowInterstitialAdUseCase
+ import com.app.videodownloader.domain.usecases.ads.ShowPrivacyOptionsFormUseCase
+ import com.app.videodownloader.domain.usecases.dataStore.appLanguage.GetSelectedLanguageUseCase
+ import com.app.videodownloader.domain.usecases.dataStore.appLanguage.HasSelectedLanguageUseCase
+ import com.app.videodownloader.domain.usecases.dataStore.appLanguage.ObserveSelectedLanguageUseCase
+ import com.app.videodownloader.domain.usecases.dataStore.appLanguage.SaveSelectedLanguageUseCase
  import com.app.videodownloader.domain.usecases.dataStore.firstLaunch.FirstLaunchUseCases
 import com.app.videodownloader.domain.usecases.dataStore.firstLaunch.GetFirstLaunchUseCase
 import com.app.videodownloader.domain.usecases.dataStore.firstLaunch.SetFirstLaunchUseCase
@@ -84,7 +100,7 @@ val domainModule = module {
         DownloadVideoUseCase(get())
     }*/
     factory {
-        StartDownloadUseCase(get())
+        StartDownloadUseCase(get(),)
     }
 
     factory {
@@ -203,4 +219,110 @@ val domainModule = module {
         )
     }
 
+    single {
+        ObserveNativeAdPoolsUseCase(get())
+    }
+
+
+    single {
+        ObserveSelectedLanguageUseCase(
+            repository = get()
+        )
+    }
+
+    single {
+        GetSelectedLanguageUseCase(
+            repository = get()
+        )
+    }
+
+    single {
+        SaveSelectedLanguageUseCase(
+            repository = get()
+        )
+    }
+
+    single {
+        HasSelectedLanguageUseCase(
+            repository = get()
+        )
+    }
+
+
+
+    single {
+        ShowDownloadCompleteNotificationUseCase(
+            repository = get(),
+            notificationManager = get()
+        )
+    }
+
+    single {
+        ShowDownloadFailedNotificationUseCase(
+            repository = get(),
+            notificationManager = get()
+        )
+    }
+
+    single {
+        ShowAppUpdateNotificationUseCase(
+            repository = get(),
+            notificationManager = get()
+        )
+    }
+
+    single {
+        NotificationTriggerUseCases(
+            showDownloadCompleteNotificationUseCase = get(),
+            showDownloadFailedNotificationUseCase = get(),
+            showAppUpdateNotificationUseCase = get()
+        )
+    }
+
+
+    single {
+        RequestAdsConsentUseCase(
+            repository = get()
+        )
+    }
+
+    single {
+        ShowPrivacyOptionsFormUseCase(
+            repository = get()
+        )
+    }
+
+    single {
+        CanRequestAdsUseCase(
+            repository = get()
+        )
+    }
+
+    single {
+        IsPrivacyOptionsRequiredUseCase(
+            repository = get()
+        )
+    }
+
+    single {
+        ResetAdsConsentForTestingUseCase(
+            repository = get()
+        )
+    }
+
+    single {
+        AdsConsentUseCases(
+            requestAdsConsentUseCase = get(),
+            showPrivacyOptionsFormUseCase = get(),
+            canRequestAdsUseCase = get(),
+            isPrivacyOptionsRequiredUseCase = get(),
+            resetAdsConsentForTestingUseCase = get()
+        )
+    }
+
+    single {
+        InitializeMobileAdsUseCase(
+            mobileAdsInitializer = get()
+        )
+    }
 }

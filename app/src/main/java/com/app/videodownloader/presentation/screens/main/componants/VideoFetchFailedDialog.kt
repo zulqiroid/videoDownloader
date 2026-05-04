@@ -10,8 +10,6 @@ import androidx.compose.foundation.layout.height
 import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.layout.size
 import androidx.compose.foundation.shape.RoundedCornerShape
-import androidx.compose.material.icons.Icons
-import androidx.compose.material.icons.filled.Replay
 import androidx.compose.material3.Button
 import androidx.compose.material3.ButtonDefaults
 import androidx.compose.material3.Icon
@@ -19,12 +17,12 @@ import androidx.compose.material3.Surface
 import androidx.compose.material3.Text
 import androidx.compose.material3.TextButton
 import androidx.compose.runtime.Composable
-import androidx.compose.runtime.Stable
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.clip
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.res.painterResource
+import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.text.style.TextAlign
 import androidx.compose.ui.unit.dp
@@ -75,7 +73,7 @@ fun VideoFetchFailedDialog(
                 Spacer(modifier = Modifier.height(26.dp))
 
                 Text(
-                    text = "Video Fetch Failed",
+                    text = stringResource(R.string.video_fetch_failed_title),
                     fontSize = 20.sp,
                     fontWeight = FontWeight.W700,
                     color = Color(0xFF111827),
@@ -86,7 +84,7 @@ fun VideoFetchFailedDialog(
 
                 Text(
                     text = errorMessage?.takeIf { it.isNotBlank() }
-                        ?: "We couldn’t fetch this video. Please check the link or try another source.",
+                        ?: stringResource(R.string.video_fetch_failed_default_message),
                     fontSize = 14.sp,
                     fontWeight = FontWeight.W400,
                     color = Color(0xFF6B7280),
@@ -108,7 +106,7 @@ fun VideoFetchFailedDialog(
                     )
                 ) {
                     Text(
-                        text = "Retry",
+                        text = stringResource(R.string.common_retry),
                         fontSize = 16.sp,
                         fontWeight = FontWeight.W700
                     )
@@ -128,7 +126,7 @@ fun VideoFetchFailedDialog(
                     )
                 ) {
                     Text(
-                        text = "Paste New Link",
+                        text = stringResource(R.string.video_fetch_failed_paste_new_link),
                         fontSize = 16.sp,
                         fontWeight = FontWeight.W700
                     )
@@ -137,7 +135,7 @@ fun VideoFetchFailedDialog(
                 Spacer(modifier = Modifier.height(12.dp))
 
                 Text(
-                    text = "Help",
+                    text = stringResource(R.string.common_help),
                     fontSize = 14.sp,
                     fontWeight = FontWeight.W500,
                     color = Color(0xFFE00004),
@@ -147,4 +145,3 @@ fun VideoFetchFailedDialog(
         }
     }
 }
-

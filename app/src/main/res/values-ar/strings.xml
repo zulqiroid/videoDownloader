@@ -1,0 +1,140 @@
+<?xml version="1.0" encoding="utf-8"?>
+<resources>
+    <string name="app_name">تنزيل الفيديو</string>
+
+    <string name="choose_language_title">اختر اللغة</string>
+    <string name="choose_language_subtitle">اختر لغتك المفضلة للمتابعة</string>
+    <string name="continue_button">متابعة</string>
+
+    <string name="language_english">الإنجليزية</string>
+    <string name="language_english_description">الولايات المتحدة، المملكة المتحدة</string>
+
+    <string name="language_urdu">الأردية</string>
+    <string name="language_urdu_description">باكستان، الهند</string>
+
+    <string name="language_hindi">الهندية</string>
+    <string name="language_hindi_description">الهند</string>
+
+    <string name="language_arabic">العربية</string>
+    <string name="language_arabic_description">الشرق الأوسط، شمال أفريقيا</string>
+
+    <string name="language_spanish">الإسبانية</string>
+    <string name="language_spanish_description">إسبانيا، أمريكا اللاتينية</string>
+
+    <string name="language_french">الفرنسية</string>
+    <string name="language_french_description">فرنسا، كندا، أفريقيا</string>
+
+    <string name="language_german">الألمانية</string>
+    <string name="language_german_description">ألمانيا</string>
+
+    <string name="language_chinese">الصينية</string>
+    <string name="language_chinese_description">الصين</string>
+
+
+    <string name="download_tab_downloading">قيد التنزيل (%1$d)</string>
+    <string name="download_tab_completed">مكتمل (%1$d)</string>
+    <string name="download_status_downloading_with_size">جارٍ التنزيل • %1$s</string>
+    <string name="download_quality_1080p">1080p</string>
+
+    <string name="cd_play_video">تشغيل الفيديو</string>
+    <string name="cd_more_options">المزيد من الخيارات</string>
+    <string name="cd_pause_download">إيقاف التنزيل مؤقتًا</string>
+    <string name="cd_delete_download">حذف التنزيل</string>
+    <string name="cd_download_thumbnail">صورة مصغرة للتنزيل</string>
+
+
+
+    <string name="download_empty_active_title">لا توجد تنزيلات نشطة</string>
+    <string name="download_empty_completed_title">لا توجد تنزيلات مكتملة</string>
+    <string name="download_empty_active_message">ستظهر التنزيلات النشطة هنا.</string>
+    <string name="download_empty_completed_message">ستظهر مقاطع الفيديو التي تم تنزيلها هنا.</string>
+
+
+    <string name="download_guide_title">كيفية التنزيل</string>
+    <string name="download_guide_got_it_button">فهمت، شكرًا!</string>
+
+    <string name="download_guide_step_copy_link_title">انسخ رابط الفيديو</string>
+    <string name="download_guide_step_copy_link_description">افتح تطبيق التواصل الاجتماعي الذي تفضله، وابحث عن الفيديو الذي تريد حفظه، ثم اضغط على زر المشاركة لنسخ الرابط.</string>
+
+    <string name="download_guide_step_paste_analyze_title">الصق وحلّل</string>
+    <string name="download_guide_step_paste_analyze_description">ارجع إلى هذا التطبيق والصق الرابط في حقل البحث على الشاشة الرئيسية. سنجلب تفاصيل الفيديو تلقائيًا من أجلك.</string>
+
+    <string name="download_guide_step_select_save_title">اختر واحفظ</string>
+    <string name="download_guide_step_select_save_description">اختر الجودة المفضلة لديك، مثل HD أو Full HD أو 4K، ثم اضغط على تنزيل. سيتم حفظ الفيديو مباشرة في معرض الوسائط لديك.</string>
+
+    <string name="cd_back">رجوع</string>
+
+
+
+    <string name="home_trending_reels_title">الريلز الرائجة</string>
+
+
+
+    <string name="common_see_all">عرض الكل</string>
+    <string name="common_cancel">إلغاء</string>
+    <string name="common_save">حفظ</string>
+    <string name="common_submit">إرسال</string>
+    <string name="common_retry">إعادة المحاولة</string>
+    <string name="common_help">مساعدة</string>
+    <string name="common_pro">PRO</string>
+
+    <string name="cd_arrow_forward">سهم للأمام</string>
+    <string name="cd_download_icon">أيقونة التنزيل</string>
+    <string name="cd_premium">مميز</string>
+    <string name="cd_info">معلومات</string>
+    <string name="cd_search">بحث</string>
+    <string name="cd_play">تشغيل</string>
+     <string name="cd_pictorial_reel">ريل مصور</string>
+
+    <string name="moving_file_title">جارٍ نقل الملف...</string>
+
+    <string name="download_sheet_default_title">video_m_p_4</string>
+    <string name="download_sheet_default_source">video.com</string>
+    <string name="download_sheet_select_quality">اختر الجودة</string>
+    <string name="download_sheet_download_now">نزّل الآن</string>
+
+    <string name="main_bottom_nav_home">الرئيسية</string>
+    <string name="main_bottom_nav_reels">ريلز</string>
+    <string name="main_bottom_nav_player">المشغل</string>
+    <string name="main_bottom_nav_download">التنزيلات</string>
+    <string name="main_bottom_nav_more">المزيد</string>
+
+    <string name="notifications_title">الإشعارات</string>
+    <string name="notification_download_complete_title">اكتمل التنزيل</string>
+    <string name="notification_download_complete_description">تنبيه عند جاهزية الفيديو</string>
+    <string name="notification_download_failed_title">فشل التنزيل</string>
+    <string name="notification_download_failed_description">تنبيه عند أخطاء الشبكة</string>
+    <string name="notification_app_updates_title">تحديثات التطبيق</string>
+    <string name="notification_app_updates_description">احصل على إشعارات حول الميزات الجديدة</string>
+
+    <string name="rate_us_title">قيّمنا</string>
+    <string name="rate_us_message">هل تستمتع باستخدام تطبيق تنزيل الفيديو؟ امنحنا تقييمًا!</string>
+    <string name="rate_now_button">قيّم الآن</string>
+    <string name="rate_later_button">لاحقًا</string>
+    <string name="cd_star_rating">تقييم %1$d نجمة</string>
+
+    <string name="feedback_title">إرسال ملاحظات</string>
+    <string name="feedback_message">تساعدنا ملاحظاتك على تحسين التطبيق للجميع.</string>
+    <string name="feedback_placeholder">اكتب ملاحظاتك...</string>
+
+    <string name="top_bar_app_name">تنزيل الفيديو</string>
+    <string name="top_bar_my_player">مشغلي</string>
+    <string name="top_bar_trending_reels">الريلز الرائجة</string>
+    <string name="top_bar_downloads">التنزيلات</string>
+    <string name="top_bar_more_options">خيارات إضافية</string>
+    <string name="top_bar_social">اجتماعي</string>
+
+    <string name="fetching_video_title">جارٍ جلب تفاصيل الفيديو</string>
+    <string name="fetching_video_message">يرجى الانتظار بينما نقوم بتجهيز التنزيل.</string>
+
+    <string name="video_fetch_failed_title">فشل جلب الفيديو</string>
+    <string name="video_fetch_failed_default_message">لم نتمكن من جلب هذا الفيديو. يرجى التحقق من الرابط أو تجربة مصدر آخر.</string>
+    <string name="video_fetch_failed_paste_new_link">لصق رابط جديد</string>
+
+
+
+    <string name="media_permission_required_title">الإذن مطلوب</string>
+    <string name="media_permission_required_message">يرجى السماح بإذن الوسائط حتى نتمكن من عرض مقاطع الفيديو والموسيقى لديك.</string>
+    <string name="media_permission_allow_button">السماح بالإذن</string>
+    <string name="media_permission_open_settings_button">فتح الإعدادات</string>
+</resources>

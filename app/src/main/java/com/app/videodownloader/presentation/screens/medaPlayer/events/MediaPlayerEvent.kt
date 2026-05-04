@@ -32,4 +32,7 @@ sealed class MediaPlayerEvent {
 
     data object OnNativeAdPageVisible : MediaPlayerEvent()
 
+    data object OnShuffleClicked : MediaPlayerEvent()
+    data object OnAudioRepeatClicked : MediaPlayerEvent()
+
  }

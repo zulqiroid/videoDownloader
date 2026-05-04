@@ -1,139 +1,234 @@
 package com.app.videodownloader.presentation.screens.medaPlayer.componants
 
-import android.net.Uri
-import androidx.activity.compose.BackHandler
-import androidx.compose.foundation.ExperimentalFoundationApi
-import androidx.compose.foundation.background
-import androidx.compose.foundation.clickable
-import androidx.compose.foundation.gestures.detectDragGestures
+import androidx.annotation.OptIn
+import androidx.compose.animation.AnimatedVisibility
+import androidx.compose.animation.fadeIn
+import androidx.compose.animation.fadeOut
 import androidx.compose.foundation.gestures.detectTapGestures
-import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Box
-import androidx.compose.foundation.layout.BoxWithConstraints
-import androidx.compose.foundation.layout.Column
-import androidx.compose.foundation.layout.Row
-import androidx.compose.foundation.layout.Spacer
-import androidx.compose.foundation.layout.WindowInsets
-import androidx.compose.foundation.layout.asPaddingValues
 import androidx.compose.foundation.layout.fillMaxSize
-import androidx.compose.foundation.layout.fillMaxWidth
-import androidx.compose.foundation.layout.height
-import androidx.compose.foundation.layout.offset
-import androidx.compose.foundation.layout.padding
-import androidx.compose.foundation.layout.size
-import androidx.compose.foundation.layout.statusBars
-import androidx.compose.foundation.pager.VerticalPager
-import androidx.compose.foundation.pager.rememberPagerState
-import androidx.compose.foundation.shape.CircleShape
-import androidx.compose.foundation.shape.RoundedCornerShape
-import androidx.compose.material.icons.Icons
-import androidx.compose.material.icons.automirrored.filled.ArrowBack
-import androidx.compose.material.icons.automirrored.filled.VolumeUp
-import androidx.compose.material.icons.filled.ArrowBack
-import androidx.compose.material.icons.filled.Lock
-import androidx.compose.material.icons.filled.MoreVert
-import androidx.compose.material.icons.filled.Pause
-import androidx.compose.material.icons.filled.PlayArrow
-import androidx.compose.material.icons.filled.SkipNext
-import androidx.compose.material.icons.filled.SkipPrevious
-import androidx.compose.material.icons.filled.VolumeUp
-import androidx.compose.material3.Icon
-import androidx.compose.material3.IconButton
-import androidx.compose.material3.IconButtonColors
-import androidx.compose.material3.IconButtonDefaults
-import androidx.compose.material3.Slider
-import androidx.compose.material3.SliderDefaults
-import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
-import androidx.compose.runtime.DisposableEffect
 import androidx.compose.runtime.LaunchedEffect
 import androidx.compose.runtime.getValue
+import androidx.compose.runtime.mutableLongStateOf
 import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.remember
 import androidx.compose.runtime.setValue
-import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
-import androidx.compose.ui.draw.clip
-import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.input.pointer.pointerInput
-import androidx.compose.ui.platform.LocalContext
-import androidx.compose.ui.res.painterResource
-import androidx.compose.ui.text.font.FontWeight
-import androidx.compose.ui.unit.IntOffset
-import androidx.compose.ui.unit.dp
-import androidx.compose.ui.unit.sp
 import androidx.compose.ui.viewinterop.AndroidView
 import androidx.lifecycle.compose.collectAsStateWithLifecycle
-import androidx.media3.common.MediaItem
-import androidx.media3.common.Player
-import androidx.media3.exoplayer.ExoPlayer
+import androidx.media3.common.util.UnstableApi
+import androidx.media3.ui.AspectRatioFrameLayout
 import androidx.media3.ui.PlayerView
-import androidx.navigation3.runtime.NavBackStack
-import androidx.navigation3.runtime.NavKey
-import com.app.videodownloader.R
 import com.app.videodownloader.domain.model.MediaFile
 import com.app.videodownloader.presentation.screens.medaPlayer.events.MediaPlayerEvent
-import com.app.videodownloader.presentation.screens.medaPlayer.states.MediaPlayerState
 import com.app.videodownloader.presentation.screens.medaPlayer.viewModel.MediaPlayerViewModel
 import kotlinx.coroutines.delay
-import org.koin.compose.viewmodel.koinViewModel
-import kotlin.Unit
 
+@OptIn(UnstableApi::class)
 @Composable
 fun VideoPlayerItem(
     media: MediaFile,
     viewModel: MediaPlayerViewModel,
+    isLandscape: Boolean,
     onBack: () -> Unit,
-    onThreeDotsClick:() -> Unit,
-    ) {
+    onRotateClick: () -> Unit,
+    onThreeDotsClick: () -> Unit,
+) {
     val state by viewModel.state.collectAsStateWithLifecycle()
 
-    Box(modifier = Modifier.fillMaxSize()) {
+    var areControlsVisible by remember(media.id) {
+        mutableStateOf(true)
+    }
 
+    var showInitialCenterControls by remember(media.id) {
+        mutableStateOf(true)
+    }
+
+    var isVideoZoomed by remember(media.id) {
+        mutableStateOf(false)
+    }
+
+    var lastInteractionTime by remember(media.id) {
+        mutableLongStateOf(System.currentTimeMillis())
+    }
+
+    var areControlsLocked by remember(media.id) {
+        mutableStateOf(false)
+    }
+
+    fun markUserInteraction() {
+        areControlsVisible = true
+        lastInteractionTime = System.currentTimeMillis()
+    }
+
+    LaunchedEffect(media.id) {
+        showInitialCenterControls = true
+        delay(INITIAL_CENTER_CONTROLS_VISIBLE_MS)
+        showInitialCenterControls = false
+    }
+
+    LaunchedEffect(
+        areControlsVisible,
+        lastInteractionTime,
+        state.isPlaying,
+        state.showBottomSheet,
+        state.showPlaybackSpeedDialog,
+        state.showFileInfoDialog,
+        state.showRenameFileDialog,
+        state.showDeleteFileDialog,
+        state.showSetAsRingtoneDialog
+    ) {
+        val shouldKeepControlsVisible =
+            areControlsLocked ||
+                    !state.isPlaying ||
+                    state.showBottomSheet ||
+                    state.showPlaybackSpeedDialog ||
+                    state.showFileInfoDialog ||
+                    state.showRenameFileDialog ||
+                    state.showDeleteFileDialog ||
+                    state.showSetAsRingtoneDialog
+
+        if (!areControlsVisible || shouldKeepControlsVisible) {
+            return@LaunchedEffect
+        }
+
+        val interactionSnapshot = lastInteractionTime
+
+        delay(CONTROLS_AUTO_HIDE_DELAY_MS)
+
+        if (
+            interactionSnapshot == lastInteractionTime &&
+            state.isPlaying &&
+            !state.showBottomSheet &&
+            !state.showPlaybackSpeedDialog &&
+            !state.showFileInfoDialog &&
+            !state.showRenameFileDialog &&
+            !state.showDeleteFileDialog &&
+            !state.showSetAsRingtoneDialog
+        ) {
+            areControlsVisible = false
+        }
+    }
+
+    Box(
+        modifier = Modifier
+            .fillMaxSize()
+            .pointerInput(
+                state.isPlaying,
+                areControlsVisible
+            ) {
+                detectTapGestures(
+                    onTap = {
+                        if (areControlsLocked) return@detectTapGestures
+
+                        if (areControlsVisible && state.isPlaying) {
+                            areControlsVisible = false
+                        } else {
+                            markUserInteraction()
+                        }
+                    },
+                    onDoubleTap = { offset ->
+                        if (areControlsLocked) return@detectTapGestures
+
+                        markUserInteraction()
+
+                        val tappedOnLeftSide = offset.x < size.width / 2f
+
+                        if (tappedOnLeftSide) {
+                            viewModel.onEvent(MediaPlayerEvent.OnRewindClicked)
+                        } else {
+                            viewModel.onEvent(MediaPlayerEvent.OnForwardClicked)
+                        }
+                    }
+                )
+            }
+    ) {
         AndroidView(
             factory = { context ->
                 PlayerView(context).apply {
                     player = viewModel.player
                     useController = false
+                    resizeMode = AspectRatioFrameLayout.RESIZE_MODE_FIT
                 }
             },
-            update = {
-                it.player = viewModel.player
+            update = { playerView ->
+                playerView.player = viewModel.player
+                playerView.resizeMode = if (isVideoZoomed) {
+                    AspectRatioFrameLayout.RESIZE_MODE_ZOOM
+                } else {
+                    AspectRatioFrameLayout.RESIZE_MODE_FIT
+                }
             },
             modifier = Modifier.fillMaxSize()
         )
 
-        VideoControlsOverlay(
-            media = media,
-            state = state,
-            onBack = onBack,
-            onPlayPause = {
-                viewModel.onEvent(MediaPlayerEvent.OnPlayPauseClicked)
-            },
-            onForward = {
-                viewModel.onEvent(MediaPlayerEvent.OnForwardClicked)
-            },
-            onRewind = {
-                viewModel.onEvent(MediaPlayerEvent.OnRewindClicked)
-            },
-            onNext = {
-                viewModel.onEvent(MediaPlayerEvent.OnNextClicked)
-            },
-            onPrevious = {
-                viewModel.onEvent(MediaPlayerEvent.OnPreviousClicked)
-            },
-            onSeek = {
-                viewModel.onEvent(MediaPlayerEvent.OnSeek(it))
-            },
-            onMuteToggle = {
-                viewModel.onEvent(MediaPlayerEvent.OnMuteToggleClicked)
-            },
-            onVolumeChange = {
-                viewModel.onEvent(MediaPlayerEvent.OnVolumeChanged(it))
-            },
-            onThreeDotsClick = {
+        AnimatedVisibility(
+            visible = areControlsVisible,
+            enter = fadeIn(),
+            exit = fadeOut()
+        ) {
+            VideoControlsOverlay(
+                media = media,
+                state = state,
+                showCenterControls = showInitialCenterControls && !areControlsLocked,
+                isVideoZoomed = isVideoZoomed,
+                isLandscape = isLandscape,
+                isControlsLocked = areControlsLocked,
+                onBack = {
+                    markUserInteraction()
+                    onBack()
+                },
+                onPlayPause = {
+                    markUserInteraction()
+                    viewModel.onEvent(MediaPlayerEvent.OnPlayPauseClicked)
+                },
+                onForward = {
+                    markUserInteraction()
+                    viewModel.onEvent(MediaPlayerEvent.OnForwardClicked)
+                },
+                onRewind = {
+                    markUserInteraction()
+                    viewModel.onEvent(MediaPlayerEvent.OnRewindClicked)
+                },
+                onNext = {
+                    markUserInteraction()
+                    viewModel.onEvent(MediaPlayerEvent.OnNextClicked)
+                },
+                onPrevious = {
+                    markUserInteraction()
+                    viewModel.onEvent(MediaPlayerEvent.OnPreviousClicked)
+                },
+                onSeek = { position ->
+                    markUserInteraction()
+                    viewModel.onEvent(MediaPlayerEvent.OnSeek(position))
+                },
+                onMuteToggle = {
+                    markUserInteraction()
+                    viewModel.onEvent(MediaPlayerEvent.OnMuteToggleClicked)
+                },
+                onResizeToggle = {
+                    markUserInteraction()
+                    isVideoZoomed = !isVideoZoomed
+                },
+                onRotateClick = {
+                    markUserInteraction()
+                    onRotateClick()
+                },
+                onLockToggle = {
+                    areControlsLocked = !areControlsLocked
+                    areControlsVisible = true
+                    lastInteractionTime = System.currentTimeMillis()
+                },
+                onThreeDotsClick = {
+                    markUserInteraction()
                     onThreeDotsClick()
-            }
-        )
+                }
+            )
+        }
     }
 }
+
+private const val CONTROLS_AUTO_HIDE_DELAY_MS = 3_000L
+private const val INITIAL_CENTER_CONTROLS_VISIBLE_MS = 3_000L

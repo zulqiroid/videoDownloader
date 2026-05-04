@@ -5,10 +5,12 @@ import com.app.videodownloader.presentation.localization.AppLanguageCodes
 import com.google.android.gms.ads.nativead.NativeAd
 
 data class AppLanguageStates(
-    val selectedLanguage: AppLanguageCodes = AppLanguageCodes.ENGLISH,
+    val selectedLanguage: AppLanguageCodes = AppLanguageCodes.DEFAULT,
     val showExitDialogue: Boolean = false,
 
-    // ✅ ADD THESE
     val nativeAds: Map<String, NativeAd> = emptyMap(),
+
+    val nativeAdPools: Map<String, Map<String, NativeAd>> = emptyMap(),
+
     val nativeAdConfig: NativeAdConfig = NativeAdConfig.default()
 )
