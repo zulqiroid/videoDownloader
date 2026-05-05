@@ -9,9 +9,12 @@ import com.app.videodownloader.domain.model.ads.NativeAdConfig
 import com.app.videodownloader.domain.usecases.CancelDownloadUseCase
 import com.app.videodownloader.domain.usecases.GetDownloadedFilesUseCase
 import com.app.videodownloader.domain.usecases.ObserveDownloadsUseCase
+import com.app.videodownloader.domain.usecases.PauseDownloadUseCase
+import com.app.videodownloader.domain.usecases.ResumeDownloadUseCase
 import com.app.videodownloader.domain.usecases.ads.LoadNativeAdUseCase
 import com.app.videodownloader.domain.usecases.ads.ObserveNativeAdConfigUseCase
 import com.app.videodownloader.domain.usecases.ads.ObserveNativeAdPoolsUseCase
+import com.app.videodownloader.domain.usecases.billing.ObserveIsPremiumUserUseCase
 import com.app.videodownloader.presentation.ads.nativeAd.NativeAdSlotHelper
 import com.app.videodownloader.presentation.screens.download.events.DownloadEvents
 import com.app.videodownloader.presentation.screens.download.states.DownloadState
@@ -20,22 +23,27 @@ import com.app.videodownloader.presentation.screens.download.states.DownloadUiIt
 import com.app.videodownloader.presentation.screens.download.states.toUiItem
 import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.asStateFlow
+import kotlinx.coroutines.flow.distinctUntilChanged
 import kotlinx.coroutines.flow.update
 import kotlinx.coroutines.launch
 
 class DownloadViewModel(
     private val observeDownloadsUseCase: ObserveDownloadsUseCase,
     private val getDownloadedFilesUseCase: GetDownloadedFilesUseCase,
+    private val pauseDownloadUseCase: PauseDownloadUseCase,
+    private val resumeDownloadUseCase: ResumeDownloadUseCase,
     private val cancelDownloadUseCase: CancelDownloadUseCase,
     private val loadNativeAdUseCase: LoadNativeAdUseCase,
     private val observeNativeAdPoolsUseCase: ObserveNativeAdPoolsUseCase,
-    private val observeNativeAdConfigUseCase: ObserveNativeAdConfigUseCase
+    private val observeNativeAdConfigUseCase: ObserveNativeAdConfigUseCase,
+    private val observeIsPremiumUserUseCase: ObserveIsPremiumUserUseCase,
 ) : ViewModel() {
 
     private val _state = MutableStateFlow(DownloadState())
     val state = _state.asStateFlow()
 
     init {
+        observePremiumStatus()
         loadLocalFiles()
         observeDownloads()
         observeNativeAdPools()
@@ -44,17 +52,45 @@ class DownloadViewModel(
 
     fun onEvent(event: DownloadEvents) {
         when (event) {
+            is DownloadEvents.OnPauseDownloadingClicked -> {
+                viewModelScope.launch {
+                    pauseDownloadUseCase(event.id)
+                }
+            }
+
+            is DownloadEvents.OnResumeDownloadingClicked -> {
+                viewModelScope.launch {
+                    resumeDownloadUseCase(event.id)
+                }
+            }
+
             is DownloadEvents.OnDeleteDownloadingClicked -> {
                 viewModelScope.launch {
                     cancelDownloadUseCase(event.id)
                 }
             }
+        }
+    }
 
-            is DownloadEvents.OnPauseDownloadingClicked -> {
-                viewModelScope.launch {
-                    cancelDownloadUseCase(event.id)
+    private fun observePremiumStatus() {
+        viewModelScope.launch {
+            observeIsPremiumUserUseCase()
+                .distinctUntilChanged()
+                .collect { isPremium ->
+                    _state.update { currentState ->
+                        currentState.copy(
+                            isPremiumUser = isPremium,
+                            nativeAds = if (isPremium) emptyMap() else currentState.nativeAds,
+                            nativeAdPools = if (isPremium) emptyMap() else currentState.nativeAdPools
+                        )
+                    }
+
+                    if (!isPremium) {
+                        loadNativeSlotsForAllTabs()
+                    } else {
+                        Log.d(TAG, "Download native ads skipped: premium user")
+                    }
                 }
-            }
         }
     }
 
@@ -104,8 +140,12 @@ class DownloadViewModel(
     private fun observeNativeAdPools() {
         viewModelScope.launch {
             observeNativeAdPoolsUseCase().collect { nativeAdPools ->
-                _state.update {
-                    it.copy(nativeAdPools = nativeAdPools)
+                _state.update { currentState ->
+                    if (currentState.isPremiumUser) {
+                        currentState.copy(nativeAdPools = emptyMap())
+                    } else {
+                        currentState.copy(nativeAdPools = nativeAdPools)
+                    }
                 }
             }
         }
@@ -133,6 +173,11 @@ class DownloadViewModel(
     ) {
         val currentState = _state.value
 
+        if (currentState.isPremiumUser) {
+            Log.d(TAG, "Download native ad load skipped: premium user. tab=$tab")
+            return
+        }
+
         val placementKey = when (tab) {
             DownloadTab.DOWNLOADING -> NativeAdConfig.DOWNLOAD_DOWNLOADING_LIST
             DownloadTab.COMPLETED -> NativeAdConfig.DOWNLOAD_COMPLETED_LIST
@@ -150,10 +195,6 @@ class DownloadViewModel(
             return
         }
 
-        /*
-         * Empty state still needs one stable slot, so the empty screen can show
-         * a single native ad without relying on list indexes.
-         */
         val slotKeys = if (totalItems <= 0) {
             listOf(EMPTY_STATE_SLOT_KEY)
         } else {
@@ -194,10 +235,22 @@ class DownloadViewModel(
 
             val etaText = formatTime(item.lastEtaSeconds)
 
-            val finalTimeText = if (item.status == DownloadStatus.DOWNLOADING) {
-                etaText?.let { "Est. $it left" } ?: "Calculating..."
-            } else {
-                "Completed"
+            val finalTimeText = when (item.status) {
+                DownloadStatus.DOWNLOADING -> {
+                    etaText?.let { "Est. $it left" } ?: "Calculating..."
+                }
+
+                DownloadStatus.PAUSED -> {
+                    "Paused"
+                }
+
+                DownloadStatus.FAILED -> {
+                    "Failed"
+                }
+
+                DownloadStatus.SUCCESS -> {
+                    "Completed"
+                }
             }
 
             val ui = DownloadUiItem(

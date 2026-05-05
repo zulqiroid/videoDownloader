@@ -90,4 +90,20 @@ sealed class MainEvents {
     ) : MainEvents()
 
 
+
+    data object OnPlayerSearchClicked : MainEvents()
+
+    data object OnPlayerSearchClosed : MainEvents()
+
+    data class OnPlayerSearchQueryChanged(
+        val query: String
+    ) : MainEvents()
+
+    data object OnDownloadSearchClicked : MainEvents()
+
+    data object OnDownloadSearchClosed : MainEvents()
+
+    data class OnDownloadSearchQueryChanged(
+        val query: String
+    ) : MainEvents()
 }

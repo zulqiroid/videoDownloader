@@ -5,6 +5,7 @@ import android.content.Context
 import android.util.Log
 import com.app.videodownloader.domain.model.ads.AdState
 import com.app.videodownloader.domain.model.ads.AppOpenAdConfig
+import com.app.videodownloader.domain.repository.billing.PremiumAccessController
 import com.app.videodownloader.domain.usecases.ads.CanRequestAdsUseCase
 import com.app.videodownloader.domain.usecases.ads.ObserveAppOpenAdConfigUseCase
  import com.google.android.gms.ads.AdError
@@ -23,7 +24,9 @@ import kotlin.math.pow
 class AppOpenAdManager(
     context: Context,
     observeAppOpenAdConfigUseCase: ObserveAppOpenAdConfigUseCase,
-    private val canRequestAdsUseCase: CanRequestAdsUseCase
+    private val canRequestAdsUseCase: CanRequestAdsUseCase,
+    private val fullScreenAdCoordinator: FullScreenAdCoordinator,
+    private val premiumAccessController: PremiumAccessController
 ) {
 
     private val appContext = context.applicationContext
@@ -70,9 +73,18 @@ class AppOpenAdManager(
                 }
 
                 if (oldConfig.adUnitId != newConfig.adUnitId) {
-                    Log.d(TAG, "App Open ad unit changed. Clearing and loading new ad.")
+                    Log.d(TAG, "App Open ad unit changed. Clearing current ad.")
                     clearCurrentAd()
-                    loadAd()
+                }
+
+                if (!canRequestAdsUseCase()) {
+                    Log.d(TAG, "App Open auto-load skipped: consent not ready.")
+                    return@collect
+                }
+
+                if (premiumAccessController.isPremium()) {
+                    Log.d(TAG, "App Open auto-load skipped: premium user.")
+                    clearCurrentAd()
                     return@collect
                 }
 
@@ -99,6 +111,17 @@ class AppOpenAdManager(
         onStateChanged: (AdState) -> Unit = {}
     ) {
         val currentConfig = config
+
+        if (premiumAccessController.isPremium()) {
+            onStateChanged(AdState.Skipped("App Open load skipped: premium user"))
+            clearCurrentAd()
+            return
+        }
+
+        if (!canRequestAdsUseCase()) {
+            onStateChanged(AdState.Skipped("App Open ad load skipped: consent not ready"))
+            return
+        }
 
         if (!currentConfig.enabled) {
             onStateChanged(AdState.Skipped("App Open ads are disabled by remote config"))
@@ -130,6 +153,18 @@ class AppOpenAdManager(
     ) {
         val currentConfig = config
 
+        if (premiumAccessController.isPremium()) {
+            onStateChanged(AdState.Skipped("App Open show skipped: premium user"))
+            onComplete()
+            return
+        }
+
+        if (!canRequestAdsUseCase()) {
+            onStateChanged(AdState.Skipped("App Open ad show skipped: consent not ready"))
+            onComplete()
+            return
+        }
+
         if (!currentConfig.enabled) {
             onStateChanged(AdState.Skipped("App Open ads are disabled by remote config"))
             onComplete()
@@ -138,6 +173,12 @@ class AppOpenAdManager(
 
         if (activity.isFinishing || activity.isDestroyed) {
             onStateChanged(AdState.Skipped("Activity is not valid for showing ad"))
+            onComplete()
+            return
+        }
+
+        if (fullScreenAdCoordinator.isAnyFullScreenAdShowing()) {
+            onStateChanged(AdState.Skipped("Another full-screen ad is already showing"))
             onComplete()
             return
         }
@@ -251,6 +292,7 @@ class AppOpenAdManager(
 
             override fun onAdShowedFullScreenContent() {
                 isShowingAd = true
+                fullScreenAdCoordinator.onFullScreenAdStarted()
                 lastShownAtMs = now()
 
                 Log.d(TAG, "App Open ad is showing.")
@@ -270,6 +312,7 @@ class AppOpenAdManager(
             override fun onAdDismissedFullScreenContent() {
                 Log.d(TAG, "App Open ad dismissed.")
 
+                fullScreenAdCoordinator.onFullScreenAdFinished()
                 clearCurrentAd()
                 onStateChanged(AdState.Dismissed)
 
@@ -283,6 +326,7 @@ class AppOpenAdManager(
                     "App Open ad failed to show. code=${error.code}, message=${error.message}"
                 )
 
+                fullScreenAdCoordinator.onFullScreenAdFinished()
                 clearCurrentAd()
                 onStateChanged(AdState.ShowFailed(error.message))
 
@@ -293,9 +337,10 @@ class AppOpenAdManager(
 
         try {
             ad.show(activity)
-        } catch (exception: Exception) {
+        }catch (exception: Exception) {
             Log.e(TAG, "App Open ad show crashed.", exception)
 
+            fullScreenAdCoordinator.onFullScreenAdFinished()
             clearCurrentAd()
             onStateChanged(
                 AdState.ShowFailed(

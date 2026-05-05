@@ -1,5 +1,6 @@
 package com.app.videodownloader.presentation.screens.medaPlayer.componants
 
+import androidx.annotation.StringRes
 import androidx.compose.foundation.background
 import androidx.compose.foundation.clickable
 import androidx.compose.foundation.layout.Arrangement
@@ -27,9 +28,11 @@ import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.clip
 import androidx.compose.ui.graphics.Color
+import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
+import com.app.videodownloader.R
 import com.app.videodownloader.presentation.componants.CloseButton
 import kotlin.math.abs
 
@@ -62,7 +65,7 @@ fun PlaybackSpeedDialog(
                 onClick = onResetClicked
             ) {
                 Text(
-                    text = "Reset to Default",
+                    text = stringResource(R.string.reset_to_default),
                     color = Color(0xFFE00004),
                     fontSize = 14.sp,
                     fontWeight = FontWeight.W500
@@ -78,7 +81,7 @@ fun PlaybackSpeedDialog(
                     .padding(horizontal = 8.dp)
             ) {
                 Text(
-                    text = "Cancel",
+                    text = stringResource(R.string.cancel),
                     color = Color(0xFF374151),
                     fontSize = 14.sp,
                     fontWeight = FontWeight.W500
@@ -100,13 +103,12 @@ private fun PlaybackSpeedDialogHeader(
             verticalAlignment = Alignment.CenterVertically
         ) {
             Text(
-                text = "Playback Speed",
+                text = stringResource(R.string.playback_speed),
                 color = Color(0xFF111827),
                 fontSize = 20.sp,
                 fontWeight = FontWeight.W600,
                 modifier = Modifier.weight(1f)
             )
-
 
             CloseButton(
                 onClick = { onDismiss() },
@@ -175,7 +177,7 @@ private fun PlaybackSpeedOptionRow(
         horizontalArrangement = Arrangement.SpaceBetween
     ) {
         Text(
-            text = option.label,
+            text = stringResource(option.labelRes),
             color = contentColor,
             fontSize = 16.sp,
             fontWeight = if (selected) FontWeight.W500 else FontWeight.W400
@@ -222,35 +224,35 @@ private fun PlaybackSpeedRadioButton(
 @Immutable
 private enum class PlaybackSpeedOption(
     val value: Float,
-    val label: String,
+    @StringRes val labelRes: Int,
 ) {
     Speed025(
         value = 0.25f,
-        label = "0.25x"
+        labelRes = R.string.playback_speed_025
     ),
     Speed05(
         value = 0.5f,
-        label = "0.5x"
+        labelRes = R.string.playback_speed_05
     ),
     Speed1(
         value = 1f,
-        label = "1.0x (Normal)"
+        labelRes = R.string.playback_speed_10_normal
     ),
     Speed125(
         value = 1.25f,
-        label = "1.25x"
+        labelRes = R.string.playback_speed_125
     ),
     Speed15(
         value = 1.5f,
-        label = "1.5x"
+        labelRes = R.string.playback_speed_15
     ),
     Speed2(
         value = 2f,
-        label = "2.0x"
+        labelRes = R.string.playback_speed_20
     ),
     Speed4(
         value = 4f,
-        label = "4.0x"
+        labelRes = R.string.playback_speed_40
     )
 }
 

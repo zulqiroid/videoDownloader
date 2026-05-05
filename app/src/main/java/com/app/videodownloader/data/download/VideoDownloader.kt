@@ -47,40 +47,6 @@ class VideoDownloader(
         checkDownloadStatus(id)
     }
 
-   /* suspend fun downloadVideo(url: String) {
-        try {
-            val fileName = "video_${System.currentTimeMillis()}.mp4"
-            val file = File(
-                Environment.getExternalStoragePublicDirectory(Environment.DIRECTORY_DOWNLOADS),
-                fileName
-            )
-
-            val response = client.get(url) {
-                // 1. Completely clear Ktor's internal fingerprint
-                headers.clear()
-
-                // 2. Exact Postman Headers
-                header("User-Agent", "PostmanRuntime/7.32.3")
-                header("Cache-Control", "no-cache")
-                header("Host", Uri.parse(url).host)
-                header("Connection", "keep-alive")
-                header("Accept-Encoding", "gzip, deflate, br")
-            }
-
-            if (response.status.value in 200..299) {
-                response.bodyAsChannel().toInputStream().use { input ->
-                    file.outputStream().use { output ->
-                        input.copyTo(output)
-                    }
-                }
-                println("DOWNLOAD SUCCESS: ${file.absolutePath}")
-            }
-        } catch (e: Exception) {
-            // If it STILL resets, it's an IP-level block or TLS fingerprint issue
-            e.printStackTrace()
-        }
-    }*/
-
     fun checkDownloadStatus(downloadId: Long) {
 
         val dm = context.getSystemService(Context.DOWNLOAD_SERVICE) as DownloadManager

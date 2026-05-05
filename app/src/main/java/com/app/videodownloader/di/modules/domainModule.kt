@@ -1,10 +1,12 @@
 package com.app.videodownloader.di.modules
 
+ import com.app.videodownloader.domain.model.appUpdate.AppUpdatePolicy
  import com.app.videodownloader.domain.usecases.CancelDownloadUseCase
  import com.app.videodownloader.domain.usecases.DeleteMediaFileUseCase
  import com.app.videodownloader.domain.usecases.FetchVideoUseCase
  import com.app.videodownloader.domain.usecases.GetAudiosUseCase
  import com.app.videodownloader.domain.usecases.GetDownloadedFilesUseCase
+ import com.app.videodownloader.domain.usecases.GetRCPremiumIconVisibility
  import com.app.videodownloader.domain.usecases.GetTrendingReelsUseCase
  import com.app.videodownloader.domain.usecases.GetVideosUseCase
  import com.app.videodownloader.domain.usecases.MoveMediaFileUseCase
@@ -12,7 +14,9 @@ package com.app.videodownloader.di.modules
  import com.app.videodownloader.domain.usecases.NotificationTriggerUseCases
  import com.app.videodownloader.domain.usecases.ObserveDownloadsUseCase
  import com.app.videodownloader.domain.usecases.ObserveNotificationSettingsUseCase
+ import com.app.videodownloader.domain.usecases.PauseDownloadUseCase
  import com.app.videodownloader.domain.usecases.RenameMediaFileUseCase
+ import com.app.videodownloader.domain.usecases.ResumeDownloadUseCase
  import com.app.videodownloader.domain.usecases.SetAudioAsRingtoneUseCase
  import com.app.videodownloader.domain.usecases.ShowAppUpdateNotificationUseCase
  import com.app.videodownloader.domain.usecases.ShowDownloadCompleteNotificationUseCase
@@ -43,6 +47,8 @@ package com.app.videodownloader.di.modules
  import com.app.videodownloader.domain.usecases.ads.ShowAppOpenAdUseCase
  import com.app.videodownloader.domain.usecases.ads.ShowInterstitialAdUseCase
  import com.app.videodownloader.domain.usecases.ads.ShowPrivacyOptionsFormUseCase
+ import com.app.videodownloader.domain.usecases.appUpdate.CheckAppUpdateUseCase
+ import com.app.videodownloader.domain.usecases.billing.*
  import com.app.videodownloader.domain.usecases.dataStore.appLanguage.GetSelectedLanguageUseCase
  import com.app.videodownloader.domain.usecases.dataStore.appLanguage.HasSelectedLanguageUseCase
  import com.app.videodownloader.domain.usecases.dataStore.appLanguage.ObserveSelectedLanguageUseCase
@@ -323,6 +329,121 @@ val domainModule = module {
     single {
         InitializeMobileAdsUseCase(
             mobileAdsInitializer = get()
+        )
+    }
+
+
+
+    single {
+        ConnectBillingUseCase(
+            billingRepository = get()
+        )
+    }
+
+    single {
+        DisconnectBillingUseCase(
+            billingRepository = get()
+        )
+    }
+
+    single {
+        ObserveBillingPlansUseCase(
+            billingRepository = get()
+        )
+    }
+
+    single {
+        ObserveBillingConnectionStateUseCase(
+            billingRepository = get()
+        )
+    }
+
+    single {
+        LaunchPremiumPurchaseUseCase(
+            billingRepository = get()
+        )
+    }
+
+    single {
+        RestorePremiumPurchasesUseCase(
+            billingRepository = get()
+        )
+    }
+
+    single {
+        ObservePremiumPurchaseResultsUseCase(
+            billingRepository = get()
+        )
+    }
+
+    single {
+        ObservePremiumEntitlementUseCase(
+            premiumEntitlementRepository = get()
+        )
+    }
+
+    single {
+        ObserveIsPremiumUserUseCase(
+            premiumEntitlementRepository = get()
+        )
+    }
+
+    single {
+        UpdatePremiumEntitlementUseCase(
+            premiumEntitlementRepository = get()
+        )
+    }
+
+    single {
+        ClearPremiumEntitlementUseCase(
+            premiumEntitlementRepository = get()
+        )
+    }
+
+    single {
+        PremiumBillingUseCases(
+            connectBillingUseCase = get(),
+            disconnectBillingUseCase = get(),
+            observeBillingPlansUseCase = get(),
+            observeBillingConnectionStateUseCase = get(),
+            launchPremiumPurchaseUseCase = get(),
+            restorePremiumPurchasesUseCase = get(),
+            observePremiumPurchaseResultsUseCase = get(),
+            observePremiumEntitlementUseCase = get(),
+            observeIsPremiumUserUseCase = get(),
+            updatePremiumEntitlementUseCase = get(),
+            clearPremiumEntitlementUseCase = get()
+        )
+    }
+
+    single {
+        GetRCPremiumIconVisibility(
+            repository = get()
+        )
+    }
+
+    single {
+        AppUpdatePolicy(
+            immediateUpdatePriorityThreshold = 4,
+            immediateUpdateStalenessDaysThreshold = 3
+        )
+    }
+
+    single {
+        CheckAppUpdateUseCase(
+            appUpdateRepository = get()
+        )
+    }
+
+    single {
+        PauseDownloadUseCase(
+            repository = get()
+        )
+    }
+
+    single {
+        ResumeDownloadUseCase(
+            repository = get()
         )
     }
 }

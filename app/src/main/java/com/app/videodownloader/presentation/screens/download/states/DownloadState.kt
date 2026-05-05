@@ -6,7 +6,13 @@ import com.app.videodownloader.domain.model.DownloadItem
 import com.app.videodownloader.domain.model.DownloadStatus
 import com.app.videodownloader.domain.model.MediaFile
 import com.app.videodownloader.domain.model.ads.NativeAdConfig
+import com.app.videodownloader.domain.usecases.CancelDownloadUseCase
+import com.app.videodownloader.domain.usecases.GetDownloadedFilesUseCase
+import com.app.videodownloader.domain.usecases.ObserveDownloadsUseCase
+import com.app.videodownloader.domain.usecases.ads.LoadNativeAdUseCase
+import com.app.videodownloader.domain.usecases.ads.ObserveNativeAdConfigUseCase
 import com.app.videodownloader.presentation.screens.player.states.PlayerUiItem
+import com.app.videodownloader.presentation.utils.searchByQuery
 import com.google.android.gms.ads.nativead.NativeAd
 
 
@@ -16,11 +22,13 @@ data class DownloadState(
     val downloading: List<DownloadUiItem> = emptyList(),
     val completed: List<DownloadUiItem> = emptyList(),
     val error: String? = null,
+
+    val isPremiumUser: Boolean = false,
+
     val nativeAds: Map<String, NativeAd> = emptyMap(),
     val nativeAdPools: Map<String, Map<String, NativeAd>> = emptyMap(),
     val nativeAdConfig: NativeAdConfig = NativeAdConfig.default(),
 )
-
 
 enum class DownloadTab {
     DOWNLOADING,
@@ -71,5 +79,72 @@ fun DownloadUiItem.toMediaFile(isVideo: Boolean): MediaFile {
         fileName = title,
         isVideo = isVideo,
         contentUri = uri.toString()
+    )
+}
+
+
+enum class DownloadSearchFilter {
+    ALL,
+    DOWNLOADING,
+    COMPLETED
+}
+
+data class DownloadSearchUiItem(
+    val item: DownloadUiItem,
+    val tab: DownloadTab,
+)
+
+fun DownloadState.currentTabItems(): List<DownloadUiItem> {
+    return when (selectedTab) {
+        DownloadTab.DOWNLOADING -> downloading
+        DownloadTab.COMPLETED -> completed
+    }
+}
+
+fun DownloadState.searchItems(
+    query: String,
+    filter: DownloadSearchFilter,
+): List<DownloadSearchUiItem> {
+    val sourceItems = when (filter) {
+        DownloadSearchFilter.ALL -> {
+            downloading.map {
+                DownloadSearchUiItem(
+                    item = it,
+                    tab = DownloadTab.DOWNLOADING
+                )
+            } + completed.map {
+                DownloadSearchUiItem(
+                    item = it,
+                    tab = DownloadTab.COMPLETED
+                )
+            }
+        }
+
+        DownloadSearchFilter.DOWNLOADING -> {
+            downloading.map {
+                DownloadSearchUiItem(
+                    item = it,
+                    tab = DownloadTab.DOWNLOADING
+                )
+            }
+        }
+
+        DownloadSearchFilter.COMPLETED -> {
+            completed.map {
+                DownloadSearchUiItem(
+                    item = it,
+                    tab = DownloadTab.COMPLETED
+                )
+            }
+        }
+    }
+
+    return sourceItems.searchByQuery(
+        query = query,
+        { it.item.title },
+        { it.item.filePath },
+        { it.item.sizeText },
+        { it.item.timeText },
+        { it.item.status.name }
     )
 }

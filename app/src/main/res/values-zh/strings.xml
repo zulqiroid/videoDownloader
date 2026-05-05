@@ -135,4 +135,168 @@
     <string name="media_permission_required_message">请允许媒体权限，以便我们显示你的视频和音乐。</string>
     <string name="media_permission_allow_button">允许权限</string>
     <string name="media_permission_open_settings_button">打开设置</string>
+
+     <string name="search_your_downloads_hint">搜索你的下载内容...</string>
+
+
+    <string name="share_reel">分享短视频</string>
+    <string name="unable_to_share_this_reel">无法分享此短视频</string>
+    <string name="fetching_video_details">正在获取视频详情</string>
+    <string name="please_wait_prepare_download">请稍候，我们正在准备你的下载内容。</string>
+    <string name="share_file">分享 %1$s</string>
+    <string name="send_feedback">发送反馈</string>
+    <string name="no_email_app_found">未找到电子邮件应用</string>
+    <string name="unable_to_open_email_app">无法打开电子邮件应用</string>
+    <string name="unknown">未知</string>
+    <string name="feedback_app_version">应用版本：%1$s</string>
+    <string name="feedback_package">包名：%1$s</string>
+    <string name="feedback_android_version">Android：%1$s（SDK %2$d）</string>
+    <string name="feedback_device">设备：%1$s %2$s</string>
+
+    <string name="bottom_nav_home">首页</string>
+    <string name="bottom_nav_player">播放器</string>
+    <string name="bottom_nav_reels">短视频</string>
+    <string name="bottom_nav_download">下载</string>
+    <string name="bottom_nav_more">更多</string>
+    <string name="bottom_nav_social">社交</string>
+
+
+    <string name="media_option_playback_speed">播放速度</string>
+    <string name="media_option_set_as_ringtone">设为铃声</string>
+    <string name="media_option_share_track">分享音轨</string>
+    <string name="media_option_file_info">文件信息</string>
+    <string name="media_option_rename_file">重命名文件</string>
+    <string name="media_option_delete_file">删除文件</string>
+    <string name="media_option_share_video">分享视频</string>
+
+
+    <string name="reset_to_default">重置为默认</string>
+    <string name="cancel">取消</string>
+    <string name="playback_speed">播放速度</string>
+    <string name="playback_speed_025">0.25x</string>
+    <string name="playback_speed_05">0.5x</string>
+    <string name="playback_speed_10_normal">1.0x（正常）</string>
+    <string name="playback_speed_125">1.25x</string>
+    <string name="playback_speed_15">1.5x</string>
+    <string name="playback_speed_20">2.0x</string>
+    <string name="playback_speed_40">4.0x</string>
+
+    <string name="confirm_selection">确认选择</string>
+    <string name="set_as_ringtone">设为铃声</string>
+    <string name="default_ringtone">默认铃声</string>
+    <string name="notification_sound">通知声音</string>
+    <string name="alarm_tone">闹钟铃声</string>
+
+
+    <string name="premium_plan">高级计划</string>
+    <string name="premium_plan_description">享受无广告体验和\n更快的下载速度。</string>
+    <string name="upgrade_now">立即升级</string>
+
+    <string name="general_settings">常规设置</string>
+    <string name="languages">语言</string>
+    <string name="choose_your_preferred_language">选择你的首选语言</string>
+    <string name="how_to_download">如何下载</string>
+    <string name="step_by_step_guide">分步指南</string>
+    <string name="notifications">通知</string>
+    <string name="set_up_your_alerts">设置你的提醒</string>
+
+    <string name="support_and_share">支持与分享</string>
+    <string name="share_app">分享应用</string>
+    <string name="invite_friends">邀请朋友</string>
+    <string name="rate_us">给我们评分</string>
+    <string name="give_feedback_on_store">在商店中提供反馈</string>
+    <string name="feedback">反馈</string>
+    <string name="send_us_your_suggestions">向我们发送你的建议</string>
+    <string name="privacy_policy">隐私政策</string>
+    <string name="legal_and_usage_terms">法律和使用条款</string>
+
+    <string name="share_app_message">看看 %1$s：\n%2$s</string>
+    <string name="no_app_found_to_share">未找到可用于分享的应用</string>
+
+
+    <string name="next">下一步</string>
+    <string name="continue_text">继续</string>
+    <string name="video_title_part">视频</string>
+    <string name="downloader_title_part">下载器</string>
+    <string name="advanced_download_engine">先进的下载引擎。</string>
+
+
+
+    <string name="empty_string"></string>
+    <string name="onboarding_welcome_to">欢迎使用</string>
+    <string name="onboarding_video_downloader">视频下载器</string>
+    <string name="onboarding_download_videos_music">立即从任何平台下载视频和音乐。</string>
+    <string name="onboarding_watch_trending">观看热门</string>
+    <string name="onboarding_reels">短视频</string>
+    <string name="onboarding_enjoy_download_reels">欣赏并立即下载你喜爱的短视频。</string>
+    <string name="onboarding_built_in_video">内置视频</string>
+    <string name="onboarding_player">播放器</string>
+    <string name="onboarding_download_watch_videos_audios">轻松下载并观看你的视频和音频。</string>
+    <string name="onboarding_advanced_downloading_engine">先进的下载引擎。</string>
+
+
+    <string name="delete_file">删除文件</string>
+    <string name="delete_file_confirmation_message">确定要删除此文件吗？此操作无法撤销。</string>
+     <string name="delete">删除</string>
+
+    <string name="file_information">文件信息</string>
+    <string name="file_name">文件名</string>
+    <string name="format">格式</string>
+    <string name="resolution">分辨率</string>
+    <string name="duration">时长</string>
+    <string name="file_size">文件大小</string>
+    <string name="storage_location">存储位置</string>
+
+    <string name="media">媒体</string>
+    <string name="stored_in">存储位置：%1$s</string>
+    <string name="play_now">立即播放</string>
+     <string name="rename">重命名</string>
+    <string name="move_to_folder">移动到文件夹</string>
+    <string name="file_info">文件信息</string>
+    <string name="dismiss">关闭</string>
+
+    <string name="play_all_count">播放全部（%1$d）</string>
+    <string name="videos">视频</string>
+    <string name="music">音乐</string>
+
+    <string name="new_file_name">新文件名</string>
+    <string name="enter_file_name">输入文件名</string>
+    <string name="rename_file">重命名文件</string>
+    <string name="rename_file_description">更新文件名而不更改其格式</string>
+
+
+    <string name="unable_to_start_purchase_now">目前无法开始购买。</string>
+
+    <string name="restore">恢复购买</string>
+    <string name="processing">处理中...</string>
+    <string name="loading">加载中...</string>
+    <string name="premium_active">高级版已激活</string>
+    <string name="upgrade">升级</string>
+    <string name="premium_terms_privacy_message">继续即表示你同意我们的服务条款和隐私政策。</string>
+
+    <string name="unlimited_access">无限访问</string>
+    <string name="premium_access_advanced_features">使用下载器的所有高级功能</string>
+    <string name="ads_free">无广告！</string>
+    <string name="faster_downloads_10x">下载速度快 10 倍</string>
+    <string name="unlimited_downloads">无限下载</string>
+    <string name="access_full_features">访问全部功能</string>
+    <string name="cancel_anytime_auto_renew">可随时取消。试用结束后自动续订。</string>
+
+
+    <string name="plan_weekly">每周</string>
+    <string name="plan_monthly">每月</string>
+    <string name="plan_yearly">每年</string>
+    <string name="plan_lifetime">终身</string>
+
+    <string name="plan_badge_basic">基础</string>
+    <string name="plan_badge_popular">热门</string>
+    <string name="plan_badge_best_choice">最佳选择</string>
+    <string name="plan_badge_best_ever">最佳优惠</string>
+
+
+     <string name="splash_download_videos_instantly">随时随地即时下载视频。</string>
+    <string name="please_wait">请稍候...</string>
+    <string name="preparing">正在准备...</string>
+    <string name="get_started">开始使用</string>
+    <string name="app_may_contain_ads">此应用可能包含广告</string>
 </resources>

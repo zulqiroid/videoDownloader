@@ -6,6 +6,8 @@ import android.util.Log
 import com.app.videodownloader.domain.model.ads.AdState
 import com.app.videodownloader.domain.model.ads.InterstitialAdConfig
 import com.app.videodownloader.domain.model.ads.InterstitialAdPlacement
+import com.app.videodownloader.domain.repository.billing.PremiumAccessController
+import com.app.videodownloader.domain.usecases.ads.CanRequestAdsUseCase
 import com.app.videodownloader.domain.usecases.ads.ObserveInterstitialAdConfigUseCase
 import com.google.android.gms.ads.AdError
 import com.google.android.gms.ads.AdRequest
@@ -24,7 +26,10 @@ import kotlin.math.pow
 
 class InterstitialAdManager(
     context: Context,
-    observeInterstitialAdConfigUseCase: ObserveInterstitialAdConfigUseCase
+    observeInterstitialAdConfigUseCase: ObserveInterstitialAdConfigUseCase,
+    private val canRequestAdsUseCase: CanRequestAdsUseCase,
+    private val fullScreenAdCoordinator: FullScreenAdCoordinator,
+    private val premiumAccessController: PremiumAccessController,
 ) {
 
     private val appContext = context.applicationContext
@@ -70,7 +75,16 @@ class InterstitialAdManager(
 
                 if (oldConfig.adUnitId != newConfig.adUnitId) {
                     clearCurrentAd()
-                    loadAd()
+                }
+
+                if (!canRequestAdsUseCase()) {
+                    Log.d(TAG, "Interstitial auto-load skipped: consent not ready.")
+                    return@collect
+                }
+
+                if (premiumAccessController.isPremium()) {
+                    Log.d(TAG, "Interstitial auto-load skipped: premium user.")
+                    clearCurrentAd()
                     return@collect
                 }
 
@@ -93,6 +107,17 @@ class InterstitialAdManager(
         onStateChanged: (AdState) -> Unit = {}
     ) {
         val currentConfig = config
+
+        if (premiumAccessController.isPremium()) {
+            onStateChanged(AdState.Skipped("Interstitial load skipped: premium user"))
+            clearCurrentAd()
+            return
+        }
+
+        if (!canRequestAdsUseCase()) {
+            onStateChanged(AdState.Skipped("Interstitial load skipped: consent not ready"))
+            return
+        }
 
         if (!currentConfig.enabled) {
             onStateChanged(AdState.Skipped("Interstitial ads are disabled by remote config"))
@@ -124,6 +149,24 @@ class InterstitialAdManager(
         onComplete: () -> Unit = {}
     ) {
         val currentConfig = config
+
+        if (premiumAccessController.isPremium()) {
+            completeSkipped(
+                reason = "Interstitial show skipped: premium user",
+                onStateChanged = onStateChanged,
+                onComplete = onComplete
+            )
+            return
+        }
+
+        if (!canRequestAdsUseCase()) {
+            completeSkipped(
+                reason = "Interstitial show skipped: consent not ready",
+                onStateChanged = onStateChanged,
+                onComplete = onComplete
+            )
+            return
+        }
 
         if (!currentConfig.enabled) {
             completeSkipped(
@@ -280,6 +323,7 @@ class InterstitialAdManager(
 
             override fun onAdShowedFullScreenContent() {
                 isShowingAd = true
+                fullScreenAdCoordinator.onFullScreenAdStarted()
                 lastShownAtMs = now()
 
                 Log.d(TAG, "Interstitial ad is showing.")
@@ -299,6 +343,7 @@ class InterstitialAdManager(
             override fun onAdDismissedFullScreenContent() {
                 Log.d(TAG, "Interstitial dismissed.")
 
+                fullScreenAdCoordinator.onFullScreenAdFinished()
                 clearCurrentAd()
                 onStateChanged(AdState.Dismissed)
 
@@ -312,8 +357,12 @@ class InterstitialAdManager(
                     "Interstitial failed to show. code=${error.code}, message=${error.message}"
                 )
 
+                fullScreenAdCoordinator.onFullScreenAdFinished()
                 clearCurrentAd()
-                onStateChanged(AdState.ShowFailed(error.message))
+
+                onStateChanged(
+                    AdState.ShowFailed(error.message)
+                )
 
                 loadAd()
                 completeOnce()
@@ -322,9 +371,10 @@ class InterstitialAdManager(
 
         try {
             ad.show(activity)
-        } catch (exception: Exception) {
+        }catch (exception: Exception) {
             Log.e(TAG, "Interstitial show crashed.", exception)
 
+            fullScreenAdCoordinator.onFullScreenAdFinished()
             clearCurrentAd()
 
             onStateChanged(

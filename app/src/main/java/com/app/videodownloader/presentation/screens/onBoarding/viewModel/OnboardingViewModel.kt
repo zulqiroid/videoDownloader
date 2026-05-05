@@ -8,6 +8,7 @@ import com.app.videodownloader.domain.usecases.ads.ClearAllNativeAdsUseCase
 import com.app.videodownloader.domain.usecases.ads.LoadNativeAdUseCase
 import com.app.videodownloader.domain.usecases.ads.ObserveNativeAdConfigUseCase
 import com.app.videodownloader.domain.usecases.ads.ObserveNativeAdsUseCase
+import com.app.videodownloader.domain.usecases.billing.ObserveIsPremiumUserUseCase
 import com.app.videodownloader.domain.usecases.dataStore.firstLaunch.FirstLaunchUseCases
 import com.app.videodownloader.domain.usecases.dataStore.policy.PolicyUseCases
 import com.app.videodownloader.presentation.screens.onBoarding.events.OnboardingEvents
@@ -18,6 +19,7 @@ import kotlinx.coroutines.flow.MutableSharedFlow
 import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.asSharedFlow
 import kotlinx.coroutines.flow.asStateFlow
+import kotlinx.coroutines.flow.distinctUntilChanged
 import kotlinx.coroutines.flow.update
 import kotlinx.coroutines.launch
 
@@ -27,13 +29,15 @@ class OnboardingViewModel(
     private val loadNativeAdUseCase: LoadNativeAdUseCase,
     private val observeNativeAdsUseCase: ObserveNativeAdsUseCase,
     private val observeNativeAdConfigUseCase: ObserveNativeAdConfigUseCase,
-    private val clearAllNativeAdsUseCase: ClearAllNativeAdsUseCase
+    private val clearAllNativeAdsUseCase: ClearAllNativeAdsUseCase,
+    private val observeIsPremiumUserUseCase: ObserveIsPremiumUserUseCase,
 ) : ViewModel() {
 
     private val _state = MutableStateFlow(
         OnboardingState(
             pages = buildOnboardingPages(
-                nativeAdConfig = NativeAdConfig.default()
+                nativeAdConfig = NativeAdConfig.default(),
+                isPremiumUser = false
             )
         )
     )
@@ -43,6 +47,7 @@ class OnboardingViewModel(
     val navEvents = _navEvents.asSharedFlow()
 
     init {
+        observePremiumStatus()
         observeNativeAds()
         observeNativeAdConfig()
     }
@@ -105,11 +110,50 @@ class OnboardingViewModel(
         }
     }
 
+    private fun observePremiumStatus() {
+        viewModelScope.launch {
+            observeIsPremiumUserUseCase()
+                .distinctUntilChanged()
+                .collect { isPremium ->
+                    _state.update { currentState ->
+                        val updatedPages = buildOnboardingPages(
+                            nativeAdConfig = currentState.nativeAdConfig,
+                            isPremiumUser = isPremium
+                        )
+
+                        val safeCurrentPage = currentState.currentPage.coerceIn(
+                            minimumValue = 0,
+                            maximumValue = updatedPages.lastIndex.coerceAtLeast(0)
+                        )
+
+                        currentState.copy(
+                            isPremiumUser = isPremium,
+                            nativeAds = if (isPremium) emptyMap() else currentState.nativeAds,
+                            pages = updatedPages,
+                            currentPage = safeCurrentPage,
+                            isLastPage = safeCurrentPage == updatedPages.lastIndex
+                        )
+                    }
+
+                    if (isPremium) {
+                        clearAllNativeAdsUseCase()
+                        Log.d(TAG, "Onboarding native ads skipped: premium user")
+                    } else {
+                        loadVisibleOnboardingAds()
+                    }
+                }
+        }
+    }
+
     private fun observeNativeAds() {
         viewModelScope.launch {
             observeNativeAdsUseCase().collect { nativeAds ->
-                _state.update {
-                    it.copy(nativeAds = nativeAds)
+                _state.update { currentState ->
+                    if (currentState.isPremiumUser) {
+                        currentState.copy(nativeAds = emptyMap())
+                    } else {
+                        currentState.copy(nativeAds = nativeAds)
+                    }
                 }
             }
         }
@@ -118,9 +162,12 @@ class OnboardingViewModel(
     private fun observeNativeAdConfig() {
         viewModelScope.launch {
             observeNativeAdConfigUseCase().collect { config ->
-                val updatedPages = buildOnboardingPages(config)
-
                 _state.update { currentState ->
+                    val updatedPages = buildOnboardingPages(
+                        nativeAdConfig = config,
+                        isPremiumUser = currentState.isPremiumUser
+                    )
+
                     val safeCurrentPage = currentState.currentPage.coerceIn(
                         minimumValue = 0,
                         maximumValue = updatedPages.lastIndex.coerceAtLeast(0)
@@ -141,6 +188,12 @@ class OnboardingViewModel(
 
     private fun loadVisibleOnboardingAds() {
         val state = _state.value
+
+        if (state.isPremiumUser) {
+            Log.d(TAG, "Onboarding native ad load skipped: premium user")
+            return
+        }
+
         val config = state.nativeAdConfig
 
         if (!config.enabled) return

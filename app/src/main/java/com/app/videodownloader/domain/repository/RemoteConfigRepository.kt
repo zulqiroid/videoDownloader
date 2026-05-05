@@ -21,9 +21,9 @@ interface RemoteConfigRepository {
         onComplete: () -> Unit
     )
 
-    suspend fun getApiSecretKey(): ApiKey
+    suspend fun getApiSecretKey(): String?
 
-    suspend fun getBaseUrl(): String
+    suspend fun getBaseUrl(): String?
 
     fun getCurrentAppOpenAdConfig(): AppOpenAdConfig
 
@@ -31,4 +31,6 @@ interface RemoteConfigRepository {
 
     fun getCurrentBannerAdConfig(): BannerAdConfig
     fun getCurrentNativeAdConfig(): NativeAdConfig
+
+    suspend fun getPremiumIconVisibility(): Boolean
 }

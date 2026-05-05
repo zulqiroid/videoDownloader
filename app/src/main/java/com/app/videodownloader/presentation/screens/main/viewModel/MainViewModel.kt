@@ -13,12 +13,14 @@ import com.app.videodownloader.domain.model.RenameMediaFileResult
 import com.app.videodownloader.domain.model.ads.InterstitialAdPlacement
 import com.app.videodownloader.domain.usecases.DeleteMediaFileUseCase
 import com.app.videodownloader.domain.usecases.FetchVideoUseCase
+import com.app.videodownloader.domain.usecases.GetRCPremiumIconVisibility
 import com.app.videodownloader.domain.usecases.MoveMediaFileUseCase
 import com.app.videodownloader.domain.usecases.NotificationSettingsUseCases
 import com.app.videodownloader.domain.usecases.RenameMediaFileUseCase
 import com.app.videodownloader.domain.usecases.StartDownloadUseCase
 import com.app.videodownloader.domain.usecases.ads.LoadInterstitialAdUseCase
 import com.app.videodownloader.domain.usecases.ads.ShowInterstitialAdUseCase
+import com.app.videodownloader.domain.usecases.billing.ObserveIsPremiumUserUseCase
 import com.app.videodownloader.domain.usecases.dataStore.policy.PolicyUseCases
 import com.app.videodownloader.presentation.screens.main.events.FileDialogIntent
 import com.app.videodownloader.presentation.screens.main.events.MainEvents
@@ -26,6 +28,7 @@ import com.app.videodownloader.presentation.screens.main.events.MainNavEvents
 import com.app.videodownloader.presentation.screens.main.events.NotificationEvents
 import com.app.videodownloader.presentation.screens.main.states.BottomNavItem
 import com.app.videodownloader.presentation.screens.main.states.MainState
+import com.app.videodownloader.presentation.utils.toProfessionalSearchQuery
 import kotlinx.coroutines.delay
 import kotlinx.coroutines.flow.MutableSharedFlow
 import kotlinx.coroutines.flow.MutableStateFlow
@@ -47,11 +50,11 @@ class MainViewModel(
     private val renameMediaFileUseCase: RenameMediaFileUseCase,
     private val deleteMediaFileUseCase: DeleteMediaFileUseCase,
     private val moveMediaFileUseCase: MoveMediaFileUseCase,
-
     private val loadInterstitialAd: LoadInterstitialAdUseCase,
     private val showInterstitialAd: ShowInterstitialAdUseCase,
-
-    ) : ViewModel() {
+    private val observeIsPremiumUserUseCase: ObserveIsPremiumUserUseCase,
+    private val getRCPremiumIconVisibility : GetRCPremiumIconVisibility,
+) : ViewModel() {
 
     private val _state = MutableStateFlow(MainState())
     val state = _state.asStateFlow()
@@ -63,11 +66,33 @@ class MainViewModel(
     val adState: StateFlow<AdState> = _adState.asStateFlow()
 
     init {
+
+        viewModelScope.launch {
+            observeIsPremiumUserUseCase()
+                .collect { isPremiumUser ->
+                    _state.update {
+                        it.copy(isPremiumUser = isPremiumUser)
+                    }
+                }
+        }
+        viewModelScope.launch {
+            getRCPremiumIconVisibility().let{isPremiumIconVisible ->
+                _state.update {state ->
+                    state.copy(isPremiumIconVisible = isPremiumIconVisible)
+                }
+            }
+        }
+
+
         observeNotificationSettings()
         viewModelScope.launch {
-            delay(100)   // 👈 ensure init complete
-            preloadAd()
+            delay(100)
+
+            if (!_state.value.isPremiumUser) {
+                preloadAd()
+            }
         }
+
         checkPolicy()
     }
 
@@ -290,6 +315,31 @@ class MainViewModel(
                 }
             }
 
+            MainEvents.OnDownloadSearchClicked -> {
+                _state.update {
+                    it.copy(
+                        isDownloadSearchActive = true
+                    )
+                }
+            }
+
+            MainEvents.OnDownloadSearchClosed -> {
+                _state.update {
+                    it.copy(
+                        isDownloadSearchActive = false,
+                        downloadSearchQuery = ""
+                    )
+                }
+            }
+
+            is MainEvents.OnDownloadSearchQueryChanged -> {
+                _state.update {
+                    it.copy(
+                        downloadSearchQuery = event.query.toProfessionalSearchQuery()
+                    )
+                }
+            }
+
             MainEvents.OnMediaPermissionDialogDismissed -> {
                 _state.update {
                     it.copy(
@@ -318,6 +368,30 @@ class MainViewModel(
                 _state.update {
                     it.copy(
                         isNotificationPermissionGranted = event.granted
+                    )
+                }
+            }
+            MainEvents.OnPlayerSearchClicked -> {
+                _state.update {
+                    it.copy(
+                        isPlayerSearchActive = true
+                    )
+                }
+            }
+
+            MainEvents.OnPlayerSearchClosed -> {
+                _state.update {
+                    it.copy(
+                        isPlayerSearchActive = false,
+                        playerSearchQuery = ""
+                    )
+                }
+            }
+
+            is MainEvents.OnPlayerSearchQueryChanged -> {
+                _state.update {
+                    it.copy(
+                        playerSearchQuery = event.query.toProfessionalSearchQuery()
                     )
                 }
             }
@@ -591,6 +665,13 @@ class MainViewModel(
 
 
     private fun preloadAd() {
+        if (_state.value.isPremiumUser) {
+            _adState.value = AdState.Skipped(
+                reason = "Interstitial preload skipped: premium user"
+            )
+            return
+        }
+
         loadInterstitialAd { state ->
             _adState.value = state
         }
@@ -1187,7 +1268,13 @@ class MainViewModel(
             placement = InterstitialAdPlacement.TabSwitch
         ) {
             _state.update {
-                it.copy(selectedTab = tab)
+                it.copy(
+                    selectedTab = tab,
+                    isPlayerSearchActive = false,
+                    playerSearchQuery = "",
+                    isDownloadSearchActive = false,
+                    downloadSearchQuery = ""
+                )
             }
         }
     }
@@ -1237,6 +1324,14 @@ class MainViewModel(
         forceShow: Boolean = false,
         action: () -> Unit
     ) {
+        if (_state.value.isPremiumUser) {
+            _adState.value = AdState.Skipped(
+                reason = "Interstitial skipped: premium user"
+            )
+            action()
+            return
+        }
+
         if (activity == null) {
             action()
             return
@@ -1252,7 +1347,6 @@ class MainViewModel(
             onComplete = action
         )
     }
-
 
     private fun submitRating() {
         val rating = _state.value.selectedRating
@@ -1287,8 +1381,31 @@ class MainViewModel(
         }
     }
 
+    private fun observePremiumStatus() {
+        viewModelScope.launch {
+            observeIsPremiumUserUseCase()
+                .distinctUntilChanged()
+                .collect { isPremium ->
+                    _state.update {
+                        it.copy(isPremiumUser = isPremium)
+                    }
+
+                    if (isPremium) {
+                        _adState.value = AdState.Skipped(
+                            reason = "Interstitial skipped: premium user"
+                        )
+                    } else {
+                        preloadAd()
+                    }
+                }
+        }
+    }
+
+
+
     companion object {
         private const val MIN_FEEDBACK_LENGTH = 5
         private const val DEFAULT_SELECTED_RATING = 4
+        const val MAX_PLAYER_SEARCH_QUERY_LENGTH = 80
     }
 }

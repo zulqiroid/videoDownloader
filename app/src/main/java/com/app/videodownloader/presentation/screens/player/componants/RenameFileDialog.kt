@@ -36,6 +36,7 @@ import androidx.compose.ui.focus.focusRequester
 import androidx.compose.runtime.LaunchedEffect
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.res.painterResource
+import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.text.input.ImeAction
 import androidx.compose.ui.unit.dp
@@ -90,7 +91,7 @@ fun RenameFileDialog(
                         .padding(horizontal = 22.dp, vertical = 20.dp)
                 ) {
                     Text(
-                        text = "New file name",
+                        text = stringResource(R.string.new_file_name),
                         fontSize = 13.sp,
                         fontWeight = FontWeight.W800,
                         color = Color(0xFF111827)
@@ -121,7 +122,7 @@ fun RenameFileDialog(
                         ),
                         placeholder = {
                             Text(
-                                text = "Enter file name",
+                                text = stringResource(R.string.enter_file_name),
                                 color = Color(0xFF9CA3AF),
                                 fontSize = 14.sp
                             )
@@ -159,7 +160,7 @@ fun RenameFileDialog(
                             )
                         ) {
                             Text(
-                                text = "Cancel",
+                                text = stringResource(R.string.cancel),
                                 fontSize = 16.sp,
                                 fontWeight = FontWeight.W700
                             )
@@ -187,7 +188,7 @@ fun RenameFileDialog(
                                 )
                             } else {
                                 Text(
-                                    text = "Rename",
+                                    text = stringResource(R.string.rename),
                                     fontSize = 16.sp,
                                     fontWeight = FontWeight.W800
                                 )
@@ -247,7 +248,7 @@ private fun RenameDialogHeader(
             Spacer(modifier = Modifier.height(14.dp))
 
             Text(
-                text = "Rename File",
+                text = stringResource(R.string.rename_file),
                 fontSize = 18.sp,
                 fontWeight = FontWeight.W800,
                 color = Color(0xFF111827)
@@ -256,7 +257,7 @@ private fun RenameDialogHeader(
             Spacer(modifier = Modifier.height(4.dp))
 
             Text(
-                text = "Update the file name without changing its format",
+                text = stringResource(R.string.rename_file_description),
                 fontSize = 12.sp,
                 fontWeight = FontWeight.W500,
                 color = Color(0xFF8B95A5)

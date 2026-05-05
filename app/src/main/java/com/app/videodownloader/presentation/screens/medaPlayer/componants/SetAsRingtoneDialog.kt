@@ -1,5 +1,6 @@
 package com.app.videodownloader.presentation.screens.medaPlayer.componants
 
+import androidx.annotation.StringRes
 import androidx.compose.foundation.background
 import androidx.compose.foundation.clickable
 import androidx.compose.foundation.layout.Arrangement
@@ -35,6 +36,7 @@ import androidx.compose.ui.draw.dropShadow
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.graphics.vector.ImageVector
 import androidx.compose.ui.res.painterResource
+import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.text.style.TextAlign
 import androidx.compose.ui.unit.DpOffset
@@ -131,7 +133,7 @@ fun SetAsRingtoneDialog(
                         )
                     } else {
                         Text(
-                            text = "Confirm Selection",
+                            text = stringResource(R.string.confirm_selection),
                             fontSize = 16.sp,
                             fontWeight = FontWeight.W500
                         )
@@ -152,13 +154,12 @@ private fun SetAsRingtoneHeader(
         verticalAlignment = Alignment.CenterVertically
     ) {
         Text(
-            text = "Set as Ringtone",
+            text = stringResource(R.string.set_as_ringtone),
             color = Color(0xFF111827),
             fontSize = 18.sp,
             fontWeight = FontWeight.W800,
             modifier = Modifier.weight(1f)
         )
-
 
         CloseButton(
             onClick = { onDismiss() },
@@ -217,7 +218,7 @@ private fun SetAsRingtoneOptionItem(
         Spacer(modifier = Modifier.size(14.dp))
 
         Text(
-            text = option.title,
+            text = stringResource(option.titleRes),
             color = Color(0xFF111827),
             fontSize = 16.sp,
             fontWeight = FontWeight.W500,
@@ -241,22 +242,22 @@ private fun SetAsRingtoneOptionItem(
 @Immutable
 private enum class RingtoneOption(
     val type: RingtoneTargetType,
-    val title: String,
+    @StringRes val titleRes: Int,
     val icon: Int,
 ) {
     DefaultRingtone(
         type = RingtoneTargetType.DefaultRingtone,
-        title = "Default Ringtone",
+        titleRes = R.string.default_ringtone,
         icon = R.drawable.ic_ringing_phone
     ),
     NotificationSound(
         type = RingtoneTargetType.NotificationSound,
-        title = "Notification Sound",
+        titleRes = R.string.notification_sound,
         icon = R.drawable.ic_bell_filled
     ),
     AlarmTone(
         type = RingtoneTargetType.AlarmTone,
-        title = "Alarm Tone",
+        titleRes = R.string.alarm_tone,
         icon = R.drawable.ic_alarm_clock_filled
     )
 }

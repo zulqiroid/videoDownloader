@@ -116,15 +116,7 @@ fun MediaPlayerScreen(
 
     val bannerScreen = BannerAdScreen.MediaPlayer
 
-    val showTopBanner = !isLandscape && bannerState.config.isEnabled(
-        screen = bannerScreen,
-        slot = BannerAdSlot.Top
-    )
 
-    val showBottomBanner = !isLandscape && bannerState.config.isEnabled(
-        screen = bannerScreen,
-        slot = BannerAdSlot.Bottom
-    )
 
     val screenBackgroundColor = Color(state.screenBackgroundColor)
 
@@ -255,12 +247,25 @@ fun MediaPlayerScreen(
         return
     }
 
+    val canShowAds = !state.isPremiumUser
+
     val nativePlacementKey = NativeAdConfig.MEDIA_PLAYER_BETWEEN_VIDEOS
-    val nativePlacementConfig = state.nativeAdConfig.placement(nativePlacementKey)
-    val nativeAdPool = state.nativeAdPools[nativePlacementKey].orEmpty()
+
+    val nativePlacementConfig = if (canShowAds) {
+        state.nativeAdConfig.placement(nativePlacementKey)
+    } else {
+        null
+    }
+
+    val nativeAdPool = if (canShowAds) {
+        state.nativeAdPools[nativePlacementKey].orEmpty()
+    } else {
+        emptyMap()
+    }
 
     val pagerItems = remember(
         state.mediaList,
+        state.isPremiumUser,
         nativePlacementConfig?.enabled,
         nativePlacementConfig?.style,
         nativePlacementConfig?.position,
@@ -283,6 +288,22 @@ fun MediaPlayerScreen(
     val pagerState = rememberPagerState(
         initialPage = initialPagerPage,
         pageCount = { pagerItems.size }
+    )
+
+    val isFullPageNativeAdVisible = pagerItems
+        .getOrNull(pagerState.currentPage) is MediaPlayerPagerItem.NativeAd
+
+    val shouldShowMediaPlayerBanner =
+        canShowAds && !isLandscape && !isFullPageNativeAdVisible
+
+    val showTopBanner = shouldShowMediaPlayerBanner && bannerState.config.isEnabled(
+        screen = bannerScreen,
+        slot = BannerAdSlot.Top
+    )
+
+    val showBottomBanner = shouldShowMediaPlayerBanner && bannerState.config.isEnabled(
+        screen = bannerScreen,
+        slot = BannerAdSlot.Bottom
     )
 
     LaunchedEffect(state.currentIndex, pagerItems) {

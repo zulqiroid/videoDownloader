@@ -28,6 +28,7 @@ import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.clip
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.res.painterResource
+import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.text.style.TextOverflow
 import androidx.compose.ui.unit.dp
@@ -35,6 +36,7 @@ import androidx.compose.ui.unit.sp
 import com.app.videodownloader.R
 import com.app.videodownloader.domain.model.MediaFile
 import com.app.videodownloader.presentation.screens.medaPlayer.events.VideoOptionsIntent
+
 
 @OptIn(ExperimentalMaterial3Api::class)
 @Composable
@@ -97,19 +99,9 @@ private fun AudioOptionsBottomSheetContent(
 
         Spacer(modifier = Modifier.height(18.dp))
 
-    /*    AudioHighlightedOptionItem(
-            icon = R.drawable.ic_queue_media,
-            title = "Add to Playing Queue",
-            onClick = {
-                onIntent(VideoOptionsIntent.OnAddToPlayingQueueClicked)
-            }
-        )
-
-        Spacer(modifier = Modifier.height(16.dp))*/
-
         AudioOptionItem(
             icon = R.drawable.ic_playback_speed,
-            title = "Playback speed",
+            title = stringResource(R.string.media_option_playback_speed),
             trailingText = playbackSpeed,
             onClick = {
                 onIntent(VideoOptionsIntent.OnPlaybackSpeedClicked)
@@ -120,7 +112,7 @@ private fun AudioOptionsBottomSheetContent(
 
         AudioOptionItem(
             icon = R.drawable.ic_music_note,
-            title = "Set as ringtone",
+            title = stringResource(R.string.media_option_set_as_ringtone),
             onClick = {
                 onIntent(VideoOptionsIntent.OnSetAsRingtoneClicked)
             }
@@ -130,7 +122,7 @@ private fun AudioOptionsBottomSheetContent(
 
         AudioOptionItem(
             icon = R.drawable.ic_share,
-            title = "Share track",
+            title = stringResource(R.string.media_option_share_track),
             onClick = {
                 onIntent(VideoOptionsIntent.OnShareClicked)
             }
@@ -140,7 +132,7 @@ private fun AudioOptionsBottomSheetContent(
 
         AudioOptionItem(
             icon = R.drawable.ic_info,
-            title = "File info",
+            title = stringResource(R.string.media_option_file_info),
             onClick = {
                 onIntent(VideoOptionsIntent.OnFileInfoClicked)
             }
@@ -150,7 +142,7 @@ private fun AudioOptionsBottomSheetContent(
 
         AudioOptionItem(
             icon = R.drawable.ic_edit,
-            title = "Rename file",
+            title = stringResource(R.string.media_option_rename_file),
             onClick = {
                 onIntent(VideoOptionsIntent.OnRenameClicked)
             }
@@ -167,7 +159,7 @@ private fun AudioOptionsBottomSheetContent(
 
         AudioOptionItem(
             icon = R.drawable.ic_delete,
-            title = "Delete file",
+            title = stringResource(R.string.media_option_delete_file),
             iconTint = Color(0xFFE00004),
             textColor = Color(0xFFE00004),
             iconBackground = Color(0xFFE00004).copy(alpha = 0.08f),
@@ -210,7 +202,7 @@ private fun VideoOptionsBottomSheetContent(
 
         VideoOptionItem(
             icon = R.drawable.ic_info,
-            title = "File info",
+            title = stringResource(R.string.media_option_file_info),
             onClick = {
                 onIntent(VideoOptionsIntent.OnFileInfoClicked)
             }
@@ -220,7 +212,7 @@ private fun VideoOptionsBottomSheetContent(
 
         VideoOptionItem(
             icon = R.drawable.ic_share,
-            title = "Share video",
+            title = stringResource(R.string.media_option_share_video),
             onClick = {
                 onIntent(VideoOptionsIntent.OnShareClicked)
             }
@@ -230,7 +222,7 @@ private fun VideoOptionsBottomSheetContent(
 
         VideoOptionItem(
             icon = R.drawable.ic_edit,
-            title = "Rename file",
+            title = stringResource(R.string.media_option_rename_file),
             onClick = {
                 onIntent(VideoOptionsIntent.OnRenameClicked)
             }
@@ -247,7 +239,7 @@ private fun VideoOptionsBottomSheetContent(
 
         VideoOptionItem(
             icon = R.drawable.ic_delete,
-            title = "Delete file",
+            title = stringResource(R.string.media_option_delete_file),
             iconTint = Color(0xFFE00004),
             textColor = Color(0xFFE00004),
             iconBackground = Color(0xFFE00004).copy(alpha = 0.08f),
@@ -394,7 +386,7 @@ private fun PlaybackSpeedOptionItem(
         Spacer(modifier = Modifier.width(18.dp))
 
         Text(
-            text = "Playback speed",
+            text = stringResource(R.string.media_option_playback_speed),
             fontSize = 16.sp,
             fontWeight = FontWeight.W600,
             color = Color(0xFFE00004),

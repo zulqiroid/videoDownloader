@@ -19,6 +19,7 @@ import com.app.videodownloader.domain.usecases.ads.LoadNativeAdUseCase
 import com.app.videodownloader.domain.usecases.ads.ObserveNativeAdConfigUseCase
 import com.app.videodownloader.domain.usecases.ads.ObserveNativeAdPoolsUseCase
 import com.app.videodownloader.domain.usecases.ads.ObserveNativeAdsUseCase
+import com.app.videodownloader.domain.usecases.billing.ObserveIsPremiumUserUseCase
 import com.app.videodownloader.presentation.ads.nativeAd.NativeAdSlotHelper
 import com.app.videodownloader.presentation.screens.medaPlayer.events.MediaPlayerEvent
 import com.app.videodownloader.presentation.screens.medaPlayer.events.MediaPlayerNavEvent
@@ -31,6 +32,7 @@ import kotlinx.coroutines.flow.MutableSharedFlow
 import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.asSharedFlow
 import kotlinx.coroutines.flow.asStateFlow
+import kotlinx.coroutines.flow.distinctUntilChanged
 import kotlinx.coroutines.flow.update
 import kotlinx.coroutines.isActive
 import kotlinx.coroutines.launch
@@ -44,6 +46,7 @@ class MediaPlayerViewModel(
     private val loadNativeAdUseCase: LoadNativeAdUseCase,
     private val observeNativeAdPoolsUseCase: ObserveNativeAdPoolsUseCase,
     private val observeNativeAdConfigUseCase: ObserveNativeAdConfigUseCase,
+    private val observeIsPremiumUserUseCase: ObserveIsPremiumUserUseCase,
 ) : AndroidViewModel(application) {
 
     private var playerManager = MediaPlayerManager(application)
@@ -62,6 +65,7 @@ class MediaPlayerViewModel(
     private var playerListener: Player.Listener? = null
 
     init {
+        observePremiumStatus()
         observeNativeAdPools()
         observeNativeAdConfig()
         observePlayerCompletion()
@@ -947,6 +951,29 @@ class MediaPlayerViewModel(
         }
     }
 
+    private fun observePremiumStatus() {
+        viewModelScope.launch {
+            observeIsPremiumUserUseCase()
+                .distinctUntilChanged()
+                .collect { isPremium ->
+                    _state.update {
+                        it.copy(
+                            isPremiumUser = isPremium,
+                            nativeAds = if (isPremium) emptyMap() else it.nativeAds,
+                            nativeAdPools = if (isPremium) emptyMap() else it.nativeAdPools
+                        )
+                    }
+
+                    if (!isPremium) {
+                        loadMediaPlayerNativeSlots()
+                    } else {
+                        Log.d(TAG, "Media player native ads skipped: premium user")
+                    }
+                }
+        }
+    }
+
+
     private fun setSelectedAudioAsRingtone() {
         viewModelScope.launch {
             val currentState = _state.value
@@ -1021,7 +1048,11 @@ class MediaPlayerViewModel(
         viewModelScope.launch {
             observeNativeAdPoolsUseCase().collect { nativeAdPools ->
                 _state.update {
-                    it.copy(nativeAdPools = nativeAdPools)
+                    if (it.isPremiumUser) {
+                        it.copy(nativeAdPools = emptyMap())
+                    } else {
+                        it.copy(nativeAdPools = nativeAdPools)
+                    }
                 }
             }
         }
@@ -1041,6 +1072,12 @@ class MediaPlayerViewModel(
 
     private fun loadMediaPlayerNativeSlots() {
         val currentState = _state.value
+
+        if (currentState.isPremiumUser) {
+            Log.d(TAG, "Media player native ad load skipped: premium user")
+            return
+        }
+
         val placementKey = NativeAdConfig.MEDIA_PLAYER_BETWEEN_VIDEOS
         val placementConfig = currentState.nativeAdConfig.placement(placementKey) ?: return
 
@@ -1066,6 +1103,10 @@ class MediaPlayerViewModel(
     }
 
     private fun onNativeAdPageVisible() {
+        if (_state.value.isPremiumUser) {
+            return
+        }
+
         playerManager.pause()
 
         _state.update {

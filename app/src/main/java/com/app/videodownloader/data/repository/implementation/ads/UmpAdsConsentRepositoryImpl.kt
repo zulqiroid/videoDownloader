@@ -2,7 +2,7 @@ package com.app.videodownloader.data.repository.implementation.ads
 
 import android.app.Activity
 import android.content.Context
- import com.app.videodownloader.domain.model.ads.AdsConsentResult
+import com.app.videodownloader.domain.model.ads.AdsConsentResult
 import com.app.videodownloader.domain.repository.ads.AdsConsentRepository
 import com.google.android.ump.ConsentDebugSettings
 import com.google.android.ump.ConsentInformation
@@ -14,7 +14,8 @@ import kotlinx.coroutines.withContext
 import kotlin.coroutines.resume
 
 class UmpAdsConsentRepositoryImpl(
-    private val context: Context
+    private val context: Context,
+    private val isDebug: Boolean
 ) : AdsConsentRepository {
 
     private val consentInformation: ConsentInformation by lazy {
@@ -80,11 +81,11 @@ class UmpAdsConsentRepositoryImpl(
 
     override fun isPrivacyOptionsRequired(): Boolean {
         return consentInformation.privacyOptionsRequirementStatus ==
-            ConsentInformation.PrivacyOptionsRequirementStatus.REQUIRED
+                ConsentInformation.PrivacyOptionsRequirementStatus.REQUIRED
     }
 
     override fun resetConsentForTesting() {
-        if (BuildConfig.DEBUG) {
+        if (isDebug) {
             consentInformation.reset()
         }
     }
@@ -94,7 +95,7 @@ class UmpAdsConsentRepositoryImpl(
     ): ConsentRequestParameters {
         val builder = ConsentRequestParameters.Builder()
 
-        if (BuildConfig.DEBUG) {
+        if (isDebug) {
             val debugSettings = ConsentDebugSettings.Builder(activity)
                 .setDebugGeography(
                     ConsentDebugSettings.DebugGeography.DEBUG_GEOGRAPHY_EEA

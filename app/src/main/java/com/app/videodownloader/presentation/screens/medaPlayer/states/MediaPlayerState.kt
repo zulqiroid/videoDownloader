@@ -45,6 +45,8 @@ data class MediaPlayerState(
 
     val showBottomSheet: Boolean = false,
 
+    val isPremiumUser: Boolean = false,
+
     val nativeAds: Map<String, NativeAd> = emptyMap(),
     val nativeAdPools: Map<String, Map<String, NativeAd>> = emptyMap(),
     val nativeAdConfig: NativeAdConfig = NativeAdConfig.default(),

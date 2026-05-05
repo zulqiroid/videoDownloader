@@ -7,8 +7,8 @@ import kotlinx.coroutines.flow.Flow
 class StartDownloadUseCase(
     private val repository: VideoDownloadRepository
 ) {
-    suspend operator fun invoke(url: String) {
-        repository.startDownload(url)
+    suspend operator fun invoke(url: String): Long {
+        return repository.startDownload(url)
     }
 }
 
@@ -18,5 +18,22 @@ class ObserveDownloadsUseCase(
 ) {
     operator fun invoke(): Flow<List<DownloadItem>> {
         return repository.observeDownloads()
+    }
+}
+
+
+class PauseDownloadUseCase(
+    private val repository: VideoDownloadRepository
+) {
+    suspend operator fun invoke(id: Long) {
+        repository.pauseDownload(id)
+    }
+}
+
+class ResumeDownloadUseCase(
+    private val repository: VideoDownloadRepository
+) {
+    suspend operator fun invoke(id: Long) {
+        repository.resumeDownload(id)
     }
 }

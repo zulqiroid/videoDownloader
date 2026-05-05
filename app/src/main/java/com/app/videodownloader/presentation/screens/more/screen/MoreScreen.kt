@@ -46,6 +46,7 @@ import android.content.Intent
 import android.net.Uri
 import android.widget.Toast
 import androidx.compose.ui.platform.LocalContext
+import androidx.compose.ui.res.stringResource
 
 @Composable
 fun MoreScreen(
@@ -63,11 +64,31 @@ fun MoreScreen(
     val topPlacementKey = NativeAdConfig.MORE_TOP
     val bottomPlacementKey = NativeAdConfig.MORE_BOTTOM
 
-    val topPlacementConfig = state.nativeAdConfig.placement(topPlacementKey)
-    val bottomPlacementConfig = state.nativeAdConfig.placement(bottomPlacementKey)
+    val canShowAds = !state.isPremiumUser
 
-    val topNativeAd = state.nativeAds[topPlacementKey]
-    val bottomNativeAd = state.nativeAds[bottomPlacementKey]
+    val topPlacementConfig = if (canShowAds) {
+        state.nativeAdConfig.placement(topPlacementKey)
+    } else {
+        null
+    }
+
+    val bottomPlacementConfig = if (canShowAds) {
+        state.nativeAdConfig.placement(bottomPlacementKey)
+    } else {
+        null
+    }
+
+    val topNativeAd = if (canShowAds) {
+        state.nativeAds[topPlacementKey]
+    } else {
+        null
+    }
+
+    val bottomNativeAd = if (canShowAds) {
+        state.nativeAds[bottomPlacementKey]
+    } else {
+        null
+    }
 
     LaunchedEffect(topPlacementConfig, bottomPlacementConfig) {
         viewModel.onEvent(MoreUiEvent.ScreenStarted)
@@ -93,94 +114,99 @@ fun MoreScreen(
             )
 
             // Premium Card
-            Box(
-                modifier = Modifier
-                    .fillMaxWidth()
-                    .background(Color.White, RoundedCornerShape(20.dp)),
-            ) {
+            if (!state.isPremiumUser) {
                 Box(
                     modifier = Modifier
                         .fillMaxWidth()
-                        .background(
-                            brush = Brush.horizontalGradient(
-                                colors = listOf(
-                                    Color(0xFFE00004),
-                                    Color(0xFF7A0002),
-                                )
-                            ),
-                            shape = RoundedCornerShape(24.dp)
-                        )
-                        .clip(RoundedCornerShape(24.dp))
-                        .padding(vertical = 15.dp),
-                    contentAlignment = Alignment.Center
+                        .background(Color.White, RoundedCornerShape(20.dp)),
                 ) {
-                    Row(
-                        modifier = Modifier.fillMaxWidth()
-                    ) {
-                        Image(
-                            painter = painterResource(R.drawable.big_download_arrow),
-                            contentDescription = "big download arrow",
-                            modifier = Modifier
-                                .weight(1f)
-                                .alpha(0.2f)
-                        )
-
-                        Image(
-                            painter = painterResource(R.drawable.premiun_diamong_img),
-                            contentDescription = "premium diamond icon",
-                            modifier = Modifier.weight(1f)
-                        )
-                    }
-                }
-
-                Column(
-                    modifier = Modifier
-                        .fillMaxWidth()
-                        .padding(15.dp),
-                    verticalArrangement = Arrangement.Center
-                ) {
-                    Text(
-                        text = "PREMIUM PLAN",
-                        fontSize = 16.sp,
-                        color = Color.White,
-                        fontWeight = FontWeight.W800
-                    )
-
-                    Spacer(modifier = Modifier.height(10.dp))
-
-                    Text(
-                        text = "Enjoy ad-free experience and \n faster download speeds.",
-                        color = Color.White,
-                        fontSize = 14.sp,
-                        fontWeight = FontWeight.W400
-                    )
-
-                    Spacer(modifier = Modifier.height(14.dp))
-
                     Box(
                         modifier = Modifier
-                            .background(Color.Yellow, RoundedCornerShape(20.dp))
-                            .padding(horizontal = 16.dp, vertical = 6.dp).clickable{
-                                onPremiumCardClick()
-                            }
+                            .fillMaxWidth()
+                            .background(
+                                brush = Brush.horizontalGradient(
+                                    colors = listOf(
+                                        Color(0xFFE00004),
+                                        Color(0xFF7A0002),
+                                    )
+                                ),
+                                shape = RoundedCornerShape(24.dp)
+                            )
+                            .clip(RoundedCornerShape(24.dp))
+                            .padding(vertical = 15.dp),
+                        contentAlignment = Alignment.Center
                     ) {
-                        Text("Upgrade Now", fontWeight = FontWeight.Bold)
+                        Row(
+                            modifier = Modifier.fillMaxWidth()
+                        ) {
+                            Image(
+                                painter = painterResource(R.drawable.big_download_arrow),
+                                contentDescription = "big download arrow",
+                                modifier = Modifier
+                                    .weight(1f)
+                                    .alpha(0.2f)
+                            )
+
+                            Image(
+                                painter = painterResource(R.drawable.premiun_diamong_img),
+                                contentDescription = "premium diamond icon",
+                                modifier = Modifier.weight(1f)
+                            )
+                        }
+                    }
+
+                    Column(
+                        modifier = Modifier
+                            .fillMaxWidth()
+                            .padding(15.dp),
+                        verticalArrangement = Arrangement.Center
+                    ) {
+                        Text(
+                            text = stringResource(R.string.premium_plan),
+                            fontSize = 16.sp,
+                            color = Color.White,
+                            fontWeight = FontWeight.W800
+                        )
+
+                        Spacer(modifier = Modifier.height(10.dp))
+
+                        Text(
+                            text = stringResource(R.string.premium_plan_description),
+                            color = Color.White,
+                            fontSize = 14.sp,
+                            fontWeight = FontWeight.W400
+                        )
+
+                        Spacer(modifier = Modifier.height(14.dp))
+
+                        Box(
+                            modifier = Modifier
+                                .background(Color.Yellow, RoundedCornerShape(20.dp))
+                                .padding(horizontal = 16.dp, vertical = 6.dp)
+                                .clickable {
+                                    onPremiumCardClick()
+                                }
+                        ) {
+                            Text(
+                                text = stringResource(R.string.upgrade_now),
+                                fontWeight = FontWeight.Bold
+                            )
+                        }
                     }
                 }
+
+                Spacer(modifier = Modifier.height(20.dp))
             }
-
-            Spacer(modifier = Modifier.height(20.dp))
-
             Text(
-                text = "GENERAL SETTINGS",
+                text = stringResource(R.string.general_settings),
                 fontSize = 10.sp,
                 fontWeight = FontWeight.W800,
                 color = Color(0xFF8B95A5)
             )
 
             DrawerItem(
-                title = "Languages",
-                description = "Choose your preferred language",
+                title = stringResource(R.string.languages),
+                description = stringResource(R.string.choose_your_preferred_language),
                 icon = R.drawable.ic_world,
                 onClick = {
                     onAppLanguageClicked()
@@ -188,8 +214,8 @@ fun MoreScreen(
             )
 
             DrawerItem(
-                title = "How to Download",
-                description = "Step-by-step guide",
+                title = stringResource(R.string.how_to_download),
+                description = stringResource(R.string.step_by_step_guide),
                 icon = R.drawable.ic_how,
                 onClick = {
                     onHowToDownloadClicked()
@@ -197,32 +223,32 @@ fun MoreScreen(
             )
 
             DrawerItem(
-                title = "Notifications",
-                description = "Set up your alerts",
+                title = stringResource(R.string.notifications),
+                description = stringResource(R.string.set_up_your_alerts),
                 icon = R.drawable.ic_bell,
                 onClick = onNotificationClick
             )
 
             Spacer(modifier = Modifier.height(20.dp))
-
             Text(
-                text = "SUPPORT & SHARE",
+                text = stringResource(R.string.support_and_share),
                 fontSize = 10.sp,
                 fontWeight = FontWeight.W800,
                 color = Color(0xFF8B95A5)
             )
 
             DrawerItem(
-                title = "Share App",
-                description = "Invite friends",
+                title = stringResource(R.string.share_app),
+                description = stringResource(R.string.invite_friends),
                 icon = R.drawable.ic_share,
                 onClick = {
                     context.shareApp()
                 }
             )
+
             DrawerItem(
-                title = "Rate Us",
-                description = "Give feedback on the store",
+                title = stringResource(R.string.rate_us),
+                description = stringResource(R.string.give_feedback_on_store),
                 icon = R.drawable.ic_star,
                 onClick = {
                     onRateUsClick()
@@ -230,8 +256,8 @@ fun MoreScreen(
             )
 
             DrawerItem(
-                title = "Feedback",
-                description = "Send us your suggestions",
+                title = stringResource(R.string.feedback),
+                description = stringResource(R.string.send_us_your_suggestions),
                 icon = R.drawable.ic_mail,
                 onClick = {
                     onFeedbackClick()
@@ -239,8 +265,8 @@ fun MoreScreen(
             )
 
             DrawerItem(
-                title = "Privacy Policy",
-                description = "Legal and usage terms",
+                title = stringResource(R.string.privacy_policy),
+                description = stringResource(R.string.legal_and_usage_terms),
                 icon = R.drawable.ic_description,
                 onClick = {
                     // TODO
@@ -279,12 +305,11 @@ private fun android.content.Context.shareApp() {
     val packageName = packageName
     val playStoreUrl = "https://play.google.com/store/apps/details?id=$packageName"
 
-    val shareMessage = buildString {
-        append("Check out ")
-        append(appName)
-        append(":\n")
-        append(playStoreUrl)
-    }
+    val shareMessage = getString(
+        R.string.share_app_message,
+        appName,
+        playStoreUrl
+    )
 
     val shareIntent = Intent(Intent.ACTION_SEND).apply {
         type = "text/plain"
@@ -294,7 +319,7 @@ private fun android.content.Context.shareApp() {
 
     val chooserIntent = Intent.createChooser(
         shareIntent,
-        "Share App"
+        getString(R.string.share_app)
     )
 
     runCatching {
@@ -302,7 +327,7 @@ private fun android.content.Context.shareApp() {
     }.onFailure {
         Toast.makeText(
             this,
-            "No app found to share",
+            getString(R.string.no_app_found_to_share),
             Toast.LENGTH_SHORT
         ).show()
     }

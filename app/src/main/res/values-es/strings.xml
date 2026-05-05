@@ -122,7 +122,6 @@
     <string name="top_bar_trending_reels">Reels en tendencia</string>
     <string name="top_bar_downloads">Descargas</string>
     <string name="top_bar_more_options">Más opciones</string>
-    <string name="top_bar_social">Social</string>
 
     <string name="fetching_video_title">Obteniendo detalles del video</string>
     <string name="fetching_video_message">Espera mientras preparamos tu descarga.</string>
@@ -137,4 +136,170 @@
     <string name="media_permission_required_message">Permite el acceso a medios para que podamos mostrar tus videos y música.</string>
     <string name="media_permission_allow_button">Permitir permiso</string>
     <string name="media_permission_open_settings_button">Abrir ajustes</string>
+
+    <string name="top_bar_social">Social</string>
+    <string name="search_your_downloads_hint">Busca en tus descargas...</string>
+
+    <string name="share_reel">Compartir reel</string>
+    <string name="unable_to_share_this_reel">No se pudo compartir este reel</string>
+    <string name="fetching_video_details">Obteniendo detalles del video</string>
+    <string name="please_wait_prepare_download">Espera mientras preparamos tu descarga.</string>
+    <string name="share_file">Compartir %1$s</string>
+    <string name="send_feedback">Enviar comentarios</string>
+    <string name="no_email_app_found">No se encontró ninguna aplicación de correo</string>
+    <string name="unable_to_open_email_app">No se pudo abrir la aplicación de correo</string>
+    <string name="unknown">Desconocido</string>
+    <string name="feedback_app_version">Versión de la app: %1$s</string>
+    <string name="feedback_package">Paquete: %1$s</string>
+    <string name="feedback_android_version">Android: %1$s (SDK %2$d)</string>
+    <string name="feedback_device">Dispositivo: %1$s %2$s</string>
+
+
+    <string name="bottom_nav_home">Inicio</string>
+    <string name="bottom_nav_player">Reproductor</string>
+    <string name="bottom_nav_reels">Reels</string>
+    <string name="bottom_nav_download">Descargas</string>
+    <string name="bottom_nav_more">Más</string>
+    <string name="bottom_nav_social">Social</string>
+
+
+    <string name="media_option_playback_speed">Velocidad de reproducción</string>
+    <string name="media_option_set_as_ringtone">Establecer como tono de llamada</string>
+    <string name="media_option_share_track">Compartir pista</string>
+    <string name="media_option_file_info">Información del archivo</string>
+    <string name="media_option_rename_file">Cambiar nombre del archivo</string>
+    <string name="media_option_delete_file">Eliminar archivo</string>
+    <string name="media_option_share_video">Compartir video</string>
+
+
+    <string name="reset_to_default">Restablecer valores predeterminados</string>
+    <string name="cancel">Cancelar</string>
+    <string name="playback_speed">Velocidad de reproducción</string>
+    <string name="playback_speed_025">0.25x</string>
+    <string name="playback_speed_05">0.5x</string>
+    <string name="playback_speed_10_normal">1.0x (Normal)</string>
+    <string name="playback_speed_125">1.25x</string>
+    <string name="playback_speed_15">1.5x</string>
+    <string name="playback_speed_20">2.0x</string>
+    <string name="playback_speed_40">4.0x</string>
+
+    <string name="confirm_selection">Confirmar selección</string>
+    <string name="set_as_ringtone">Establecer como tono de llamada</string>
+    <string name="default_ringtone">Tono de llamada predeterminado</string>
+    <string name="notification_sound">Sonido de notificación</string>
+    <string name="alarm_tone">Tono de alarma</string>
+
+
+    <string name="premium_plan">PLAN PREMIUM</string>
+    <string name="premium_plan_description">Disfruta de una experiencia sin anuncios y \nvelocidades de descarga más rápidas.</string>
+    <string name="upgrade_now">Actualizar ahora</string>
+
+    <string name="general_settings">CONFIGURACIÓN GENERAL</string>
+    <string name="languages">Idiomas</string>
+    <string name="choose_your_preferred_language">Elige tu idioma preferido</string>
+    <string name="how_to_download">Cómo descargar</string>
+    <string name="step_by_step_guide">Guía paso a paso</string>
+    <string name="notifications">Notificaciones</string>
+    <string name="set_up_your_alerts">Configura tus alertas</string>
+
+    <string name="support_and_share">SOPORTE Y COMPARTIR</string>
+    <string name="share_app">Compartir app</string>
+    <string name="invite_friends">Invita a tus amigos</string>
+    <string name="rate_us">Califícanos</string>
+    <string name="give_feedback_on_store">Da tu opinión en la tienda</string>
+    <string name="feedback">Comentarios</string>
+    <string name="send_us_your_suggestions">Envíanos tus sugerencias</string>
+    <string name="privacy_policy">Política de privacidad</string>
+    <string name="legal_and_usage_terms">Términos legales y de uso</string>
+
+    <string name="share_app_message">Echa un vistazo a %1$s:\n%2$s</string>
+    <string name="no_app_found_to_share">No se encontró ninguna app para compartir</string>
+
+
+    <string name="next">Siguiente</string>
+    <string name="continue_text">Continuar</string>
+    <string name="video_title_part">Video </string>
+    <string name="downloader_title_part">Downloader</string>
+    <string name="advanced_download_engine">El motor de descarga avanzado.</string>
+
+
+
+    <string name="empty_string"></string>
+    <string name="onboarding_welcome_to">Bienvenido a</string>
+    <string name="onboarding_video_downloader">Video Downloader</string>
+    <string name="onboarding_download_videos_music">Descarga videos y música de cualquier plataforma al instante.</string>
+    <string name="onboarding_watch_trending">Mira tendencias</string>
+    <string name="onboarding_reels">Reels</string>
+    <string name="onboarding_enjoy_download_reels">Disfruta y descarga tus reels favoritos al instante.</string>
+    <string name="onboarding_built_in_video">Video integrado</string>
+    <string name="onboarding_player">Reproductor</string>
+    <string name="onboarding_download_watch_videos_audios">Descarga y mira tus videos y audios fácilmente.</string>
+    <string name="onboarding_advanced_downloading_engine">El motor de descarga avanzado.</string>
+
+
+    <string name="delete_file">Eliminar archivo</string>
+    <string name="delete_file_confirmation_message">¿Seguro que quieres eliminar este archivo? Esta acción no se puede deshacer.</string>
+     <string name="delete">Eliminar</string>
+
+    <string name="file_information">Información del archivo</string>
+    <string name="file_name">Nombre del archivo</string>
+    <string name="format">Formato</string>
+    <string name="resolution">Resolución</string>
+    <string name="duration">Duración</string>
+    <string name="file_size">Tamaño del archivo</string>
+    <string name="storage_location">Ubicación de almacenamiento</string>
+
+    <string name="media">multimedia</string>
+    <string name="stored_in">Guardado en: %1$s</string>
+    <string name="play_now">Reproducir ahora</string>
+     <string name="rename">Cambiar nombre</string>
+    <string name="move_to_folder">Mover a carpeta</string>
+    <string name="file_info">Información del archivo</string>
+    <string name="dismiss">Cerrar</string>
+
+
+    <string name="play_all_count">Reproducir todo (%1$d)</string>
+    <string name="videos">Videos</string>
+    <string name="music">Música</string>
+
+    <string name="new_file_name">Nuevo nombre del archivo</string>
+    <string name="enter_file_name">Introduce el nombre del archivo</string>
+    <string name="rename_file">Cambiar nombre del archivo</string>
+    <string name="rename_file_description">Actualiza el nombre del archivo sin cambiar su formato</string>
+
+
+    <string name="unable_to_start_purchase_now">No se puede iniciar la compra en este momento.</string>
+
+    <string name="restore">Restaurar</string>
+    <string name="processing">Procesando...</string>
+    <string name="loading">Cargando...</string>
+    <string name="premium_active">Premium activo</string>
+    <string name="upgrade">Actualizar</string>
+    <string name="premium_terms_privacy_message">Al continuar, aceptas nuestros Términos de servicio y nuestra Política de privacidad.</string>
+
+    <string name="unlimited_access">Acceso ilimitado</string>
+    <string name="premium_access_advanced_features">Accede a todas las funciones avanzadas del descargador</string>
+    <string name="ads_free">¡Sin anuncios!</string>
+    <string name="faster_downloads_10x">Descargas 10x más rápidas</string>
+    <string name="unlimited_downloads">Descargas ilimitadas</string>
+    <string name="access_full_features">Acceso a todas las funciones</string>
+    <string name="cancel_anytime_auto_renew">Cancela cuando quieras. Renovación automática después de la prueba.</string>
+
+
+    <string name="plan_weekly">Semanal</string>
+    <string name="plan_monthly">Mensual</string>
+    <string name="plan_yearly">Anual</string>
+    <string name="plan_lifetime">De por vida</string>
+
+    <string name="plan_badge_basic">Básico</string>
+    <string name="plan_badge_popular">Popular</string>
+    <string name="plan_badge_best_choice">Mejor opción</string>
+    <string name="plan_badge_best_ever">El mejor</string>
+
+
+     <string name="splash_download_videos_instantly">Descarga videos al instante desde cualquier lugar.</string>
+    <string name="please_wait">Espera...</string>
+    <string name="preparing">Preparando...</string>
+    <string name="get_started">Comenzar</string>
+    <string name="app_may_contain_ads">Esta app puede contener anuncios</string>
 </resources>

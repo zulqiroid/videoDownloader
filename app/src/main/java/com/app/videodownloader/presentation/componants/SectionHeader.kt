@@ -1,6 +1,7 @@
 package com.app.videodownloader.presentation.componants
 
 import androidx.annotation.StringRes
+import androidx.compose.foundation.clickable
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Row
 import androidx.compose.foundation.layout.fillMaxWidth
@@ -20,32 +21,41 @@ import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
 import com.app.videodownloader.R
 
-@Composable
+/*@Composable
 fun SectionHeader(
     text: String,
-    supportingText: String = stringResource(R.string.common_see_all)
+    supportingText: String = stringResource(R.string.common_see_all),
+    onReelSeeAllCLicked: () -> Unit
 ) {
     SectionHeaderContent(
         text = text,
-        supportingText = supportingText
+        supportingText = supportingText,
+        onReelSeeAllCLicked = {
+            onReelSeeAllCLicked()
+        }
     )
-}
+}*/
 
 @Composable
 fun SectionHeader(
     @StringRes textRes: Int,
-    @StringRes supportingTextRes: Int = R.string.common_see_all
+    @StringRes supportingTextRes: Int = R.string.common_see_all,
+    onReelSeeAllCLicked: () -> Unit
 ) {
     SectionHeaderContent(
         text = stringResource(textRes),
-        supportingText = stringResource(supportingTextRes)
+        supportingText = stringResource(supportingTextRes),
+        onReelSeeAllCLicked = {
+            onReelSeeAllCLicked()
+        }
     )
 }
 
 @Composable
 private fun SectionHeaderContent(
     text: String,
-    supportingText: String
+    supportingText: String,
+    onReelSeeAllCLicked: () -> Unit
 ) {
     Row(
         modifier = Modifier
@@ -62,6 +72,9 @@ private fun SectionHeaderContent(
         )
 
         Row(
+            Modifier.clickable{
+                onReelSeeAllCLicked()
+            },
             verticalAlignment = Alignment.CenterVertically,
             horizontalArrangement = Arrangement.spacedBy(5.dp)
         ) {

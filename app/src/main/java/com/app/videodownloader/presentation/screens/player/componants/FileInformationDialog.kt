@@ -35,6 +35,7 @@ import androidx.compose.ui.draw.clip
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.platform.LocalInspectionMode
 import androidx.compose.ui.res.painterResource
+import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.text.style.TextOverflow
 import androidx.compose.ui.unit.dp
@@ -128,7 +129,7 @@ private fun FileInformationContent(
                 Spacer(modifier = Modifier.height(14.dp))
 
                 Text(
-                    text = "File Information",
+                    text = stringResource(R.string.file_information),
                     fontSize = 18.sp,
                     fontWeight = FontWeight.W800,
                     color = Color(0xFF111827)
@@ -150,7 +151,7 @@ private fun FileInformationContent(
         ) {
             FileInfoFullWidthItem(
                 icon = R.drawable.ic_folded_page,
-                label = "File Name",
+                label = stringResource(R.string.file_name),
                 value = info.fileName
             )
 
@@ -162,14 +163,14 @@ private fun FileInformationContent(
             ) {
                 FileInfoGridItem(
                     icon = R.drawable.ic_media_format,
-                    label = "Format",
+                    label = stringResource(R.string.format),
                     value = info.format,
                     modifier = Modifier.weight(1f)
                 )
 
                 FileInfoGridItem(
                     icon = R.drawable.ic_resolution,
-                    label = "Resolution",
+                    label = stringResource(R.string.resolution),
                     value = info.resolution,
                     modifier = Modifier.weight(1f)
                 )
@@ -183,14 +184,14 @@ private fun FileInformationContent(
             ) {
                 FileInfoGridItem(
                     icon = R.drawable.ic_time,
-                    label = "Duration",
+                    label = stringResource(R.string.duration),
                     value = info.duration,
                     modifier = Modifier.weight(1f)
                 )
 
                 FileInfoGridItem(
                     icon = R.drawable.ic_file_stack,
-                    label = "File Size",
+                    label = stringResource(R.string.file_size),
                     value = info.fileSize,
                     modifier = Modifier.weight(1f)
                 )
@@ -207,7 +208,7 @@ private fun FileInformationContent(
 
             FileInfoPathItem(
                 icon = R.drawable.ic_file_location,
-                label = "Storage Location",
+                label = stringResource(R.string.storage_location),
                 value = info.storageLocation
             )
         }

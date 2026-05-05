@@ -12,8 +12,10 @@ import androidx.compose.runtime.remember
 import androidx.compose.ui.Modifier
 import com.app.videodownloader.domain.model.ads.NativeAdConfig
 import com.app.videodownloader.domain.model.ads.NativeAdPlacementConfig
+import com.app.videodownloader.domain.usecases.ads.CanRequestAdsUseCase
 import com.app.videodownloader.presentation.ads.nativeAd.componants.NativeAdPlaceholder
 import com.google.android.gms.ads.nativead.NativeAd
+import org.koin.compose.koinInject
 
 @Composable
 fun NativeAdHost(
@@ -24,6 +26,12 @@ fun NativeAdHost(
     placementKey: String = NativeAdConfig.GENERIC
 ) {
     if (!nativeAdConfig.enabled || !placementConfig.enabled) {
+        return
+    }
+
+    val canRequestAdsUseCase: CanRequestAdsUseCase = koinInject()
+
+    if (!canRequestAdsUseCase()) {
         return
     }
 

@@ -60,6 +60,7 @@ import androidx.compose.ui.graphics.vector.ImageVector
 import androidx.compose.ui.layout.ContentScale
 import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.res.painterResource
+import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.text.style.TextOverflow
 import androidx.compose.ui.unit.dp
@@ -116,7 +117,7 @@ fun FileOptionsDialog(
                 Row(verticalAlignment = Alignment.CenterVertically) {
                     Column(modifier = Modifier.weight(1f)) {
                         Text(
-                            text = item?.fileName ?: "media",
+                            text = item?.fileName ?: stringResource(R.string.media),
                             fontWeight = FontWeight.W700,
                             color = Color(0xFF111827),
                             fontSize = 20.sp,
@@ -125,7 +126,7 @@ fun FileOptionsDialog(
                         )
                         Spacer(Modifier.height(4.dp))
                         Text(
-                            text = "Stored in: ${item?.filePath}",
+                            text = stringResource(R.string.stored_in, item?.filePath.orEmpty()),
                             fontWeight = FontWeight.W500,
                             color = Color(0xFF6B7280),
                             fontSize = 14.sp,
@@ -172,7 +173,7 @@ fun FileOptionsDialog(
                     )
                     Spacer(Modifier.width(8.dp))
                     Text(
-                        text = "Play Now",
+                        text = stringResource(R.string.play_now),
                         fontWeight = FontWeight.W700,
                         color = Color.White,
                         fontSize = 16.sp
@@ -185,7 +186,7 @@ fun FileOptionsDialog(
                 Row(horizontalArrangement = Arrangement.spacedBy(12.dp)) {
 
                     QuickActionButton(
-                        text = "Share File",
+                        text = stringResource(R.string.share_file),
                         icon = R.drawable.ic_share,
                         onClick = { onIntent(FileDialogIntent.OnShareClicked) },
                         modifier = Modifier.weight(1f)
@@ -202,23 +203,21 @@ fun FileOptionsDialog(
 
                 // List Actions
                 ActionItem(
-                    text = "Rename",
+                    text = stringResource(R.string.rename),
                     icon = R.drawable.ic_edit,
-
-                    ) {
+                ) {
                     onIntent(FileDialogIntent.OnRenameClicked)
                 }
 
                 ActionItem(
-                    text = "Move to folder",
+                    text = stringResource(R.string.move_to_folder),
                     icon = R.drawable.ic_move_folder,
-
-                    ) {
+                ) {
                     onIntent(FileDialogIntent.OnMoveClicked)
                 }
 
                 ActionItem(
-                    text = "File info",
+                    text = stringResource(R.string.file_info),
                     icon = R.drawable.ic_info,
                     color = Color(0xFF111827)
                 ) {
@@ -226,7 +225,7 @@ fun FileOptionsDialog(
                 }
 
                 ActionItem(
-                    text = "Delete file",
+                    text = stringResource(R.string.delete_file),
                     icon = R.drawable.ic_delete,
                     color = Color(0xFFE00004)
                 ) {
@@ -241,10 +240,11 @@ fun FileOptionsDialog(
                     modifier = Modifier.align(Alignment.CenterHorizontally)
                 ) {
                     Text(
-                        text = "Dismiss",
+                        text = stringResource(R.string.dismiss),
                         fontWeight = FontWeight.W700,
                         fontSize = 16.sp,
-                        color = Color(0xFF6B7280))
+                        color = Color(0xFF6B7280)
+                    )
                 }
             }
         }

@@ -4,6 +4,8 @@ import android.content.Context
 import android.util.Log
 import com.app.videodownloader.domain.model.ads.AdState
 import com.app.videodownloader.domain.model.ads.NativeAdConfig
+import com.app.videodownloader.domain.repository.billing.PremiumAccessController
+import com.app.videodownloader.domain.usecases.ads.CanRequestAdsUseCase
 import com.app.videodownloader.domain.usecases.ads.ObserveNativeAdConfigUseCase
 import com.google.android.gms.ads.AdListener
 import com.google.android.gms.ads.AdLoader
@@ -25,7 +27,9 @@ import kotlin.math.pow
 
 class NativeAdManager(
     context: Context,
-    observeNativeAdConfigUseCase: ObserveNativeAdConfigUseCase
+    observeNativeAdConfigUseCase: ObserveNativeAdConfigUseCase,
+    private val canRequestAdsUseCase: CanRequestAdsUseCase,
+    private val premiumAccessController: PremiumAccessController
 ) {
 
     private val appContext = context.applicationContext
@@ -66,6 +70,18 @@ class NativeAdManager(
                     return@collect
                 }
 
+                if (!canRequestAdsUseCase()) {
+                    Log.d(TAG, "Native config observed but auto-load blocked: consent not ready.")
+                    clearAllAds()
+                    return@collect
+                }
+
+                if (premiumAccessController.isPremium()) {
+                    Log.d(TAG, "Native ads cleared/skipped: premium user.")
+                    clearAllAds()
+                    return@collect
+                }
+
                 if (oldConfig.adUnitId != newConfig.adUnitId) {
                     clearAllAds()
                 } else {
@@ -91,6 +107,18 @@ class NativeAdManager(
             placementKey = placementKey,
             slotKey = slotKey
         )
+
+        if (premiumAccessController.isPremium()) {
+            onStateChanged(AdState.Skipped("Native ad load skipped: premium user"))
+            clearAd(placementKey, slotKey)
+            return
+        }
+
+        if (!canRequestAdsUseCase()) {
+            onStateChanged(AdState.Skipped("Native ad load skipped: consent not ready"))
+            clearAd(placementKey, slotKey)
+            return
+        }
 
         if (!currentConfig.enabled) {
             onStateChanged(AdState.Skipped("Native ads disabled"))
@@ -317,7 +345,9 @@ class NativeAdManager(
     ) {
         val currentConfig = config
 
+        if (premiumAccessController.isPremium()) return
         if (!currentConfig.enabled) return
+        if (!canRequestAdsUseCase()) return
         if (currentConfig.placement(key.placementKey) == null) return
 
         val currentAttempt = retryAttemptBySlot[key] ?: 0
@@ -326,6 +356,8 @@ class NativeAdManager(
             Log.d(TAG, "Native retry skipped. Max retry reached: $key")
             return
         }
+
+
 
         retryJobBySlot.remove(key)?.cancel()
 

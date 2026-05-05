@@ -1,6 +1,10 @@
 package com.app.videodownloader.data.repository.implementation
 
 import android.util.Log
+import androidx.datastore.core.DataStore
+import androidx.datastore.preferences.core.Preferences
+import androidx.datastore.preferences.core.edit
+import com.app.videodownloader.core.utils.DataStoreKeys
 import com.app.videodownloader.core.utils.RemoteConfigKeys
 import com.app.videodownloader.domain.model.ApiKey
 import com.app.videodownloader.domain.model.ads.AppOpenAdConfig
@@ -17,11 +21,14 @@ import kotlinx.coroutines.CoroutineScope
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.asStateFlow
+import kotlinx.coroutines.flow.first
 import kotlinx.coroutines.launch
 import kotlinx.serialization.SerializationException
 import kotlinx.serialization.json.Json
 
-class RemoteConfigRepoImpl : RemoteConfigRepository {
+class RemoteConfigRepoImpl(
+    private val dataStore: DataStore<Preferences>
+) : RemoteConfigRepository {
 
     private val remoteConfig: FirebaseRemoteConfig by lazy {
         Firebase.remoteConfig
@@ -76,15 +83,14 @@ class RemoteConfigRepoImpl : RemoteConfigRepository {
             }
     }
 
-    override suspend fun getApiSecretKey(): ApiKey {
-        return ApiKey(
-            remoteConfig.getString(RemoteConfigKeys.API_SECRET_KEY_REMOTE),
-            remoteConfig.getString(RemoteConfigKeys.API_SECRET_KEY_value_REMOTE)
-        )
+    override suspend fun getApiSecretKey(): String? {
+        val data = dataStore.data.first()
+        return data[DataStoreKeys.API_SECRET_KEY]
     }
 
-    override suspend fun getBaseUrl(): String {
-        return remoteConfig.getString(RemoteConfigKeys.BASE_URL_REMOTE)
+    override suspend fun getBaseUrl(): String? {
+        val data = dataStore.data.first()
+        return data[DataStoreKeys.BASE_API_URL]
     }
 
     override fun getCurrentAppOpenAdConfig(): AppOpenAdConfig {
@@ -103,14 +109,19 @@ class RemoteConfigRepoImpl : RemoteConfigRepository {
         return _nativeAdConfig.value
     }
 
+    override suspend fun getPremiumIconVisibility(): Boolean {
+        val data = dataStore.data.first()
+        return data[DataStoreKeys.SHOW_PREMIUM_ICON] ?: true
+    }
+
     private fun setDefaultsAndFetch(
         onComplete: () -> Unit
     ) {
         remoteConfig.setDefaultsAsync(
             mapOf(
-                RemoteConfigKeys.API_SECRET_KEY_value_REMOTE to "",
-                RemoteConfigKeys.API_SECRET_KEY_REMOTE to "",
-                RemoteConfigKeys.BASE_URL_REMOTE to "",
+                RemoteConfigKeys.API_SECRET_KEY_VALUE_REMOTE to "",
+                 RemoteConfigKeys.BASE_URL_REMOTE to "",
+                RemoteConfigKeys.SHOW_PREMIUM_ICON_REMOTE to true,
                 RemoteConfigKeys.ADS_APP_OPEN_CONFIG_REMOTE to defaultAppOpenAdConfig.toDefaultJson(),
                 RemoteConfigKeys.ADS_INTERSTITIAL_CONFIG_REMOTE to defaultInterstitialAdConfig.toDefaultJson(),
                 RemoteConfigKeys.ADS_BANNER_CONFIG_REMOTE to defaultBannerAdConfig.toDefaultJson(),
@@ -136,6 +147,7 @@ class RemoteConfigRepoImpl : RemoteConfigRepository {
                     readAndPublishConfigs()
 
                     CoroutineScope(Dispatchers.IO).launch {
+                        saveConfigToDataStore()
                         onComplete()
                     }
                 }
@@ -402,6 +414,27 @@ class RemoteConfigRepoImpl : RemoteConfigRepository {
     private fun logAllRemoteConfigValues() {
         remoteConfig.all.forEach { (key, value) ->
             Log.d(TAG, "RemoteConfig: $key = ${value.asString()}")
+        }
+    }
+
+
+    private suspend fun saveConfigToDataStore() {
+        dataStore.edit { preferences ->
+            // Save UX_Cam value
+            val baseUrl = remoteConfig.getString(RemoteConfigKeys.BASE_URL_REMOTE)
+            preferences[DataStoreKeys.BASE_API_URL] = baseUrl
+
+            Log.d("RemoteConfigRepo", "baseUrl: $baseUrl")
+
+            val secretKey = remoteConfig.getString(RemoteConfigKeys.API_SECRET_KEY_VALUE_REMOTE)
+            preferences[DataStoreKeys.API_SECRET_KEY] = secretKey
+            Log.d("RemoteConfigRepo", "secretKey: $secretKey")
+
+
+            val isPremiumIconVisible = remoteConfig.getBoolean(RemoteConfigKeys.SHOW_PREMIUM_ICON_REMOTE)
+            preferences[DataStoreKeys.SHOW_PREMIUM_ICON] = isPremiumIconVisible
+            Log.d("RemoteConfigRepo", "isPremiumIconVisible: $isPremiumIconVisible")
+
         }
     }
 

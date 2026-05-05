@@ -1,6 +1,7 @@
 package com.app.videodownloader.di.modules
 
 import com.app.videodownloader.data.manager.AppOpenAdManager
+import com.app.videodownloader.data.manager.FullScreenAdCoordinator
 import com.app.videodownloader.data.manager.InterstitialAdManager
 import com.app.videodownloader.data.manager.MobileAdsInitializer
 import com.app.videodownloader.data.manager.NativeAdManager
@@ -16,7 +17,9 @@ val adModule  = module{
         AppOpenAdManager(
             context = androidContext(),
             observeAppOpenAdConfigUseCase = get(),
-            canRequestAdsUseCase = get()
+            canRequestAdsUseCase = get(),
+            fullScreenAdCoordinator = get(),
+            premiumAccessController = get()
         )
     }
 
@@ -24,7 +27,9 @@ val adModule  = module{
         InterstitialAdManager(
             context = androidContext(),
             observeInterstitialAdConfigUseCase = get(),
-            canRequestAdsUseCase = get()
+            canRequestAdsUseCase = get(),
+            fullScreenAdCoordinator = get(),
+            premiumAccessController = get()
         )
     }
 
@@ -32,7 +37,8 @@ val adModule  = module{
         NativeAdManager(
             context = androidContext(),
             observeNativeAdConfigUseCase = get(),
-            canRequestAdsUseCase = get()
+            canRequestAdsUseCase = get(),
+            premiumAccessController = get()
         )
     }
 
@@ -40,5 +46,9 @@ val adModule  = module{
         MobileAdsInitializer(
             context = androidContext()
         )
+    }
+
+    single {
+        FullScreenAdCoordinator()
     }
 }

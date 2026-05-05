@@ -28,6 +28,7 @@ fun HomeScreen(
     fetchUrl: (String) -> Unit,
     downloadReel: (Reel) -> Unit,
     playReel: (Reel) -> Unit,
+    onReelSeeAllCLicked: () -> Unit,
     onSocialClick: (SocialPlatform) -> Unit
 ) {
     val state by viewModel.state.collectAsState()
@@ -61,7 +62,10 @@ fun HomeScreen(
         )
 
         SectionHeader(
-            text = stringResource(R.string.home_trending_reels_title)
+            textRes = R.string.home_trending_reels_title,
+            onReelSeeAllCLicked = {
+                onReelSeeAllCLicked()
+            }
         )
 
         ReelGrid(

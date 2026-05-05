@@ -122,7 +122,6 @@
     <string name="top_bar_trending_reels">الريلز الرائجة</string>
     <string name="top_bar_downloads">التنزيلات</string>
     <string name="top_bar_more_options">خيارات إضافية</string>
-    <string name="top_bar_social">اجتماعي</string>
 
     <string name="fetching_video_title">جارٍ جلب تفاصيل الفيديو</string>
     <string name="fetching_video_message">يرجى الانتظار بينما نقوم بتجهيز التنزيل.</string>
@@ -137,4 +136,170 @@
     <string name="media_permission_required_message">يرجى السماح بإذن الوسائط حتى نتمكن من عرض مقاطع الفيديو والموسيقى لديك.</string>
     <string name="media_permission_allow_button">السماح بالإذن</string>
     <string name="media_permission_open_settings_button">فتح الإعدادات</string>
+
+
+    <string name="top_bar_social">اجتماعي</string>
+    <string name="search_your_downloads_hint">ابحث في تنزيلاتك...</string>
+
+
+
+    <string name="share_reel">مشاركة الريل</string>
+    <string name="unable_to_share_this_reel">تعذرت مشاركة هذا الريل</string>
+    <string name="fetching_video_details">جارٍ جلب تفاصيل الفيديو</string>
+    <string name="please_wait_prepare_download">يرجى الانتظار بينما نجهز التنزيل الخاص بك.</string>
+    <string name="share_file">مشاركة %1$s</string>
+    <string name="send_feedback">إرسال ملاحظات</string>
+    <string name="no_email_app_found">لم يتم العثور على تطبيق بريد إلكتروني</string>
+    <string name="unable_to_open_email_app">تعذر فتح تطبيق البريد الإلكتروني</string>
+    <string name="unknown">غير معروف</string>
+    <string name="feedback_app_version">إصدار التطبيق: %1$s</string>
+    <string name="feedback_package">الحزمة: %1$s</string>
+    <string name="feedback_android_version">Android: %1$s (SDK %2$d)</string>
+    <string name="feedback_device">الجهاز: %1$s %2$s</string>
+
+
+    <string name="bottom_nav_home">الرئيسية</string>
+    <string name="bottom_nav_player">المشغل</string>
+    <string name="bottom_nav_reels">الريلز</string>
+    <string name="bottom_nav_download">التنزيلات</string>
+    <string name="bottom_nav_more">المزيد</string>
+    <string name="bottom_nav_social">اجتماعي</string>
+
+
+    <string name="media_option_playback_speed">سرعة التشغيل</string>
+    <string name="media_option_set_as_ringtone">تعيين كنغمة رنين</string>
+    <string name="media_option_share_track">مشاركة المقطع الصوتي</string>
+    <string name="media_option_file_info">معلومات الملف</string>
+    <string name="media_option_rename_file">إعادة تسمية الملف</string>
+    <string name="media_option_delete_file">حذف الملف</string>
+    <string name="media_option_share_video">مشاركة الفيديو</string>
+
+
+    <string name="reset_to_default">إعادة التعيين إلى الافتراضي</string>
+    <string name="cancel">إلغاء</string>
+    <string name="playback_speed">سرعة التشغيل</string>
+    <string name="playback_speed_025">0.25x</string>
+    <string name="playback_speed_05">0.5x</string>
+    <string name="playback_speed_10_normal">1.0x (عادي)</string>
+    <string name="playback_speed_125">1.25x</string>
+    <string name="playback_speed_15">1.5x</string>
+    <string name="playback_speed_20">2.0x</string>
+    <string name="playback_speed_40">4.0x</string>
+
+    <string name="confirm_selection">تأكيد الاختيار</string>
+    <string name="set_as_ringtone">تعيين كنغمة رنين</string>
+    <string name="default_ringtone">نغمة الرنين الافتراضية</string>
+    <string name="notification_sound">صوت الإشعارات</string>
+    <string name="alarm_tone">نغمة المنبه</string>
+
+
+    <string name="premium_plan">الخطة المميزة</string>
+    <string name="premium_plan_description">استمتع بتجربة بدون إعلانات و\nسرعات تنزيل أعلى.</string>
+    <string name="upgrade_now">الترقية الآن</string>
+
+    <string name="general_settings">الإعدادات العامة</string>
+    <string name="languages">اللغات</string>
+    <string name="choose_your_preferred_language">اختر لغتك المفضلة</string>
+    <string name="how_to_download">كيفية التنزيل</string>
+    <string name="step_by_step_guide">دليل خطوة بخطوة</string>
+    <string name="notifications">الإشعارات</string>
+    <string name="set_up_your_alerts">قم بإعداد التنبيهات الخاصة بك</string>
+
+    <string name="support_and_share">الدعم والمشاركة</string>
+    <string name="share_app">مشاركة التطبيق</string>
+    <string name="invite_friends">ادعُ الأصدقاء</string>
+    <string name="rate_us">قيّمنا</string>
+    <string name="give_feedback_on_store">قدّم ملاحظاتك على المتجر</string>
+    <string name="feedback">ملاحظات</string>
+    <string name="send_us_your_suggestions">أرسل لنا اقتراحاتك</string>
+    <string name="privacy_policy">سياسة الخصوصية</string>
+    <string name="legal_and_usage_terms">الشروط القانونية وشروط الاستخدام</string>
+
+    <string name="share_app_message">جرّب %1$s:\n%2$s</string>
+    <string name="no_app_found_to_share">لم يتم العثور على تطبيق للمشاركة</string>
+
+    <string name="next">التالي</string>
+    <string name="continue_text">متابعة</string>
+    <string name="video_title_part">فيديو </string>
+    <string name="downloader_title_part">داونلودر</string>
+    <string name="advanced_download_engine">محرك تنزيل متقدم.</string>
+
+
+
+    <string name="empty_string"></string>
+    <string name="onboarding_welcome_to">مرحبًا بك في</string>
+    <string name="onboarding_video_downloader">تنزيل الفيديوهات</string>
+    <string name="onboarding_download_videos_music">نزّل الفيديوهات والموسيقى من أي منصة فورًا.</string>
+    <string name="onboarding_watch_trending">شاهد الرائج</string>
+    <string name="onboarding_reels">الريلز</string>
+    <string name="onboarding_enjoy_download_reels">استمتع بالريلز المفضلة لديك وقم بتنزيلها فورًا.</string>
+    <string name="onboarding_built_in_video">فيديو مدمج</string>
+    <string name="onboarding_player">مشغل</string>
+    <string name="onboarding_download_watch_videos_audios">نزّل وشاهد الفيديوهات والمقاطع الصوتية بسهولة.</string>
+    <string name="onboarding_advanced_downloading_engine">محرك تنزيل متقدم.</string>
+
+    <string name="delete_file">حذف الملف</string>
+    <string name="delete_file_confirmation_message">هل أنت متأكد من أنك تريد حذف هذا الملف؟ لا يمكن التراجع عن هذا الإجراء.</string>
+     <string name="delete">حذف</string>
+
+    <string name="file_information">معلومات الملف</string>
+    <string name="file_name">اسم الملف</string>
+    <string name="format">الصيغة</string>
+    <string name="resolution">الدقة</string>
+    <string name="duration">المدة</string>
+    <string name="file_size">حجم الملف</string>
+    <string name="storage_location">موقع التخزين</string>
+
+    <string name="media">وسائط</string>
+    <string name="stored_in">محفوظ في: %1$s</string>
+    <string name="play_now">تشغيل الآن</string>
+     <string name="move_to_folder">نقل إلى مجلد</string>
+    <string name="file_info">معلومات الملف</string>
+    <string name="dismiss">إغلاق</string>
+
+
+    <string name="play_all_count">تشغيل الكل (%1$d)</string>
+    <string name="videos">الفيديوهات</string>
+    <string name="music">الموسيقى</string>
+
+    <string name="new_file_name">اسم الملف الجديد</string>
+    <string name="enter_file_name">أدخل اسم الملف</string>
+     <string name="rename">إعادة تسمية</string>
+    <string name="rename_file">إعادة تسمية الملف</string>
+    <string name="rename_file_description">حدّث اسم الملف دون تغيير صيغته</string>
+
+    <string name="unable_to_start_purchase_now">تعذر بدء عملية الشراء الآن.</string>
+
+    <string name="restore">استعادة</string>
+    <string name="processing">جارٍ المعالجة...</string>
+    <string name="loading">جارٍ التحميل...</string>
+    <string name="premium_active">الاشتراك المميز نشط</string>
+    <string name="upgrade">ترقية</string>
+    <string name="premium_terms_privacy_message">بالمتابعة، فإنك توافق على شروط الخدمة وسياسة الخصوصية الخاصة بنا.</string>
+
+    <string name="unlimited_access">وصول غير محدود</string>
+    <string name="premium_access_advanced_features">استمتع بجميع الميزات المتقدمة لتطبيق التنزيل</string>
+    <string name="ads_free">بدون إعلانات!</string>
+    <string name="faster_downloads_10x">تنزيلات أسرع 10 مرات</string>
+    <string name="unlimited_downloads">تنزيلات غير محدودة</string>
+    <string name="access_full_features">الوصول إلى جميع الميزات</string>
+    <string name="cancel_anytime_auto_renew">يمكنك الإلغاء في أي وقت. يتم التجديد تلقائيًا بعد الفترة التجريبية.</string>
+
+
+    <string name="plan_weekly">أسبوعي</string>
+    <string name="plan_monthly">شهري</string>
+    <string name="plan_yearly">سنوي</string>
+    <string name="plan_lifetime">مدى الحياة</string>
+
+    <string name="plan_badge_basic">أساسي</string>
+    <string name="plan_badge_popular">الأكثر شيوعًا</string>
+    <string name="plan_badge_best_choice">أفضل اختيار</string>
+    <string name="plan_badge_best_ever">الأفضل على الإطلاق</string>
+
+
+     <string name="splash_download_videos_instantly">نزّل الفيديوهات فورًا من أي مكان.</string>
+    <string name="please_wait">يرجى الانتظار...</string>
+    <string name="preparing">جارٍ التحضير...</string>
+    <string name="get_started">ابدأ الآن</string>
+    <string name="app_may_contain_ads">قد يحتوي هذا التطبيق على إعلانات</string>
 </resources>

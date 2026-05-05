@@ -31,16 +31,21 @@ import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.viewinterop.AndroidView
+import androidx.lifecycle.compose.collectAsStateWithLifecycle
 import com.app.videodownloader.domain.model.ads.AdState
 import com.app.videodownloader.domain.model.ads.BannerAdConfig
 import com.app.videodownloader.domain.model.ads.BannerAdScreen
 import com.app.videodownloader.domain.model.ads.BannerAdSlot
+import com.app.videodownloader.domain.usecases.ads.CanRequestAdsUseCase
+import com.app.videodownloader.domain.usecases.billing.ObserveIsPremiumUserUseCase
 import com.google.ads.mediation.admob.AdMobAdapter
 import com.google.android.gms.ads.AdListener
 import com.google.android.gms.ads.AdRequest
 import com.google.android.gms.ads.AdSize
 import com.google.android.gms.ads.AdView
 import com.google.android.gms.ads.LoadAdError
+import org.koin.compose.getKoin
+ import org.koin.compose.getKoin
 
 @Composable
 fun BannerAdHost(
@@ -50,7 +55,31 @@ fun BannerAdHost(
     modifier: Modifier = Modifier,
     onAdStateChanged: (AdState) -> Unit = {}
 ) {
+
     if (!config.isEnabled(screen, slot)) {
+        return
+    }
+
+    val observeIsPremiumUserUseCase: ObserveIsPremiumUserUseCase = getKoin().get()
+    val isPremiumUser by observeIsPremiumUserUseCase().collectAsStateWithLifecycle(
+        initialValue = false
+    )
+
+    if (isPremiumUser) {
+        onAdStateChanged(
+            AdState.Skipped("Banner skipped: premium user")
+        )
+        return
+    }
+
+
+
+    val canRequestAdsUseCase: CanRequestAdsUseCase = getKoin().get()
+
+    if (!canRequestAdsUseCase()) {
+        onAdStateChanged(
+            AdState.Skipped("Banner ad skipped: consent not ready")
+        )
         return
     }
 

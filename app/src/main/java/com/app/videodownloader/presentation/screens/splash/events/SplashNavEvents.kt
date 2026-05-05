@@ -5,3 +5,4 @@ sealed class SplashNavEvents {
     object NavigateToMainSrc: SplashNavEvents()
     object ExitApp: SplashNavEvents()
 }
+

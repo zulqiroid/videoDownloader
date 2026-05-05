@@ -1,28 +1,37 @@
 package com.app.videodownloader.presentation.screens.premium.state
 
+import androidx.annotation.StringRes
+import com.app.videodownloader.R
+
 data class PremiumState(
     val isLoading: Boolean = false,
     val selectedPlan: PlanType = PlanType.MONTHLY,
-    val plans: List<Plan> = emptyList(),
+    val plans: List<Plan> = defaultPreviewPlans(),
     val isPurchaseInProgress: Boolean = false,
-    val error: String? = null
+    val isPremiumUser: Boolean = false,
+    val error: String? = null,
+    val message: String? = null,
 )
 
 enum class PlanType(
-    val title: String,
-    val badge: String
+    @StringRes val titleRes: Int,
+    @StringRes val badgeRes: Int
 ) {
     WEEKLY(
-        title = "Weekly",
-        badge = "Basic"
+        titleRes = R.string.plan_weekly,
+        badgeRes = R.string.plan_badge_basic
     ),
     MONTHLY(
-        title = "Monthly",
-        badge = "Popular"
+        titleRes = R.string.plan_monthly,
+        badgeRes = R.string.plan_badge_popular
     ),
     YEARLY(
-        title = "Yearly",
-        badge = "Best Choice"
+        titleRes = R.string.plan_yearly,
+        badgeRes = R.string.plan_badge_best_choice
+    ),
+    LIFETIME(
+        titleRes = R.string.plan_lifetime,
+        badgeRes = R.string.plan_badge_best_ever
     )
 }
 
@@ -31,3 +40,25 @@ data class Plan(
     val price: String,
     val isPopular: Boolean = false
 )
+
+fun defaultPreviewPlans(): List<Plan> {
+    return listOf(
+        Plan(
+            type = PlanType.WEEKLY,
+            price = "--"
+        ),
+        Plan(
+            type = PlanType.MONTHLY,
+            price = "--",
+            isPopular = true
+        ),
+        Plan(
+            type = PlanType.YEARLY,
+            price = "--"
+        ),
+        Plan(
+            type = PlanType.LIFETIME,
+            price = "--"
+        )
+    )
+}

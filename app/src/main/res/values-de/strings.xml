@@ -136,4 +136,174 @@
     <string name="media_permission_allow_button">Berechtigung erlauben</string>
     <string name="media_permission_open_settings_button">Einstellungen öffnen</string>
 
+
+     <string name="search_your_downloads_hint">Durchsuche deine Downloads...</string>
+
+
+    <string name="share_reel">Reel teilen</string>
+    <string name="unable_to_share_this_reel">Dieses Reel konnte nicht geteilt werden</string>
+    <string name="fetching_video_details">Videodetails werden abgerufen</string>
+    <string name="please_wait_prepare_download">Bitte warten Sie, während wir Ihren Download vorbereiten.</string>
+    <string name="share_file">%1$s teilen</string>
+    <string name="send_feedback">Feedback senden</string>
+    <string name="no_email_app_found">Keine E-Mail-App gefunden</string>
+    <string name="unable_to_open_email_app">E-Mail-App konnte nicht geöffnet werden</string>
+    <string name="unknown">Unbekannt</string>
+    <string name="feedback_app_version">App-Version: %1$s</string>
+    <string name="feedback_package">Paket: %1$s</string>
+    <string name="feedback_android_version">Android: %1$s (SDK %2$d)</string>
+    <string name="feedback_device">Gerät: %1$s %2$s</string>
+
+
+    <string name="bottom_nav_home">Startseite</string>
+    <string name="bottom_nav_player">Player</string>
+    <string name="bottom_nav_reels">Reels</string>
+    <string name="bottom_nav_download">Downloads</string>
+    <string name="bottom_nav_more">Mehr</string>
+    <string name="bottom_nav_social">Social</string>
+
+
+    <string name="media_option_playback_speed">Wiedergabegeschwindigkeit</string>
+    <string name="media_option_set_as_ringtone">Als Klingelton festlegen</string>
+    <string name="media_option_share_track">Titel teilen</string>
+    <string name="media_option_file_info">Dateiinformationen</string>
+    <string name="media_option_rename_file">Datei umbenennen</string>
+    <string name="media_option_delete_file">Datei löschen</string>
+    <string name="media_option_share_video">Video teilen</string>
+
+
+    <string name="reset_to_default">Auf Standard zurücksetzen</string>
+    <string name="cancel">Abbrechen</string>
+    <string name="playback_speed">Wiedergabegeschwindigkeit</string>
+    <string name="playback_speed_025">0.25x</string>
+    <string name="playback_speed_05">0.5x</string>
+    <string name="playback_speed_10_normal">1.0x (Normal)</string>
+    <string name="playback_speed_125">1.25x</string>
+    <string name="playback_speed_15">1.5x</string>
+    <string name="playback_speed_20">2.0x</string>
+    <string name="playback_speed_40">4.0x</string>
+
+    <string name="confirm_selection">Auswahl bestätigen</string>
+    <string name="set_as_ringtone">Als Klingelton festlegen</string>
+    <string name="default_ringtone">Standard-Klingelton</string>
+    <string name="notification_sound">Benachrichtigungston</string>
+    <string name="alarm_tone">Alarmton</string>
+
+
+    <string name="premium_plan">PREMIUM-PLAN</string>
+    <string name="premium_plan_description">Genießen Sie ein werbefreies Erlebnis und \nschnellere Download-Geschwindigkeiten.</string>
+    <string name="upgrade_now">Jetzt upgraden</string>
+
+    <string name="general_settings">ALLGEMEINE EINSTELLUNGEN</string>
+    <string name="languages">Sprachen</string>
+    <string name="choose_your_preferred_language">Wählen Sie Ihre bevorzugte Sprache</string>
+    <string name="how_to_download">So laden Sie herunter</string>
+    <string name="step_by_step_guide">Schritt-für-Schritt-Anleitung</string>
+    <string name="notifications">Benachrichtigungen</string>
+    <string name="set_up_your_alerts">Richten Sie Ihre Benachrichtigungen ein</string>
+
+    <string name="support_and_share">SUPPORT UND TEILEN</string>
+    <string name="share_app">App teilen</string>
+    <string name="invite_friends">Freunde einladen</string>
+    <string name="rate_us">Bewerten Sie uns</string>
+    <string name="give_feedback_on_store">Feedback im Store geben</string>
+    <string name="feedback">Feedback</string>
+    <string name="send_us_your_suggestions">Senden Sie uns Ihre Vorschläge</string>
+    <string name="privacy_policy">Datenschutzrichtlinie</string>
+    <string name="legal_and_usage_terms">Rechtliche Hinweise und Nutzungsbedingungen</string>
+
+    <string name="share_app_message">Sehen Sie sich %1$s an:\n%2$s</string>
+    <string name="no_app_found_to_share">Keine App zum Teilen gefunden</string>
+
+
+
+    <string name="next">Weiter</string>
+    <string name="continue_text">Fortfahren</string>
+    <string name="video_title_part">Video </string>
+    <string name="downloader_title_part">Downloader</string>
+    <string name="advanced_download_engine">Die fortschrittliche Download-Engine.</string>
+
+
+
+    <string name="empty_string"></string>
+    <string name="onboarding_welcome_to">Willkommen bei</string>
+    <string name="onboarding_video_downloader">Video Downloader</string>
+    <string name="onboarding_download_videos_music">Laden Sie Videos und Musik von jeder Plattform sofort herunter.</string>
+    <string name="onboarding_watch_trending">Trends ansehen</string>
+    <string name="onboarding_reels">Reels</string>
+    <string name="onboarding_enjoy_download_reels">Genießen und laden Sie Ihre Lieblings-Reels sofort herunter.</string>
+    <string name="onboarding_built_in_video">Integriertes Video</string>
+    <string name="onboarding_player">Player</string>
+    <string name="onboarding_download_watch_videos_audios">Laden Sie Ihre Videos und Audiodateien einfach herunter und sehen Sie sie sich an.</string>
+    <string name="onboarding_advanced_downloading_engine">Die fortschrittliche Download-Engine.</string>
+
+
+
+    <string name="delete_file">Datei löschen</string>
+    <string name="delete_file_confirmation_message">Möchten Sie diese Datei wirklich löschen? Diese Aktion kann nicht rückgängig gemacht werden.</string>
+     <string name="delete">Löschen</string>
+
+    <string name="file_information">Dateiinformationen</string>
+    <string name="file_name">Dateiname</string>
+    <string name="format">Format</string>
+    <string name="resolution">Auflösung</string>
+    <string name="duration">Dauer</string>
+    <string name="file_size">Dateigröße</string>
+    <string name="storage_location">Speicherort</string>
+
+    <string name="media">Medien</string>
+    <string name="stored_in">Gespeichert in: %1$s</string>
+    <string name="play_now">Jetzt abspielen</string>
+     <string name="rename">Umbenennen</string>
+    <string name="move_to_folder">In Ordner verschieben</string>
+    <string name="file_info">Dateiinformationen</string>
+    <string name="dismiss">Schließen</string>
+
+
+    <string name="play_all_count">Alle abspielen (%1$d)</string>
+    <string name="videos">Videos</string>
+    <string name="music">Musik</string>
+
+    <string name="new_file_name">Neuer Dateiname</string>
+    <string name="enter_file_name">Dateinamen eingeben</string>
+    <string name="rename_file">Datei umbenennen</string>
+    <string name="rename_file_description">Aktualisieren Sie den Dateinamen, ohne das Format zu ändern</string>
+
+
+
+    <string name="unable_to_start_purchase_now">Der Kauf kann derzeit nicht gestartet werden.</string>
+
+    <string name="restore">Wiederherstellen</string>
+    <string name="processing">Wird verarbeitet...</string>
+    <string name="loading">Wird geladen...</string>
+    <string name="premium_active">Premium aktiv</string>
+    <string name="upgrade">Upgraden</string>
+    <string name="premium_terms_privacy_message">Wenn Sie fortfahren, stimmen Sie unseren Nutzungsbedingungen und unserer Datenschutzrichtlinie zu.</string>
+
+    <string name="unlimited_access">Unbegrenzter Zugriff</string>
+    <string name="premium_access_advanced_features">Greifen Sie auf alle erweiterten Funktionen des Downloaders zu</string>
+    <string name="ads_free">Werbefrei!</string>
+    <string name="faster_downloads_10x">10x schnellere Downloads</string>
+    <string name="unlimited_downloads">Unbegrenzte Downloads</string>
+    <string name="access_full_features">Zugriff auf alle Funktionen</string>
+    <string name="cancel_anytime_auto_renew">Jederzeit kündbar. Automatische Verlängerung nach der Testphase.</string>
+
+
+    <string name="plan_weekly">Wöchentlich</string>
+    <string name="plan_monthly">Monatlich</string>
+    <string name="plan_yearly">Jährlich</string>
+    <string name="plan_lifetime">Lebenslang</string>
+
+    <string name="plan_badge_basic">Basic</string>
+    <string name="plan_badge_popular">Beliebt</string>
+    <string name="plan_badge_best_choice">Beste Wahl</string>
+    <string name="plan_badge_best_ever">Am besten</string>
+
+
+     <string name="splash_download_videos_instantly">Laden Sie Videos sofort von überall herunter.</string>
+    <string name="please_wait">Bitte warten...</string>
+    <string name="preparing">Wird vorbereitet...</string>
+    <string name="get_started">Loslegen</string>
+    <string name="app_may_contain_ads">Diese App kann Werbung enthalten</string>
+
 </resources>

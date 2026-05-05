@@ -24,6 +24,7 @@ import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.res.painterResource
+import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.text.style.TextAlign
 import androidx.compose.ui.unit.dp
@@ -76,7 +77,7 @@ fun DeleteFileDialog(
                 Spacer(modifier = Modifier.height(22.dp))
 
                 Text(
-                    text = "Delete File",
+                    text = stringResource(R.string.delete_file),
                     fontSize = 22.sp,
                     fontWeight = FontWeight.W800,
                     color = Color(0xFF111827),
@@ -86,7 +87,7 @@ fun DeleteFileDialog(
                 Spacer(modifier = Modifier.height(12.dp))
 
                 Text(
-                    text = "Are you sure you want to delete this file? This action cannot be undone.",
+                    text = stringResource(R.string.delete_file_confirmation_message),
                     fontSize = 16.sp,
                     fontWeight = FontWeight.W500,
                     color = Color(0xFF6B7280),
@@ -127,7 +128,7 @@ fun DeleteFileDialog(
                         )
                     ) {
                         Text(
-                            text = "Cancel",
+                            text = stringResource(R.string.cancel),
                             fontSize = 16.sp,
                             fontWeight = FontWeight.W800
                         )

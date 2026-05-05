@@ -31,6 +31,7 @@ import androidx.compose.runtime.getValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.graphics.Color
+import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.text.style.TextAlign
 import androidx.compose.ui.unit.dp
@@ -38,6 +39,7 @@ import androidx.compose.ui.unit.sp
 import androidx.lifecycle.compose.collectAsStateWithLifecycle
 import androidx.navigation3.runtime.NavBackStack
 import androidx.navigation3.runtime.NavKey
+import com.app.videodownloader.R
 import com.app.videodownloader.domain.model.ads.BannerAdScreen
 import com.app.videodownloader.domain.model.ads.BannerAdSlot
 import com.app.videodownloader.domain.model.ads.NativeAdPosition
@@ -71,16 +73,17 @@ fun OnboardingScreen(
 
     val bannerScreen = BannerAdScreen.OnBoarding
 
-    val showTopBanner = bannerState.config.isEnabled(
+    val canShowAds = !state.isPremiumUser
+
+    val showTopBanner = canShowAds && bannerState.config.isEnabled(
         screen = bannerScreen,
         slot = BannerAdSlot.Top
     )
 
-    val showBottomBanner = bannerState.config.isEnabled(
+    val showBottomBanner = canShowAds && bannerState.config.isEnabled(
         screen = bannerScreen,
         slot = BannerAdSlot.Bottom
     )
-
     BackHandler {
         viewModel.onEvent(OnboardingEvents.OnBackClicked)
     }
@@ -117,7 +120,12 @@ fun OnboardingScreen(
 
 
     val currentModel = state.pages.getOrNull(state.currentPage)
-    val currentPlacementKey = currentModel?.nativeAdPlacementKey
+    val currentPlacementKey = if (canShowAds) {
+        currentModel?.nativeAdPlacementKey
+    } else {
+        null
+    }
+
     val currentPlacementConfig = currentPlacementKey
         ?.let { key -> state.nativeAdConfig.placement(key) }
 
@@ -191,12 +199,17 @@ fun OnboardingScreen(
 
                         OnboardingPage(
                             model = model,
-                            nativeAd = if (page == state.currentPage && placementKey != null) {
+                            nativeAd = if (
+                                canShowAds &&
+                                page == state.currentPage &&
+                                placementKey != null
+                            ) {
                                 state.nativeAds[placementKey]
                             } else {
                                 null
                             },
-                            nativeAdConfig = state.nativeAdConfig
+                            nativeAdConfig = state.nativeAdConfig,
+                            canShowAds = canShowAds
                         )
                     }
 
@@ -224,7 +237,11 @@ fun OnboardingScreen(
                                 AppButton(
                                     padding = 0,
                                     modifier = Modifier,
-                                    text = if (state.isLastPage) "Continue" else "Next",
+                                    text = if (state.isLastPage) {
+                                        stringResource(R.string.continue_text)
+                                    } else {
+                                        stringResource(R.string.next)
+                                    },
                                     onClick = {
                                         if (state.isLastPage) {
                                             viewModel.onEvent(OnboardingEvents.ContinueClicked)
@@ -236,18 +253,15 @@ fun OnboardingScreen(
                             }
 
                             if (
+                                canShowAds &&
                                 shouldShowBottomNativeAd &&
                                 currentPlacementConfig != null
                             ) {
-
-
                                 NativeAdHost(
                                     nativeAd = currentNativeAd,
                                     nativeAdConfig = state.nativeAdConfig,
                                     placementConfig = currentPlacementConfig
                                 )
-
-
                             }
                         }
                     }
@@ -274,13 +288,14 @@ fun OnboardingScreen(
                                 verticalAlignment = Alignment.CenterVertically
                             ) {
                                 Text(
-                                    text = "Video ",
+                                    text = stringResource(R.string.video_title_part),
                                     fontSize = 33.sp,
                                     fontWeight = FontWeight.W800,
                                     color = Color(0xFF0F172A)
                                 )
+
                                 Text(
-                                    text = "Downloader",
+                                    text = stringResource(R.string.downloader_title_part),
                                     fontSize = 33.sp,
                                     fontWeight = FontWeight.W800,
                                     color = Color(0xFFE00004)
@@ -291,7 +306,7 @@ fun OnboardingScreen(
 
                             // Subtitle
                             Text(
-                                text = "The advanced download engine.",
+                                text = stringResource(R.string.advanced_download_engine),
                                 fontSize = 18.sp,
                                 color = Color.Gray,
                                 fontWeight = FontWeight.W400,
@@ -301,9 +316,8 @@ fun OnboardingScreen(
                             Spacer(modifier = Modifier.height(20.dp))
 
                             AppButton(
-                                modifier = Modifier
-                                    .fillMaxWidth(),
-                                text = "Continue",
+                                modifier = Modifier.fillMaxWidth(),
+                                text = stringResource(R.string.continue_text),
                                 onClick = {
                                     viewModel.onEvent(OnboardingEvents.ContinueClicked)
                                 }

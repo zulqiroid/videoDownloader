@@ -1,217 +1,264 @@
 package com.app.videodownloader.data.repository.implementation
 
-import android.app.DownloadManager
 import android.content.Context
-import android.net.Uri
 import android.os.Environment
-import android.util.Log
+import androidx.work.Constraints
+import androidx.work.Data
+import androidx.work.ExistingWorkPolicy
+import androidx.work.NetworkType
+import androidx.work.OneTimeWorkRequestBuilder
+import androidx.work.WorkManager
+import com.app.videodownloader.data.worker.VideoDownloadWorker
 import com.app.videodownloader.domain.model.DownloadItem
+import com.app.videodownloader.domain.model.DownloadProgressStore
 import com.app.videodownloader.domain.model.DownloadStatus
-import com.app.videodownloader.domain.repository.VideoDownloadRepository
-import kotlinx.coroutines.CoroutineScope
-import kotlinx.coroutines.Dispatchers
-import kotlinx.coroutines.SupervisorJob
-import kotlinx.coroutines.delay
+ import com.app.videodownloader.domain.repository.VideoDownloadRepository
 import kotlinx.coroutines.flow.Flow
-import kotlinx.coroutines.flow.MutableStateFlow
-import kotlinx.coroutines.flow.update
-import kotlinx.coroutines.launch
 import java.io.File
 
-
 class VideoDownloadRepositoryImpl(
-    private val context: Context
+    context: Context,
+    private val progressStore: DownloadProgressStore,
 ) : VideoDownloadRepository {
 
-    private val scope = CoroutineScope(SupervisorJob() + Dispatchers.IO)
-    private val downloads = MutableStateFlow<List<DownloadItem>>(emptyList())
+    private val appContext = context.applicationContext
 
-    override fun observeDownloads(): Flow<List<DownloadItem>> = downloads
+    private val workManager = WorkManager.getInstance(appContext)
 
-    override suspend fun startDownload(url: String): Long {
+    override fun observeDownloads(): Flow<List<DownloadItem>> {
+        return progressStore.observeDownloads()
+    }
 
-        Log.d("video to be download", "the downloading video link is $url")
+    override suspend fun startDownload(
+        url: String,
+    ): Long {
+        val id = System.currentTimeMillis()
+        val fileName = "video_$id.mp4"
 
-        val dm = context.getSystemService(Context.DOWNLOAD_SERVICE) as DownloadManager
-
-        val fileName = "video_${System.currentTimeMillis()}.mp4"
-
-        val request = DownloadManager.Request(Uri.parse(url))
-            .setNotificationVisibility(
-                DownloadManager.Request.VISIBILITY_VISIBLE_NOTIFY_COMPLETED
-            )
-            .setDestinationInExternalPublicDir(
-                Environment.DIRECTORY_DOWNLOADS,
-                "VideoDownloader/$fileName"
-            )
-
-        val id = dm.enqueue(request)
-
-        val filePath = File(
-            Environment.getExternalStoragePublicDirectory(Environment.DIRECTORY_DOWNLOADS),
-            "VideoDownloader/$fileName"
-        ).absolutePath
-
-        trackDownload(id, url, fileName, filePath)
+        enqueueDownload(
+            id = id,
+            url = url,
+            fileName = fileName,
+            replaceExisting = true
+        )
 
         return id
     }
 
-    override suspend fun getAllDownloadedFiles(): List<DownloadItem> {
+    override suspend fun pauseDownload(
+        id: Long,
+    ) {
+        val item = progressStore.get(id) ?: return
 
-        val folder = File(
-            Environment.getExternalStoragePublicDirectory(Environment.DIRECTORY_DOWNLOADS),
-            "VideoDownloader"
+        if (item.status != DownloadStatus.DOWNLOADING) {
+            return
+        }
+
+        workManager.cancelUniqueWork(
+            uniqueWorkName(id)
         )
+
+        val tempFile = File(
+            getDownloadFolder(),
+            "${item.fileName}.part"
+        )
+
+        val downloadedBytes = tempFile
+            .takeIf { it.exists() }
+            ?.length()
+            ?: item.downloadedBytes
+
+        progressStore.upsert(
+            item.copy(
+                status = DownloadStatus.PAUSED,
+                downloadedBytes = downloadedBytes,
+                progress = calculateProgress(
+                    downloadedBytes = downloadedBytes,
+                    totalBytes = item.totalBytes
+                ),
+                speedBytesPerSec = 0L,
+                lastEtaSeconds = -1L
+            )
+        )
+    }
+
+    override suspend fun resumeDownload(
+        id: Long,
+    ) {
+        val item = progressStore.get(id) ?: return
+
+        if (item.status != DownloadStatus.PAUSED && item.status != DownloadStatus.FAILED) {
+            return
+        }
+
+        enqueueDownload(
+            id = item.id,
+            url = item.url,
+            fileName = item.fileName,
+            replaceExisting = true
+        )
+    }
+
+    override suspend fun cancelDownload(
+        id: Long,
+    ) {
+        val item = progressStore.get(id)
+
+        workManager.cancelUniqueWork(
+            uniqueWorkName(id)
+        )
+
+        if (item != null) {
+            File(item.filePath).delete()
+
+            File(
+                getDownloadFolder(),
+                "${item.fileName}.part"
+            ).delete()
+        }
+
+        progressStore.remove(id)
+    }
+
+    override suspend fun getAllDownloadedFiles(): List<DownloadItem> {
+        val folder = getDownloadFolder()
 
         if (!folder.exists()) return emptyList()
 
-        return folder.listFiles()?.map { file ->
-            DownloadItem(
-                id = file.absolutePath.hashCode().toLong(),
-                url = file.absolutePath,
-                fileName = file.name,
-                filePath = file.absolutePath,
-                progress = 100,
-                status = DownloadStatus.SUCCESS,
-                downloadedBytes = file.length(),
-                totalBytes = file.length()
-            )
-        } ?: emptyList()
+        val fileItems = folder
+            .listFiles()
+            ?.filter { file ->
+                file.isFile && !file.name.endsWith(PART_FILE_EXTENSION)
+            }
+            ?.map { file ->
+                DownloadItem(
+                    id = file.absolutePath.hashCode().toLong(),
+                    url = file.absolutePath,
+                    fileName = file.name,
+                    filePath = file.absolutePath,
+                    progress = 100,
+                    status = DownloadStatus.SUCCESS,
+                    downloadedBytes = file.length(),
+                    totalBytes = file.length()
+                )
+            }
+            .orEmpty()
+
+        fileItems.forEach { item ->
+            progressStore.upsert(item)
+        }
+
+        return fileItems
     }
 
-    override suspend fun cancelDownload(id: Long) {
-
-        val dm = context.getSystemService(Context.DOWNLOAD_SERVICE) as DownloadManager
-
-        // cancel download
-        dm.remove(id)
-
-        // remove from flow
-        downloads.update { current ->
-            current.filterNot { it.id == id }
-        }
-    }
-
-/*    override suspend fun deleteDownload(id: Long) {
-
-        val dm = context.getSystemService(Context.DOWNLOAD_SERVICE) as DownloadManager
-
-        val item = downloads.value.firstOrNull { it.id == id }
-
-        dm.remove(id)
-
-        item?.filePath?.let {
-            val file = File(it)
-            if (file.exists()) file.delete()
-        }
-
-        downloads.update { current ->
-            current.filterNot { it.id == id }
-        }
-    }*/
-
-    private fun trackDownload(
+    private suspend fun enqueueDownload(
         id: Long,
         url: String,
         fileName: String,
-        filePath: String
+        replaceExisting: Boolean,
     ) {
-        scope.launch {
+        val finalFile = File(
+            getDownloadFolder(),
+            fileName
+        )
 
-            val dm = context.getSystemService(Context.DOWNLOAD_SERVICE) as DownloadManager
+        val tempFile = File(
+            getDownloadFolder(),
+            "$fileName.part"
+        )
 
-            var lastBytes = 0L
-            var lastTime = System.currentTimeMillis()
-            var lastSpeed = 0L
-            var lastEta = -1L
+        val currentItem = progressStore.get(id)
 
-            while (true) {
+        progressStore.upsert(
+            DownloadItem(
+                id = id,
+                url = url,
+                fileName = fileName,
+                filePath = finalFile.absolutePath,
+                progress = currentItem?.progress ?: calculateProgress(
+                    downloadedBytes = tempFile.length(),
+                    totalBytes = currentItem?.totalBytes ?: 0L
+                ),
+                status = DownloadStatus.DOWNLOADING,
+                downloadedBytes = tempFile.length(),
+                totalBytes = currentItem?.totalBytes ?: 0L,
+                speedBytesPerSec = 0L,
+                lastEtaSeconds = -1L
+            )
+        )
 
-                val cursor = dm.query(
-                    DownloadManager.Query().setFilterById(id)
-                )
+        val inputData = Data.Builder()
+            .putLong(
+                VideoDownloadWorker.KEY_ID,
+                id
+            )
+            .putString(
+                VideoDownloadWorker.KEY_URL,
+                url
+            )
+            .putString(
+                VideoDownloadWorker.KEY_FILE_NAME,
+                fileName
+            )
+            .build()
 
-                cursor?.use {
+        val constraints = Constraints.Builder()
+            .setRequiredNetworkType(
+                NetworkType.CONNECTED
+            )
+            .build()
 
-                    if (it.moveToFirst()) {
+        val workRequest = OneTimeWorkRequestBuilder<VideoDownloadWorker>()
+            .setInputData(inputData)
+            .setConstraints(constraints)
+            .addTag(WORK_TAG)
+            .addTag(uniqueWorkName(id))
+            .build()
 
-                        val downloaded =
-                            it.getLong(it.getColumnIndexOrThrow(DownloadManager.COLUMN_BYTES_DOWNLOADED_SO_FAR))
+        workManager.enqueueUniqueWork(
+            uniqueWorkName(id),
+            if (replaceExisting) {
+                ExistingWorkPolicy.REPLACE
+            } else {
+                ExistingWorkPolicy.KEEP
+            },
+            workRequest
+        )
+    }
 
-                        val total =
-                            it.getLong(it.getColumnIndexOrThrow(DownloadManager.COLUMN_TOTAL_SIZE_BYTES))
-
-                        val statusInt =
-                            it.getInt(it.getColumnIndexOrThrow(DownloadManager.COLUMN_STATUS))
-
-                        val now = System.currentTimeMillis()
-
-                        val timeDiff = now - lastTime
-                        val bytesDiff = downloaded - lastBytes
-
-                        val rawSpeed = if (timeDiff > 0) {
-                            (bytesDiff * 1000) / timeDiff
-                        } else 0
-
-                        val speed = if (rawSpeed > 0) {
-                            lastSpeed = rawSpeed
-                            rawSpeed
-                        } else {
-                            lastSpeed
-                        }
-
-                        lastBytes = downloaded
-                        lastTime = now
-
-                        val progress =
-                            if (total > 0) ((downloaded * 100) / total).toInt() else 0
-
-                        val remaining = total - downloaded
-
-                        val eta = if (speed > 0) {
-                            val calculated = remaining / speed
-                            lastEta = calculated
-                            calculated
-                        } else {
-                            lastEta
-                        }
-
-                        val item = DownloadItem(
-                            id = id,
-                            url = url,
-                            fileName = fileName,
-                            filePath = filePath,
-                            progress = progress,
-                            status = mapStatus(statusInt),
-                            downloadedBytes = downloaded,
-                            totalBytes = total,
-                            speedBytesPerSec = speed,
-                            lastEtaSeconds = eta
-                        )
-
-                        downloads.update { current ->
-                            current.filterNot { it.id == id } + item
-                        }
-
-                        if (
-                            statusInt == DownloadManager.STATUS_SUCCESSFUL ||
-                            statusInt == DownloadManager.STATUS_FAILED
-                        ) break
-                    }
-                }
-
-                delay(800) // smoother polling
+    private fun getDownloadFolder(): File {
+        return File(
+            Environment.getExternalStoragePublicDirectory(
+                Environment.DIRECTORY_DOWNLOADS
+            ),
+            DOWNLOAD_FOLDER_NAME
+        ).apply {
+            if (!exists()) {
+                mkdirs()
             }
         }
     }
 
-    private fun mapStatus(status: Int): DownloadStatus {
-        return when (status) {
-            DownloadManager.STATUS_RUNNING -> DownloadStatus.DOWNLOADING
-            DownloadManager.STATUS_PAUSED -> DownloadStatus.PAUSED
-            DownloadManager.STATUS_SUCCESSFUL -> DownloadStatus.SUCCESS
-            else -> DownloadStatus.FAILED
-        }
+    private fun calculateProgress(
+        downloadedBytes: Long,
+        totalBytes: Long,
+    ): Int {
+        if (totalBytes <= 0L) return 0
+
+        return ((downloadedBytes * 100L) / totalBytes)
+            .toInt()
+            .coerceIn(0, 100)
+    }
+
+    private fun uniqueWorkName(
+        id: Long,
+    ): String {
+        return "$WORK_TAG-$id"
+    }
+
+    private companion object {
+        private const val DOWNLOAD_FOLDER_NAME = "VideoDownloader"
+        private const val WORK_TAG = "video_download"
+        private const val PART_FILE_EXTENSION = ".part"
     }
 }

@@ -19,8 +19,27 @@ object DataStoreKeys {
     val APP_UPDATES_ENABLED =
         booleanPreferencesKey("app_updates_notification_enabled")
 
+    val BASE_API_URL= stringPreferencesKey("base_api_url")
+
+    val API_SECRET_KEY = stringPreferencesKey("api_secret_key")
+
+    val SHOW_PREMIUM_ICON = booleanPreferencesKey("show_premium_icon")
+
 
 
     val SELECTED_LANGUAGE_CODE =
         stringPreferencesKey("selected_language_code")
+
+
+    val IS_PREMIUM_USER =
+        booleanPreferencesKey("is_premium_user")
+
+    val PREMIUM_ACTIVE_PRODUCT_IDS =
+        stringPreferencesKey("premium_active_product_ids")
+
+    val PREMIUM_ENTITLEMENT_SOURCE =
+        stringPreferencesKey("premium_entitlement_source")
+
+    val PREMIUM_ENTITLEMENT_UPDATED_AT =
+        stringPreferencesKey("premium_entitlement_updated_at")
 }

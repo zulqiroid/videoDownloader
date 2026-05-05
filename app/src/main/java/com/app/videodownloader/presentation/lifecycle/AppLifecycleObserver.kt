@@ -6,11 +6,15 @@ import android.os.Bundle
 import android.util.Log
 import androidx.lifecycle.DefaultLifecycleObserver
 import androidx.lifecycle.LifecycleOwner
+import com.app.videodownloader.data.manager.FullScreenAdCoordinator
 import com.app.videodownloader.domain.model.ads.AdState
 import com.app.videodownloader.domain.repository.ads.AppOpenAdRepository
+import com.app.videodownloader.domain.usecases.ads.CanRequestAdsUseCase
 
 class AppOpenAdLifecycleObserver(
-    private val appOpenAdRepository: AppOpenAdRepository
+    private val appOpenAdRepository: AppOpenAdRepository,
+    private val canRequestAdsUseCase: CanRequestAdsUseCase,
+    private val fullScreenAdCoordinator: FullScreenAdCoordinator
 ) : Application.ActivityLifecycleCallbacks, DefaultLifecycleObserver {
 
     private var currentActivity: Activity? = null
@@ -19,12 +23,16 @@ class AppOpenAdLifecycleObserver(
     private var appOpenAdFlowInProgress: Boolean = false
 
     fun preload() {
+        if (!canRequestAdsUseCase()) {
+            Log.d(TAG, "App Open preload skipped: consent not ready.")
+            return
+        }
+
         appOpenAdRepository.loadAd()
     }
-
     override fun onStop(owner: LifecycleOwner) {
-        if (appOpenAdFlowInProgress) {
-            Log.d(TAG, "App stop ignored because App Open ad flow is active.")
+        if (appOpenAdFlowInProgress || fullScreenAdCoordinator.isAnyFullScreenAdShowing()) {
+            Log.d(TAG, "App stop ignored because a full-screen ad flow is active.")
             return
         }
 
@@ -35,6 +43,12 @@ class AppOpenAdLifecycleObserver(
     }
 
     override fun onResume(owner: LifecycleOwner) {
+        if (fullScreenAdCoordinator.isAnyFullScreenAdShowing()) {
+            Log.d(TAG, "App Open resume skipped: another full-screen ad is showing.")
+            appWasInBackground = false
+            return
+        }
+
         if (!appWasInBackground) {
             Log.d(TAG, "Resume ignored because app did not come from background.")
             return
@@ -46,6 +60,18 @@ class AppOpenAdLifecycleObserver(
 
     private fun showAppOpenAdOnResume() {
         val config = appOpenAdRepository.getCurrentConfig()
+
+
+
+        if (!canRequestAdsUseCase()) {
+            Log.d(TAG, "App Open resume skipped: consent not ready.")
+            return
+        }
+
+        if (fullScreenAdCoordinator.isAnyFullScreenAdShowing()) {
+            Log.d(TAG, "App Open resume skipped: another full-screen ad is showing.")
+            return
+        }
 
         if (!config.enabled) {
             Log.d(TAG, "App Open resume skipped: disabled by remote config.")

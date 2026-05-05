@@ -12,6 +12,7 @@ import androidx.compose.ui.Modifier
 import androidx.compose.ui.unit.dp
 import androidx.navigation3.runtime.NavBackStack
 import androidx.navigation3.runtime.NavKey
+import com.app.videodownloader.R
 import com.app.videodownloader.domain.model.Reel
 import com.app.videodownloader.presentation.componants.ReelGrid
 import com.app.videodownloader.presentation.componants.SectionHeader
@@ -29,6 +30,7 @@ fun Social(
     fetchUrl: (String) -> Unit,
     downloadReel: (Reel) -> Unit,
     playReel: (Reel) -> Unit,
+    onReelSeeAllCLicked: () -> Unit
 ) {
 
     val state by viewModel.state.collectAsState()
@@ -54,7 +56,12 @@ fun Social(
 
         Spacer(Modifier.size(20.dp))
 
-        SectionHeader("Trending Reels")
+        SectionHeader(
+            textRes = R.string.home_trending_reels_title,
+            onReelSeeAllCLicked = {
+                onReelSeeAllCLicked()
+            }
+        )
 
         ReelGrid(
             categories = state.category,

@@ -11,6 +11,7 @@ import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.layout.size
+import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.material3.Scaffold
 import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
@@ -18,9 +19,11 @@ import androidx.compose.runtime.LaunchedEffect
 import androidx.compose.runtime.getValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
+import androidx.compose.ui.draw.clip
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.layout.ContentScale
 import androidx.compose.ui.res.painterResource
+import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.text.style.TextAlign
 import androidx.compose.ui.unit.dp
@@ -68,6 +71,12 @@ fun SplashScreen(
     }
     val activity = LocalActivity.current
 
+    LaunchedEffect(activity) {
+        viewModel.onEvent(
+            SplashUiEvents.OnSplashStarted(activity)
+        )
+    }
+
 
     BackHandler {
         viewModel.onEvent(SplashUiEvents.OnBackClicked)
@@ -97,20 +106,20 @@ fun SplashScreen(
                 horizontalAlignment = Alignment.CenterHorizontally
             ) {
                 Column(
-                    modifier = Modifier.weight(1f),
+                    modifier = Modifier.weight(1f).padding(horizontal = 20.dp),
                     horizontalAlignment = Alignment.CenterHorizontally,
                     verticalArrangement = Arrangement.Center
                 ) {
                     Image(
-                        painter = painterResource(R.drawable.app_icon),
+                        painter = painterResource(R.drawable.app_icon_main),
                         contentDescription = "app icon on splash",
-                        modifier = Modifier.size(128.dp)
+                        modifier = Modifier.size(128.dp).clip(RoundedCornerShape(32.dp))
                     )
                     Spacer(
                         modifier = Modifier.size(18.dp)
                     )
                     Text(
-                        text = "Video Downloader",
+                        text = stringResource(R.string.app_name),
                         fontSize = 36.sp,
                         color = Color.Black,
                         fontWeight = FontWeight.Bold
@@ -119,7 +128,7 @@ fun SplashScreen(
                         modifier = Modifier.size(12.dp)
                     )
                     Text(
-                        text = "Download videos instantly from anywhere.",
+                        text = stringResource(R.string.splash_download_videos_instantly),
                         fontSize = 18.sp,
                         color = Color.Black,
                         textAlign = TextAlign.Center,
@@ -131,18 +140,25 @@ fun SplashScreen(
 
                 ) {
                     AppButton(
-                        modifier = Modifier
-                            .fillMaxWidth(),
-                        text = "Get Started",
+                        modifier = Modifier.fillMaxWidth(),
+                        text = when {
+                            state.isStarting -> stringResource(R.string.please_wait)
+                            !state.isConsentReady -> stringResource(R.string.preparing)
+                            else -> stringResource(R.string.get_started)
+                        },
                         onClick = {
-                            viewModel.onEvent(SplashUiEvents.OnGetStartedClicked(activity))
+                            if (!state.isStarting && state.isConsentReady) {
+                                viewModel.onEvent(
+                                    SplashUiEvents.OnGetStartedClicked(activity)
+                                )
+                            }
                         }
                     )
                     Spacer(
                         modifier = Modifier.size(10.dp)
                     )
                     Text(
-                        text = "This app may contains ads",
+                        text = stringResource(R.string.app_may_contain_ads),
                         fontSize = 12.sp,
                         color = Color(0xFFC7C6C6),
                         fontWeight = FontWeight.W400,

@@ -17,7 +17,9 @@ import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.graphics.Color
+import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.unit.dp
+import com.app.videodownloader.R
 
 @Composable
 fun ActionButton(
@@ -35,7 +37,7 @@ fun ActionButton(
         )
     ) {
         Text(
-            text = if (isLastPage) "Continue" else "Next",
+            text = if (isLastPage) stringResource(R.string.continue_button) else "Next",
             color = Color.White
         )
     }

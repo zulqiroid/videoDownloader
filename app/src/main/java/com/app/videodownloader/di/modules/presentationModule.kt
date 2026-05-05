@@ -21,15 +21,21 @@ import org.koin.android.ext.koin.androidApplication
 import org.koin.core.module.dsl.viewModel
 import org.koin.dsl.module
 
-val presentationModule  = module{
+val presentationModule = module {
 
     viewModel {
         SplashViewModel(
             firstLaunchUseCases = get(),
             policyUseCases = get(),
+            adsConsentUseCases = get(),
+            initializeMobileAdsUseCase = get(),
             loadAppOpenAdUseCase = get(),
             showAppOpenAdUseCase = get(),
-            getAppOpenAdConfigUseCase = get()
+            getAppOpenAdConfigUseCase = get(),
+            loadInterstitialAdUseCase = get(),
+            showInterstitialAdUseCase = get(),
+            observeIsPremiumUserUseCase = get(),
+            checkAppUpdateUseCase = get()
         )
     }
 
@@ -40,7 +46,8 @@ val presentationModule  = module{
             observeNativeAdPoolsUseCase = get(),
             observeNativeAdConfigUseCase = get(),
             getSelectedLanguageUseCase = get(),
-            saveSelectedLanguageUseCase = get()
+            saveSelectedLanguageUseCase = get(),
+            observeIsPremiumUserUseCase = get(),
         )
     }
 
@@ -55,11 +62,12 @@ val presentationModule  = module{
             loadNativeAdUseCase = get(),
             observeNativeAdsUseCase = get(),
             observeNativeAdConfigUseCase = get(),
-            clearAllNativeAdsUseCase = get()
+            clearAllNativeAdsUseCase = get(),
+            observeIsPremiumUserUseCase = get()
         )
     }
     viewModel {
-        MainViewModel(get(), get(), get(), get(), get(), get(), get(),get(), get())
+        MainViewModel(get(), get(), get(), get(), get(), get(), get(), get(), get(), get(), get())
     }
 
     viewModel { HomeViewModel(get()) }
@@ -72,10 +80,13 @@ val presentationModule  = module{
         DownloadViewModel(
             observeDownloadsUseCase = get(),
             getDownloadedFilesUseCase = get(),
+            pauseDownloadUseCase = get(),
+            resumeDownloadUseCase = get(),
             cancelDownloadUseCase = get(),
             loadNativeAdUseCase = get(),
             observeNativeAdPoolsUseCase = get(),
-            observeNativeAdConfigUseCase = get()
+            observeNativeAdConfigUseCase = get(),
+            observeIsPremiumUserUseCase = get()
         )
     }
     viewModel {
@@ -84,7 +95,8 @@ val presentationModule  = module{
             getAudios = get(),
             loadNativeAdUseCase = get(),
             observeNativeAdPoolsUseCase = get(),
-            observeNativeAdConfigUseCase = get()
+            observeNativeAdConfigUseCase = get(),
+            observeIsPremiumUserUseCase = get()
         )
     }
 
@@ -92,7 +104,8 @@ val presentationModule  = module{
         MoreViewModel(
             loadNativeAdUseCase = get(),
             observeNativeAdsUseCase = get(),
-            observeNativeAdConfigUseCase = get()
+            observeNativeAdConfigUseCase = get(),
+            observeIsPremiumUserUseCase = get()
         )
     }
 
@@ -104,7 +117,8 @@ val presentationModule  = module{
             setAudioAsRingtoneUseCase = get(),
             loadNativeAdUseCase = get(),
             observeNativeAdPoolsUseCase = get(),
-            observeNativeAdConfigUseCase = get()
+            observeNativeAdConfigUseCase = get(),
+            observeIsPremiumUserUseCase = get()
         )
     }
 
@@ -117,12 +131,16 @@ val presentationModule  = module{
         DownloadGuideViewModel()
     }
     viewModel {
-        PremiumViewModel()
+        PremiumViewModel(
+            premiumBillingUseCases = get()
+        )
     }
 
     single {
         AppOpenAdLifecycleObserver(
-            appOpenAdRepository = get()
+            appOpenAdRepository = get(),
+            canRequestAdsUseCase = get(),
+            fullScreenAdCoordinator = get()
         )
     }
 

@@ -20,6 +20,7 @@ import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.text.style.TextAlign
 import androidx.compose.ui.text.withStyle
 import androidx.compose.ui.graphics.Color
+import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
 import com.app.videodownloader.domain.model.ads.NativeAdConfig
@@ -34,10 +35,15 @@ fun OnboardingPage(
     modifier: Modifier = Modifier,
     model: OnboardingPageModel,
     nativeAd: NativeAd?,
-    nativeAdConfig: NativeAdConfig
+    nativeAdConfig: NativeAdConfig,
+    canShowAds: Boolean,
 ) {
-    val placementConfig = model.nativeAdPlacementKey
-        ?.let { key -> nativeAdConfig.placement(key) }
+    val placementConfig = if (canShowAds) {
+        model.nativeAdPlacementKey
+            ?.let { key -> nativeAdConfig.placement(key) }
+    } else {
+        null
+    }
 
     when (model.type) {
         OnboardingPageType.Content -> {
@@ -46,7 +52,8 @@ fun OnboardingPage(
                 model = model,
                 nativeAd = nativeAd,
                 nativeAdConfig = nativeAdConfig,
-                placementConfig = placementConfig
+                placementConfig = placementConfig,
+                canShowAds = canShowAds
             )
         }
 
@@ -56,7 +63,8 @@ fun OnboardingPage(
                 model = model,
                 nativeAd = nativeAd,
                 nativeAdConfig = nativeAdConfig,
-                placementConfig = placementConfig
+                placementConfig = placementConfig,
+                canShowAds = canShowAds
             )
         }
     }
@@ -68,21 +76,20 @@ private fun OnboardingContentPage(
     model: OnboardingPageModel,
     nativeAd: NativeAd?,
     nativeAdConfig: NativeAdConfig,
-    placementConfig: com.app.videodownloader.domain.model.ads.NativeAdPlacementConfig?
-) {
+    placementConfig: com.app.videodownloader.domain.model.ads.NativeAdPlacementConfig?,
+    canShowAds: Boolean,
+){
     Column(
         modifier = modifier.fillMaxSize(),
         horizontalAlignment = Alignment.CenterHorizontally
     ) {
-        if (placementConfig?.position == NativeAdPosition.Top) {
-
+        if (canShowAds && placementConfig?.position == NativeAdPosition.Top) {
             NativeAdHost(
                 nativeAd = nativeAd,
                 nativeAdConfig = nativeAdConfig,
                 placementConfig = placementConfig
             )
-
-       }
+        }
 
         model.imageRes?.let {
             Image(
@@ -103,14 +110,14 @@ private fun OnboardingContentPage(
             Spacer(modifier = Modifier.height(12.dp))
 
             Text(
-                text = model.title,
+                text = stringResource(model.titleRes),
                 fontSize = 36.sp,
                 color = Color(0xFF0F172A),
                 fontWeight = FontWeight.W800
             )
 
             Text(
-                text = model.highlight,
+                text = stringResource(model.highlightRes),
                 fontSize = 36.sp,
                 fontWeight = FontWeight.W800,
                 color = Color(0xFFE00004)
@@ -119,7 +126,7 @@ private fun OnboardingContentPage(
             Spacer(modifier = Modifier.height(8.dp))
 
             Text(
-                text = model.description,
+                text = stringResource(model.descriptionRes),
                 textAlign = TextAlign.Center,
                 color = Color(0xFF64748B),
                 fontSize = 18.sp,
@@ -136,7 +143,8 @@ private fun OnboardingFullNativeAdPage(
     model: OnboardingPageModel,
     nativeAd: NativeAd?,
     nativeAdConfig: NativeAdConfig,
-    placementConfig: com.app.videodownloader.domain.model.ads.NativeAdPlacementConfig?
+    placementConfig: com.app.videodownloader.domain.model.ads.NativeAdPlacementConfig?,
+    canShowAds: Boolean,
 ) {
     Column(
         modifier = modifier
@@ -145,7 +153,7 @@ private fun OnboardingFullNativeAdPage(
         horizontalAlignment = Alignment.CenterHorizontally,
         verticalArrangement = Arrangement.Center
     ) {
-        if (placementConfig != null) {
+        if (canShowAds && placementConfig != null) {
             NativeAdHost(
                 nativeAd = nativeAd,
                 nativeAdConfig = nativeAdConfig,

@@ -42,12 +42,14 @@ import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.platform.LocalContext
+import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.unit.dp
 import androidx.core.app.ActivityCompat
 import androidx.core.content.ContextCompat
 import androidx.lifecycle.compose.collectAsStateWithLifecycle
 import androidx.navigation3.runtime.NavBackStack
 import androidx.navigation3.runtime.NavKey
+import com.app.videodownloader.R
 import com.app.videodownloader.domain.model.FromWhichSrc
 import com.app.videodownloader.domain.model.MediaFile
 import com.app.videodownloader.domain.model.ads.BannerAdScreen
@@ -102,12 +104,14 @@ fun MainScreen(
 
     val currentBannerScreen = state.selectedTab.toBannerAdScreen()
 
-    val showTopBanner = bannerState.config.isEnabled(
+    val canShowAds = !state.isPremiumUser
+
+    val showTopBanner = canShowAds && bannerState.config.isEnabled(
         screen = currentBannerScreen,
         slot = BannerAdSlot.Top
     )
 
-    val showBottomBanner = bannerState.config.isEnabled(
+    val showBottomBanner = canShowAds && bannerState.config.isEnabled(
         screen = currentBannerScreen,
         slot = BannerAdSlot.Bottom
     )
@@ -145,6 +149,9 @@ fun MainScreen(
             )
         )
     }
+
+    val shareReelTitle = stringResource(R.string.share_reel)
+    val unableToShareReelMessage = stringResource(R.string.unable_to_share_this_reel)
 
 
     LaunchedEffect(Unit) {
@@ -401,6 +408,24 @@ fun MainScreen(
                     },
                     onPremiumClicked = {
                         backStack.add(Screen.Premium)
+                    },
+                    onPlayerSearchClick = {
+                        viewModel.onEvent(MainEvents.OnPlayerSearchClicked)
+                    },
+                    onPlayerSearchClosed = {
+                        viewModel.onEvent(MainEvents.OnPlayerSearchClosed)
+                    },
+                    onPlayerSearchQueryChanged = {
+                        viewModel.onEvent(MainEvents.OnPlayerSearchQueryChanged(it))
+                    },
+                    onDownloadSearchClick = {
+                        viewModel.onEvent(MainEvents.OnDownloadSearchClicked)
+                    },
+                    onDownloadSearchClosed = {
+                        viewModel.onEvent(MainEvents.OnDownloadSearchClosed)
+                    },
+                    onDownloadSearchQueryChanged = {
+                        viewModel.onEvent(MainEvents.OnDownloadSearchQueryChanged(it))
                     }
                 )
             }
@@ -439,12 +464,17 @@ fun MainScreen(
                         },
                         onSocialClick = {
                             viewModel.onEvent(OnSocialPlatformSelected(it))
+                        },
+                        onReelSeeAllCLicked = {
+                            viewModel.onEvent(OnTabSelected(BottomNavItem.Reels, null))
                         }
                     )
 
                     BottomNavItem.Player -> {
                         PlayerScreen(
                             hasMediaPermission = state.isMediaPermissionGranted,
+                            searchQuery = state.playerSearchQuery,
+                            isSearchActive = state.isPlayerSearchActive,
                             sendToMedia = { mediaList, startIndex ->
                                 viewModel.onEvent(
                                     MainEvents.OnOpenMediaPlayerClicked(
@@ -460,6 +490,7 @@ fun MainScreen(
                         )
                     }
 
+
                     BottomNavItem.Reels -> {
                         ReelsScreen(
                             selectedReel = state.selectedReel,
@@ -471,10 +502,10 @@ fun MainScreen(
                             onShareClick = { url ->
                                 activity?.shareText(
                                     text = url,
-                                    chooserTitle = "Share Reel"
+                                    chooserTitle =shareReelTitle
                                 ) ?: Toast.makeText(
                                     activity,
-                                    "Unable to share this reel",
+                                     unableToShareReelMessage,
                                     Toast.LENGTH_SHORT
                                 ).show()
                             }
@@ -483,6 +514,8 @@ fun MainScreen(
 
                     BottomNavItem.Download -> {
                         DownloadScreen(
+                            searchQuery = state.downloadSearchQuery,
+                            isSearchActive = state.isDownloadSearchActive,
                             sendToMedia = { mediaList, startIndex ->
                                 viewModel.onEvent(
                                     MainEvents.OnOpenMediaPlayerClicked(
@@ -532,6 +565,9 @@ fun MainScreen(
                             playReel = {
                                 viewModel.onEvent(OnReelSelected(it))
                             },
+                            onReelSeeAllCLicked = {
+                                viewModel.onEvent(OnTabSelected(BottomNavItem.Reels, null))
+                            }
                         )
                     }
                 }
@@ -569,7 +605,6 @@ fun MainScreen(
                     state = state,
                     onIntent = viewModel::onEvent,
                     modifier = Modifier.align(Alignment.BottomCenter)
-
                 )
             }
             PrivacyDialogHost(
@@ -580,8 +615,8 @@ fun MainScreen(
             )
             if (state.urlFetchingLoading) {
                 FetchingDialog(
-                    message = "Fetching Video Details",
-                    subMessage = "Please wait while we prepare your download."
+                    message = stringResource(R.string.fetching_video_details),
+                    subMessage = stringResource(R.string.please_wait_prepare_download)
                 )
             }
 
@@ -832,7 +867,7 @@ private fun android.app.Activity.shareMediaFile(
 
     val chooser = Intent.createChooser(
         shareIntent,
-        "Share ${mediaFile.fileName}"
+        getString(R.string.share_file, mediaFile.fileName)
     )
 
     if (shareIntent.resolveActivity(packageManager) != null) {
@@ -948,17 +983,30 @@ private fun Activity.sendFeedbackEmail(
     message: String
 ) {
     val appVersion = runCatching {
-        packageManager.getPackageInfo(packageName, 0).versionName ?: "Unknown"
-    }.getOrDefault("Unknown")
+        packageManager.getPackageInfo(packageName, 0).versionName
+            ?: getString(R.string.unknown)
+    }.getOrDefault(getString(R.string.unknown))
 
     val deviceInfo = buildString {
         appendLine()
         appendLine()
         appendLine("---")
-        appendLine("App Version: $appVersion")
-        appendLine("Package: $packageName")
-        appendLine("Android: ${Build.VERSION.RELEASE} (SDK ${Build.VERSION.SDK_INT})")
-        appendLine("Device: ${Build.MANUFACTURER} ${Build.MODEL}")
+        appendLine(getString(R.string.feedback_app_version, appVersion))
+        appendLine(getString(R.string.feedback_package, packageName))
+        appendLine(
+            getString(
+                R.string.feedback_android_version,
+                Build.VERSION.RELEASE,
+                Build.VERSION.SDK_INT
+            )
+        )
+        appendLine(
+            getString(
+                R.string.feedback_device,
+                Build.MANUFACTURER,
+                Build.MODEL
+            )
+        )
     }
 
     val feedbackBody = message + deviceInfo
@@ -973,7 +1021,7 @@ private fun Activity.sendFeedbackEmail(
 
     val chooserIntent = Intent.createChooser(
         emailIntent,
-        "Send Feedback"
+        getString(R.string.send_feedback)
     )
 
     try {
@@ -981,15 +1029,16 @@ private fun Activity.sendFeedbackEmail(
     } catch (_: ActivityNotFoundException) {
         Toast.makeText(
             this,
-            "No email app found",
+            getString(R.string.no_email_app_found),
             Toast.LENGTH_SHORT
         ).show()
     } catch (_: Exception) {
         Toast.makeText(
             this,
-            "Unable to open email app",
+            getString(R.string.unable_to_open_email_app),
             Toast.LENGTH_SHORT
         ).show()
     }
 }
+
 private const val SUPPORT_EMAIL = "kzulqarnain527@gmail.com"

@@ -134,4 +134,170 @@
     <string name="media_permission_required_message">براہ کرم میڈیا کی اجازت دیں تاکہ ہم آپ کی ویڈیوز اور موسیقی دکھا سکیں۔</string>
     <string name="media_permission_allow_button">اجازت دیں</string>
     <string name="media_permission_open_settings_button">سیٹنگز کھولیں</string>
+
+
+     <string name="search_your_downloads_hint">اپنی ڈاؤن لوڈز تلاش کریں...</string>
+
+
+    <string name="share_reel">ریل شیئر کریں</string>
+    <string name="unable_to_share_this_reel">یہ ریل شیئر نہیں کی جا سکی</string>
+    <string name="fetching_video_details">ویڈیو کی تفصیلات حاصل کی جا رہی ہیں</string>
+    <string name="please_wait_prepare_download">براہ کرم انتظار کریں، ہم آپ کا ڈاؤن لوڈ تیار کر رہے ہیں۔</string>
+    <string name="share_file">%1$s شیئر کریں</string>
+    <string name="send_feedback">فیڈبیک بھیجیں</string>
+    <string name="no_email_app_found">کوئی ای میل ایپ نہیں ملی</string>
+    <string name="unable_to_open_email_app">ای میل ایپ کھولی نہیں جا سکی</string>
+    <string name="unknown">نامعلوم</string>
+    <string name="feedback_app_version">ایپ ورژن: %1$s</string>
+    <string name="feedback_package">پیکیج: %1$s</string>
+    <string name="feedback_android_version">اینڈرائیڈ: %1$s (SDK %2$d)</string>
+    <string name="feedback_device">ڈیوائس: %1$s %2$s</string>
+
+    <string name="bottom_nav_home">ہوم</string>
+    <string name="bottom_nav_player">پلیئر</string>
+    <string name="bottom_nav_reels">ریلز</string>
+    <string name="bottom_nav_download">ڈاؤن لوڈ</string>
+    <string name="bottom_nav_more">مزید</string>
+    <string name="bottom_nav_social">سوشل</string>
+
+
+    <string name="media_option_playback_speed">پلے بیک کی رفتار</string>
+    <string name="media_option_set_as_ringtone">رنگ ٹون کے طور پر سیٹ کریں</string>
+    <string name="media_option_share_track">ٹریک شیئر کریں</string>
+    <string name="media_option_file_info">فائل کی معلومات</string>
+    <string name="media_option_rename_file">فائل کا نام تبدیل کریں</string>
+    <string name="media_option_delete_file">فائل حذف کریں</string>
+    <string name="media_option_share_video">ویڈیو شیئر کریں</string>
+
+
+    <string name="reset_to_default">ڈیفالٹ پر ری سیٹ کریں</string>
+    <string name="cancel">منسوخ کریں</string>
+    <string name="playback_speed">پلے بیک کی رفتار</string>
+    <string name="playback_speed_025">0.25x</string>
+    <string name="playback_speed_05">0.5x</string>
+    <string name="playback_speed_10_normal">1.0x (نارمل)</string>
+    <string name="playback_speed_125">1.25x</string>
+    <string name="playback_speed_15">1.5x</string>
+    <string name="playback_speed_20">2.0x</string>
+    <string name="playback_speed_40">4.0x</string>
+
+    <string name="confirm_selection">انتخاب کی تصدیق کریں</string>
+    <string name="set_as_ringtone">رنگ ٹون کے طور پر سیٹ کریں</string>
+    <string name="default_ringtone">ڈیفالٹ رنگ ٹون</string>
+    <string name="notification_sound">نوٹیفکیشن ساؤنڈ</string>
+    <string name="alarm_tone">الارم ٹون</string>
+
+
+
+    <string name="premium_plan">پریمیم پلان</string>
+    <string name="premium_plan_description">اشتہارات کے بغیر تجربہ اور \nتیز ڈاؤن لوڈ اسپیڈز حاصل کریں۔</string>
+    <string name="upgrade_now">ابھی اپ گریڈ کریں</string>
+
+    <string name="general_settings">عمومی ترتیبات</string>
+    <string name="languages">زبانیں</string>
+    <string name="choose_your_preferred_language">اپنی پسندیدہ زبان منتخب کریں</string>
+    <string name="how_to_download">ڈاؤن لوڈ کرنے کا طریقہ</string>
+    <string name="step_by_step_guide">مرحلہ وار گائیڈ</string>
+    <string name="notifications">اطلاعات</string>
+    <string name="set_up_your_alerts">اپنی الرٹس سیٹ کریں</string>
+
+    <string name="support_and_share">سپورٹ اور شیئر</string>
+    <string name="share_app">ایپ شیئر کریں</string>
+    <string name="invite_friends">دوستوں کو مدعو کریں</string>
+    <string name="rate_us">ہمیں ریٹ کریں</string>
+    <string name="give_feedback_on_store">اسٹور پر فیڈبیک دیں</string>
+    <string name="feedback">فیڈبیک</string>
+    <string name="send_us_your_suggestions">ہمیں اپنی تجاویز بھیجیں</string>
+    <string name="privacy_policy">پرائیویسی پالیسی</string>
+    <string name="legal_and_usage_terms">قانونی اور استعمال کی شرائط</string>
+
+    <string name="share_app_message">%1$s دیکھیں:\n%2$s</string>
+    <string name="no_app_found_to_share">شیئر کرنے کے لیے کوئی ایپ نہیں ملی</string>
+
+    <string name="next">اگلا</string>
+    <string name="continue_text">جاری رکھیں</string>
+    <string name="video_title_part">ویڈیو </string>
+    <string name="downloader_title_part">ڈاؤن لوڈر</string>
+    <string name="advanced_download_engine">جدید ڈاؤن لوڈ انجن۔</string>
+
+
+    <string name="empty_string"></string>
+    <string name="onboarding_welcome_to">خوش آمدید</string>
+    <string name="onboarding_video_downloader">ویڈیو ڈاؤن لوڈر</string>
+    <string name="onboarding_download_videos_music">کسی بھی پلیٹ فارم سے ویڈیوز اور موسیقی فوراً ڈاؤن لوڈ کریں۔</string>
+    <string name="onboarding_watch_trending">ٹرینڈنگ دیکھیں</string>
+    <string name="onboarding_reels">ریلز</string>
+    <string name="onboarding_enjoy_download_reels">اپنی پسندیدہ ریلز سے لطف اٹھائیں اور انہیں فوراً ڈاؤن لوڈ کریں۔</string>
+    <string name="onboarding_built_in_video">بلٹ اِن ویڈیو</string>
+    <string name="onboarding_player">پلیئر</string>
+    <string name="onboarding_download_watch_videos_audios">اپنی ویڈیوز اور آڈیوز آسانی سے ڈاؤن لوڈ کریں اور دیکھیں۔</string>
+    <string name="onboarding_advanced_downloading_engine">جدید ڈاؤن لوڈنگ انجن۔</string>
+
+
+    <string name="delete_file">فائل حذف کریں</string>
+    <string name="delete_file_confirmation_message">کیا آپ واقعی یہ فائل حذف کرنا چاہتے ہیں؟ یہ عمل واپس نہیں کیا جا سکتا۔</string>
+     <string name="delete">حذف کریں</string>
+
+    <string name="file_information">فائل کی معلومات</string>
+    <string name="file_name">فائل کا نام</string>
+    <string name="format">فارمیٹ</string>
+    <string name="resolution">ریزولوشن</string>
+    <string name="duration">دورانیہ</string>
+    <string name="file_size">فائل کا سائز</string>
+    <string name="storage_location">اسٹوریج مقام</string>
+
+    <string name="media">میڈیا</string>
+    <string name="stored_in">محفوظ مقام: %1$s</string>
+    <string name="play_now">اب چلائیں</string>
+    <string name="move_to_folder">فولڈر میں منتقل کریں</string>
+    <string name="file_info">فائل کی معلومات</string>
+    <string name="dismiss">بند کریں</string>
+
+
+    <string name="play_all_count">سب چلائیں (%1$d)</string>
+    <string name="videos">ویڈیوز</string>
+    <string name="music">موسیقی</string>
+
+    <string name="new_file_name">نیا فائل نام</string>
+    <string name="enter_file_name">فائل کا نام درج کریں</string>
+     <string name="rename">نام تبدیل کریں</string>
+    <string name="rename_file">فائل کا نام تبدیل کریں</string>
+    <string name="rename_file_description">فائل کا فارمیٹ تبدیل کیے بغیر اس کا نام اپ ڈیٹ کریں</string>
+
+
+
+    <string name="unable_to_start_purchase_now">اس وقت خریداری شروع نہیں کی جا سکتی۔</string>
+
+    <string name="restore">بحال کریں</string>
+    <string name="processing">پروسیسنگ جاری ہے...</string>
+    <string name="loading">لوڈ ہو رہا ہے...</string>
+    <string name="premium_active">پریمیم فعال ہے</string>
+    <string name="upgrade">اپ گریڈ کریں</string>
+    <string name="premium_terms_privacy_message">جاری رکھنے سے، آپ ہماری سروس کی شرائط اور پرائیویسی پالیسی سے اتفاق کرتے ہیں۔</string>
+
+    <string name="unlimited_access">لامحدود رسائی</string>
+    <string name="premium_access_advanced_features">ڈاؤن لوڈر کی تمام جدید خصوصیات تک رسائی حاصل کریں</string>
+    <string name="ads_free">اشتہارات سے پاک!</string>
+    <string name="faster_downloads_10x">10 گنا تیز ڈاؤن لوڈز</string>
+    <string name="unlimited_downloads">لامحدود ڈاؤن لوڈز</string>
+    <string name="access_full_features">تمام خصوصیات تک رسائی</string>
+    <string name="cancel_anytime_auto_renew">کسی بھی وقت منسوخ کریں۔ ٹرائل کے بعد خودکار تجدید ہوگی۔</string>
+
+
+    <string name="plan_weekly">ہفتہ وار</string>
+    <string name="plan_monthly">ماہانہ</string>
+    <string name="plan_yearly">سالانہ</string>
+    <string name="plan_lifetime">لائف ٹائم</string>
+
+    <string name="plan_badge_basic">بیسک</string>
+    <string name="plan_badge_popular">مقبول</string>
+    <string name="plan_badge_best_choice">بہترین انتخاب</string>
+    <string name="plan_badge_best_ever">سب سے بہترین</string>
+
+
+     <string name="splash_download_videos_instantly">کہیں سے بھی ویڈیوز فوراً ڈاؤن لوڈ کریں۔</string>
+    <string name="please_wait">براہ کرم انتظار کریں...</string>
+    <string name="preparing">تیاری ہو رہی ہے...</string>
+    <string name="get_started">شروع کریں</string>
+    <string name="app_may_contain_ads">اس ایپ میں اشتہارات شامل ہو سکتے ہیں</string>
 </resources>

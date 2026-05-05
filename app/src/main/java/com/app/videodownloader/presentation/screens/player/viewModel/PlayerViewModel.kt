@@ -9,13 +9,16 @@ import com.app.videodownloader.domain.usecases.GetVideosUseCase
 import com.app.videodownloader.domain.usecases.ads.LoadNativeAdUseCase
 import com.app.videodownloader.domain.usecases.ads.ObserveNativeAdConfigUseCase
 import com.app.videodownloader.domain.usecases.ads.ObserveNativeAdPoolsUseCase
+import com.app.videodownloader.domain.usecases.billing.ObserveIsPremiumUserUseCase
 import com.app.videodownloader.presentation.ads.nativeAd.NativeAdSlotHelper
 import com.app.videodownloader.presentation.screens.player.states.PlayerState
 import com.app.videodownloader.presentation.screens.player.states.PlayerTab
+import com.app.videodownloader.presentation.screens.player.states.currentTabItems
 import kotlinx.coroutines.Job
 import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.asStateFlow
 import kotlinx.coroutines.flow.combine
+import kotlinx.coroutines.flow.distinctUntilChanged
 import kotlinx.coroutines.flow.onStart
 import kotlinx.coroutines.flow.update
 import kotlinx.coroutines.launch
@@ -25,7 +28,8 @@ class PlayerViewModel(
     private val getAudios: GetAudiosUseCase,
     private val loadNativeAdUseCase: LoadNativeAdUseCase,
     private val observeNativeAdPoolsUseCase: ObserveNativeAdPoolsUseCase,
-    private val observeNativeAdConfigUseCase: ObserveNativeAdConfigUseCase
+    private val observeNativeAdConfigUseCase: ObserveNativeAdConfigUseCase,
+    private val observeIsPremiumUserUseCase: ObserveIsPremiumUserUseCase,
 ) : ViewModel() {
 
     private val _state = MutableStateFlow(PlayerState())
@@ -34,6 +38,7 @@ class PlayerViewModel(
     private var observeMediaJob: Job? = null
 
     init {
+        observePremiumStatus()
         observeNativeAdPools()
         observeNativeAdConfig()
     }
@@ -104,7 +109,9 @@ class PlayerViewModel(
 
     fun onTabChange(tab: PlayerTab) {
         _state.update {
-            it.copy(selectedTab = tab)
+            it.copy(
+                selectedTab = tab
+            )
         }
 
         loadNativeSlotsForCurrentTab()
@@ -112,13 +119,16 @@ class PlayerViewModel(
 
     private fun loadNativeSlotsForCurrentTab() {
         val currentState = _state.value
+
+        if (currentState.isPremiumUser) {
+            Log.d(TAG, "Native ads skipped: premium user")
+            return
+        }
+
         val placementKey = NativeAdConfig.PLAYER_LIST
         val placementConfig = currentState.nativeAdConfig.placement(placementKey) ?: return
 
-        val totalItems = when (currentState.selectedTab) {
-            PlayerTab.VIDEO -> currentState.videos.size
-            PlayerTab.AUDIO -> currentState.audios.size
-        }
+        val totalItems = currentState.currentTabItems().size
 
         if (totalItems <= 0) return
 
@@ -141,7 +151,24 @@ class PlayerViewModel(
         }
     }
 
+    private fun observePremiumStatus() {
+        viewModelScope.launch {
+            observeIsPremiumUserUseCase()
+                .distinctUntilChanged()
+                .collect { isPremium ->
+                    _state.update {
+                        it.copy(isPremiumUser = isPremium)
+                    }
+
+                    if (!isPremium) {
+                        loadNativeSlotsForCurrentTab()
+                    }
+                }
+        }
+    }
+
     companion object {
         private const val TAG = "PlayerViewModel"
+        private const val MAX_SEARCH_QUERY_LENGTH = 80
     }
 }

@@ -38,6 +38,7 @@ android {
     }
     buildFeatures {
         compose = true
+        buildConfig = true
     }
 }
 
@@ -100,6 +101,14 @@ dependencies {
     implementation("androidx.documentfile:documentfile:1.1.0")
 
     implementation("com.google.android.ump:user-messaging-platform:4.0.0")
+
+    implementation("com.android.billingclient:billing-ktx:8.3.0")
+
+    implementation("com.google.android.play:app-update-ktx:2.1.0")
+
+
+    implementation("androidx.work:work-runtime-ktx:2.11.2")
+    implementation("com.squareup.okhttp3:okhttp:5.3.2")
 
     implementation(libs.play.services.ads)
 }

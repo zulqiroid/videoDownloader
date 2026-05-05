@@ -74,6 +74,7 @@ import androidx.compose.ui.input.pointer.pointerInput
 import androidx.compose.ui.layout.ContentScale
 import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.res.painterResource
+import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.text.style.TextAlign
 import androidx.compose.ui.unit.DpOffset
@@ -138,7 +139,7 @@ fun PremiumScreen(
                 )
 
                 Text(
-                    text = "Restore",
+                    text = stringResource(R.string.restore),
                     color = Color.White,
                     fontSize = 16.sp,
                     fontWeight = FontWeight.W500,
@@ -167,7 +168,9 @@ fun PremiumScreen(
                             onIntent(PremiumIntent.OnUpgradeClicked)
                         }
                     },
-                    enabled = !state.isPurchaseInProgress,
+                    enabled = !state.isPurchaseInProgress &&
+                            !state.isLoading &&
+                            !state.isPremiumUser,
                     modifier = Modifier
                         .fillMaxWidth()
                         .height(60.dp),
@@ -178,10 +181,11 @@ fun PremiumScreen(
                     )
                 ) {
                     Text(
-                        text = if (state.isPurchaseInProgress) {
-                            "Processing..."
-                        } else {
-                            "Upgrade"
+                        text = when {
+                            state.isPurchaseInProgress -> stringResource(R.string.processing)
+                            state.isLoading -> stringResource(R.string.loading)
+                            state.isPremiumUser -> stringResource(R.string.premium_active)
+                            else -> stringResource(R.string.upgrade)
                         },
                         fontSize = 18.sp,
                         fontWeight = FontWeight.W700,
@@ -192,7 +196,7 @@ fun PremiumScreen(
                 Spacer(Modifier.height(12.dp))
 
                 Text(
-                    text = "By continuing, you agree to our Terms of Service and Privacy Policy.",
+                    text = stringResource(R.string.premium_terms_privacy_message),
                     color = Color(0xFFA0A0A0).copy(alpha = 0.6f),
                     fontSize = 11.sp,
                     fontWeight = FontWeight.W400,
@@ -248,7 +252,7 @@ fun PremiumScreen(
                     verticalArrangement = Arrangement.Center
                 ) {
                     Text(
-                        text = "Unlimited Access",
+                        text = stringResource(R.string.unlimited_access),
                         color = Color.White,
                         fontSize = 26.sp,
                         fontWeight = FontWeight.W700
@@ -257,7 +261,7 @@ fun PremiumScreen(
                     Spacer(Modifier.height(8.dp))
 
                     Text(
-                        text = "Access the all advanced features of downloader",
+                        text = stringResource(R.string.premium_access_advanced_features),
                         color = Color(0xFFF2FBFF),
                         fontSize = 17.sp,
                         textAlign = TextAlign.Center,
@@ -267,11 +271,37 @@ fun PremiumScreen(
 
                 Spacer(Modifier.weight(1f))
 
-                FeatureItem("Ads Free!")
-                FeatureItem("10x Faster Downloads")
-                FeatureItem("Unlimited Downloads")
-                FeatureItem("Access Full Features")
+                Row(
+                    modifier = Modifier.fillMaxWidth(),
+                    verticalAlignment = Alignment.CenterVertically,
 
+                    ) {
+                    FeatureItem(
+                        modifier = Modifier.weight(1f),
+                        text = stringResource(R.string.ads_free)
+                    )
+
+                    FeatureItem(
+                        modifier = Modifier.weight(1f),
+                        text = stringResource(R.string.faster_downloads_10x)
+                    )
+                }
+
+                Row(
+                    modifier = Modifier.fillMaxWidth(),
+                    verticalAlignment = Alignment.CenterVertically,
+
+                    ) {
+                    FeatureItem(
+                        modifier = Modifier.weight(1f),
+                        text = stringResource(R.string.unlimited_downloads)
+                    )
+
+                    FeatureItem(
+                        modifier = Modifier.weight(1f),
+                        text = stringResource(R.string.access_full_features)
+                    )
+                }
                 Spacer(Modifier.height(28.dp))
 
                 PricingRow(
@@ -285,13 +315,29 @@ fun PremiumScreen(
                 Spacer(Modifier.height(20.dp))
 
                 Text(
-                    text = "Cancel anytime. Auto-renew after trial.",
+                    text = stringResource(R.string.cancel_anytime_auto_renew),
                     color = Color(0xFFA0A0A0),
                     fontSize = 12.sp,
                     fontWeight = FontWeight.W400,
                     textAlign = TextAlign.Center,
                     modifier = Modifier.fillMaxWidth()
                 )
+                if (state.error != null) {
+                    Spacer(Modifier.height(8.dp))
+
+                    Text(
+                        text = state.error,
+                        color = Color(0xFFFF6B6B),
+                        fontSize = 12.sp,
+                        fontWeight = FontWeight.W500,
+                        textAlign = TextAlign.Center,
+                        modifier = Modifier
+                            .fillMaxWidth()
+                            .clickable {
+                                onIntent(PremiumIntent.OnRetry)
+                            }
+                    )
+                }
 
                 Spacer(Modifier.height(16.dp))
             }
@@ -314,10 +360,13 @@ fun CircleIconButton(icon: ImageVector, onClick: () -> Unit) {
 }
 
 @Composable
-fun FeatureItem(text: String) {
+fun FeatureItem(
+    modifier: Modifier,
+    text: String,
+) {
     Row(
         verticalAlignment = Alignment.CenterVertically,
-        modifier = Modifier.padding(vertical = 6.dp)
+        modifier = modifier.padding(vertical = 6.dp)
     ) {
         Icon(
             painter = painterResource(R.drawable.ic_check_box),
@@ -331,7 +380,7 @@ fun FeatureItem(text: String) {
             color = Color.White,
             fontSize = 15.sp,
             fontWeight = FontWeight.W700
-            )
+        )
     }
 }
 
@@ -341,29 +390,37 @@ fun PricingRow(
     selectedPlan: PlanType,
     onPlanSelected: (PlanType) -> Unit,
 ) {
-    Row(
+    Column(
         modifier = Modifier.fillMaxWidth(),
-        horizontalArrangement = Arrangement.Center,
-        verticalAlignment = Alignment.Bottom
+        verticalArrangement = Arrangement.spacedBy(8.dp)
     ) {
-        plans.forEachIndexed { index, plan ->
-            PricingCard(
-                title = plan.type.title,
-                badge = plan.type.badge,
-                price = plan.price,
-                isSelected = selectedPlan == plan.type,
-                modifier = Modifier.weight(1f),
-                onClick = {
-                    onPlanSelected(plan.type)
+        plans.chunked(2).forEach { rowPlans ->
+            Row(
+                modifier = Modifier.fillMaxWidth(),
+                horizontalArrangement = Arrangement.spacedBy(8.dp),
+                verticalAlignment = Alignment.Top
+            ) {
+                rowPlans.forEach { plan ->
+                    PricingCard(
+                        title =stringResource( plan.type.titleRes),
+                        badge = stringResource(plan.type.badgeRes),
+                        price = plan.price,
+                        isSelected = selectedPlan == plan.type,
+                        modifier = Modifier.weight(1f),
+                        onClick = {
+                            onPlanSelected(plan.type)
+                        }
+                    )
                 }
-            )
 
-            if (index != plans.lastIndex) {
-                Spacer(modifier = Modifier.width(8.dp))
+                if (rowPlans.size == 1) {
+                    Spacer(modifier = Modifier.weight(1f))
+                }
             }
         }
     }
 }
+
 @Composable
 fun PricingCard(
     title: String,
@@ -375,65 +432,31 @@ fun PricingCard(
 ) {
     Column(
         modifier = modifier
-            .clip(RoundedCornerShape(16.dp))
+            .clip(RoundedCornerShape(26.dp))
             .background(
-                if (isSelected) {
-                    Color(0xFF1E1E1E)
-                } else {
-                    Color(0xFF1E1E1E).copy(alpha = 0.6f)
-                }
+                Color(0xFF1E1E1E).copy(alpha = 0.6f)
             )
             .border(
-                width = if (isSelected) 1.2.dp else 1.dp,
+                width = 1.6.dp,
                 color = if (isSelected) {
                     Color(0xFFE00004)
                 } else {
-                    Color.Gray.copy(alpha = 0.45f)
+                    Color(0xFF606060)
                 },
-                shape = RoundedCornerShape(16.dp)
+                shape = RoundedCornerShape(26.dp)
             )
             .clickable {
                 onClick()
             }
-            .fillMaxWidth(),
+            .padding(horizontal = 50.dp, vertical = 20.dp),
         horizontalAlignment = Alignment.CenterHorizontally,
     ) {
-        if (isSelected) {
-            Box(
-                modifier = Modifier
-                    .fillMaxWidth()
-                    .clip(
-                        RoundedCornerShape(
-                            topStart = 16.dp,
-                            topEnd = 16.dp
-                        )
-                    )
-                    .background(
-                        if (isSelected) {
-                            Color(0xFFE00004)
-                        } else {
-                            Color.White.copy(alpha = 0.08f)
-                        }
-                    )
-                    .padding(vertical = 4.dp),
-                contentAlignment = Alignment.Center
-            ) {
-                Text(
-                    text = badge,
-                    color = if (isSelected) Color.White else Color(0xFFA0A0A0),
-                    fontSize = 10.sp,
-                    fontWeight = FontWeight.W700,
-                    maxLines = 1
-                )
-            }
-        }
 
-        Spacer(Modifier.height(16.dp))
 
         Text(
             text = title,
             color = if (isSelected) Color(0xFFE00004) else Color(0xFFA0A0A0),
-            fontSize = 12.sp,
+            fontSize = 20.sp,
             fontWeight = FontWeight.W600
         )
 
@@ -442,10 +465,9 @@ fun PricingCard(
         Text(
             text = price,
             color = Color.White,
-            fontSize = if (isSelected) 24.sp else 18.sp,
+            fontSize = 30.sp,
             fontWeight = FontWeight.W700
         )
 
-        Spacer(Modifier.height(16.dp))
     }
 }

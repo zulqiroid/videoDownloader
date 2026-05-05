@@ -10,47 +10,52 @@ data class OnboardingState(
     val isLastPage: Boolean = false,
     val showExitDialogue: Boolean = false,
     val showPolicyDialogue: Boolean = false,
+
+    val isPremiumUser: Boolean = false,
+
     val nativeAds: Map<String, NativeAd> = emptyMap(),
     val nativeAdConfig: NativeAdConfig = NativeAdConfig.default()
 )
 
 fun buildOnboardingPages(
-    nativeAdConfig: NativeAdConfig
+    nativeAdConfig: NativeAdConfig,
+    isPremiumUser: Boolean = false,
 ): List<OnboardingPageModel> {
     val pages = mutableListOf<OnboardingPageModel>()
 
     pages += OnboardingPageModel(
-        title = "Welcome to",
-        highlight = "Video Downloader",
-        description = "Download videos and music from any platform instantly.",
+        titleRes = R.string.onboarding_welcome_to,
+        highlightRes = R.string.onboarding_video_downloader,
+        descriptionRes = R.string.onboarding_download_videos_music,
         imageRes = R.drawable.onboarding_src_one_img,
-        nativeAdPlacementKey = NativeAdConfig.ONBOARDING_STEP_1
+        nativeAdPlacementKey = if (isPremiumUser) null else NativeAdConfig.ONBOARDING_STEP_1
     )
 
     pages += OnboardingPageModel(
-        title = "Watch Trending",
-        highlight = "Reels",
-        description = "Enjoy and download your favourite reels instantly.",
+        titleRes = R.string.onboarding_watch_trending,
+        highlightRes = R.string.onboarding_reels,
+        descriptionRes = R.string.onboarding_enjoy_download_reels,
         imageRes = R.drawable.onboarding_src_two_img,
-        nativeAdPlacementKey = NativeAdConfig.ONBOARDING_STEP_2
+        nativeAdPlacementKey = if (isPremiumUser) null else NativeAdConfig.ONBOARDING_STEP_2
     )
 
     pages += OnboardingPageModel(
-        title = "Built-in Video",
-        highlight = "Player",
-        description = "Download and watch your videos and audios easily.",
+        titleRes = R.string.onboarding_built_in_video,
+        highlightRes = R.string.onboarding_player,
+        descriptionRes = R.string.onboarding_download_watch_videos_audios,
         imageRes = R.drawable.onboarding_src_three_img,
-        nativeAdPlacementKey = NativeAdConfig.ONBOARDING_STEP_3
+        nativeAdPlacementKey = if (isPremiumUser) null else NativeAdConfig.ONBOARDING_STEP_3
     )
 
-    val shouldShowFullNativePage = nativeAdConfig
-        .placement(NativeAdConfig.ONBOARDING_STEP_4) != null
+    val shouldShowFullNativePage =
+        !isPremiumUser &&
+                nativeAdConfig.placement(NativeAdConfig.ONBOARDING_STEP_4) != null
 
     if (shouldShowFullNativePage) {
         pages += OnboardingPageModel(
-            title = "",
-            highlight = "Video Downloader",
-            description = "The advanced downloading engine.",
+            titleRes = R.string.empty_string,
+            highlightRes = R.string.onboarding_video_downloader,
+            descriptionRes = R.string.onboarding_advanced_downloading_engine,
             imageRes = null,
             nativeAdPlacementKey = NativeAdConfig.ONBOARDING_STEP_4,
             type = OnboardingPageType.FullNativeAd

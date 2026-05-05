@@ -43,6 +43,7 @@ import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.layout.ContentScale
 import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.res.painterResource
+import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
@@ -78,7 +79,7 @@ fun MediaTabs(
     ) {
 
         TabItem(
-            title = "Videos",
+            title = stringResource(R.string.videos),
             headingIcon = if (selectedTab == PlayerTab.VIDEO)
                 R.drawable.ic_vd_bundle_filled
             else R.drawable.ic_vd_bundle_outlined,
@@ -88,7 +89,7 @@ fun MediaTabs(
         }
 
         TabItem(
-            title = "Music",
+            title = stringResource(R.string.music),
             headingIcon = if (selectedTab == PlayerTab.AUDIO)
                 R.drawable.ic_audio
             else R.drawable.ic_music_outlined,

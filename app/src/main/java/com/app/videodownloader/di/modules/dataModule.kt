@@ -45,6 +45,22 @@ import com.app.videodownloader.domain.repository.ads.InterstitialAdRepository
 import com.app.videodownloader.domain.repository.ads.NativeAdRepository
 import org.koin.android.ext.koin.androidContext
 import org.koin.dsl.module
+import android.content.pm.ApplicationInfo
+import android.content.Context
+import com.app.videodownloader.data.notification.DownloadNotificationDispatcher
+import com.app.videodownloader.data.repository.implementation.InMemoryDownloadProgressStore
+import com.app.videodownloader.data.repository.implementation.appUpdate.PlayStoreAppUpdateRepository
+import com.app.videodownloader.data.repository.implementation.billing.GooglePlayBillingRepository
+import com.app.videodownloader.data.repository.implementation.billing.PremiumAccessControllerImpl
+import com.app.videodownloader.data.repository.implementation.billing.PremiumEntitlementRepositoryImpl
+import com.app.videodownloader.domain.model.DownloadProgressStore
+import com.app.videodownloader.domain.repository.appUpdate.AppUpdateRepository
+import com.app.videodownloader.domain.repository.billing.BillingRepository
+import com.app.videodownloader.domain.repository.billing.PremiumAccessController
+import com.app.videodownloader.domain.repository.billing.PremiumEntitlementRepository
+import okhttp3.OkHttpClient
+import java.util.concurrent.TimeUnit
+
 
 val dataModule = module{
 
@@ -53,13 +69,22 @@ val dataModule = module{
     }
 
 
+    single {
+        OkHttpClient.Builder()
+            .retryOnConnectionFailure(true)
+            .connectTimeout(30, TimeUnit.SECONDS)
+            .readTimeout(60, TimeUnit.SECONDS)
+            .writeTimeout(60, TimeUnit.SECONDS)
+            .build()
+    }
+
     // HttpClient (singleton)
     single { provideHttpClient() }
 
     single { PlatformDetector() }
 
     single<RemoteConfigRepository> {
-        RemoteConfigRepoImpl()
+        RemoteConfigRepoImpl(get())
     }
     // API
     single { DownloaderApi(get(), get(), get()) }
@@ -77,10 +102,16 @@ val dataModule = module{
 
     single <DownloaderRepository>{ DownloaderRepositoryImpl(get()) }
 
-    single<VideoDownloadRepository> {
-        VideoDownloadRepositoryImpl(get())
+    single<DownloadProgressStore> {
+        InMemoryDownloadProgressStore()
     }
 
+    single<VideoDownloadRepository> {
+        VideoDownloadRepositoryImpl(
+            context = androidContext(),
+            progressStore = get()
+        )
+    }
     single<MediaRepository>{ MediaRepositoryImpl(get()) }
 
     single <AdRepository>{
@@ -149,9 +180,47 @@ val dataModule = module{
 
     single<AdsConsentRepository> {
         UmpAdsConsentRepositoryImpl(
-            context = androidContext()
+            context = androidContext(),
+            isDebug = androidContext().isDebugBuild()
         )
     }
 
+    single<PremiumEntitlementRepository> {
+        PremiumEntitlementRepositoryImpl(
+            dataStore = get()
+        )
+    }
 
+    single<BillingRepository> {
+        GooglePlayBillingRepository(
+            context = androidContext(),
+            premiumEntitlementRepository = get()
+        )
+    }
+
+    single<PremiumAccessController> {
+        PremiumAccessControllerImpl(
+            observeIsPremiumUserUseCase = get(),
+            applicationScope = get()
+        )
+    }
+
+    single<AppUpdateRepository> {
+        PlayStoreAppUpdateRepository(
+            context = androidContext(),
+            policy = get()
+        )
+    }
+
+    single {
+        DownloadNotificationDispatcher(
+            notificationSettingsRepository = get(),
+            appNotificationManager = get()
+        )
+    }
+
+}
+
+private fun Context.isDebugBuild(): Boolean {
+    return (applicationInfo.flags and ApplicationInfo.FLAG_DEBUGGABLE) != 0
 }

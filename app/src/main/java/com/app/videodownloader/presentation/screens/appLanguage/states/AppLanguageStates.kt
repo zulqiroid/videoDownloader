@@ -8,9 +8,9 @@ data class AppLanguageStates(
     val selectedLanguage: AppLanguageCodes = AppLanguageCodes.DEFAULT,
     val showExitDialogue: Boolean = false,
 
+    val isPremiumUser: Boolean = false,
+
     val nativeAds: Map<String, NativeAd> = emptyMap(),
-
     val nativeAdPools: Map<String, Map<String, NativeAd>> = emptyMap(),
-
     val nativeAdConfig: NativeAdConfig = NativeAdConfig.default()
 )

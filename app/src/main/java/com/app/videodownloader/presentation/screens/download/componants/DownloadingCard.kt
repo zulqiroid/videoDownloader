@@ -25,6 +25,7 @@ import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
 import com.app.videodownloader.R
+import com.app.videodownloader.domain.model.DownloadStatus
 import com.app.videodownloader.presentation.screens.download.events.DownloadEvents
 import com.app.videodownloader.presentation.screens.download.states.DownloadState
 import com.app.videodownloader.presentation.screens.download.states.DownloadUiItem
@@ -36,6 +37,8 @@ fun DownloadingCard(
     state: DownloadState,
     viewModel: DownloadViewModel
 ) {
+
+    val isPaused = item.status == DownloadStatus.PAUSED
     Column(
         modifier = Modifier
             .padding(horizontal = 16.dp, vertical = 8.dp)
@@ -139,15 +142,29 @@ fun DownloadingCard(
             Spacer(modifier = Modifier.weight(1f))
 
             CircleIconButton(
-                icon = R.drawable.ic_pause,
+                icon = if (isPaused) {
+                    R.drawable.ic_play
+                } else {
+                    R.drawable.ic_pause
+                },
                 backgroundColor = Color.Transparent,
                 tint = Color(0xFF52525B),
                 borderColor = Color(0xFFE5E7EB),
-                contentDescription = stringResource(R.string.cd_pause_download),
+                contentDescription = if (isPaused) {
+                    "Resume download"
+                } else {
+                    stringResource(R.string.cd_pause_download)
+                },
                 onClick = {
-                    viewModel.onEvent(
-                        DownloadEvents.OnPauseDownloadingClicked(item.id)
-                    )
+                    if (isPaused) {
+                        viewModel.onEvent(
+                            DownloadEvents.OnResumeDownloadingClicked(item.id)
+                        )
+                    } else {
+                        viewModel.onEvent(
+                            DownloadEvents.OnPauseDownloadingClicked(item.id)
+                        )
+                    }
                 }
             )
 

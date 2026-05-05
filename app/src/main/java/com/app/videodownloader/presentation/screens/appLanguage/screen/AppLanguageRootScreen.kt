@@ -56,19 +56,31 @@ fun AppLanguageRootScreen(
 
     val bannerScreen = BannerAdScreen.AppLanguage
 
-    val showTopBanner = bannerState.config.isEnabled(
+    val canShowAds = !state.isPremiumUser
+
+    val showTopBanner = canShowAds && bannerState.config.isEnabled(
         screen = bannerScreen,
         slot = BannerAdSlot.Top
     )
 
-    val showBottomBanner = bannerState.config.isEnabled(
+    val showBottomBanner = canShowAds && bannerState.config.isEnabled(
         screen = bannerScreen,
         slot = BannerAdSlot.Bottom
     )
 
     val placementKey = NativeAdConfig.APP_LANGUAGE_LIST
-    val placementConfig = state.nativeAdConfig.placement(placementKey)
-    val nativeAdPool = state.nativeAdPools[placementKey].orEmpty()
+
+    val placementConfig = if (canShowAds) {
+        state.nativeAdConfig.placement(placementKey)
+    } else {
+        null
+    }
+
+    val nativeAdPool = if (canShowAds) {
+        state.nativeAdPools[placementKey].orEmpty()
+    } else {
+        emptyMap()
+    }
     val languages = AppLanguageCodes.entries
     val activity = LocalActivity.current
 

@@ -37,6 +37,7 @@ import androidx.compose.ui.draw.dropShadow
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.graphics.graphicsLayer
 import androidx.compose.ui.res.painterResource
+import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.text.style.TextOverflow
 import androidx.compose.ui.unit.DpOffset
@@ -218,13 +219,13 @@ fun MainBottomBar(
                             painter = painterResource(
                                 if (selected) item.iconSelected else item.iconNotSelected
                             ),
-                            contentDescription = item.title,
+                            contentDescription = stringResource(item.titleRes),
                             tint = if (selected) Color(0xFFE00004) else Color(0xFF6B7280),
                             modifier = Modifier.size(36.dp)
                         )
 
                         Text(
-                            text = item.title,
+                            text = stringResource(item.titleRes),
                             fontSize = 11.sp,
                             fontWeight = FontWeight.W600,
                             maxLines = 1,

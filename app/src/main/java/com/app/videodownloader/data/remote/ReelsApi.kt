@@ -27,10 +27,10 @@ class ReelsApi(
         val key= remoteConfigRepository.getApiSecretKey()
 
         val response = client.get(
-            "https://testingdownloader.totalfreeai.com/reels/categories/"
+            "${baseUrl}reels/categories/"
         ) {
             contentType(ContentType.Application.Json)
-            header("X-Secret-Key", "I3V1T9kAd7iD0jg7ITqQLgjcZC1Nv7cyO3WZILtHsYhXVumkPj")
+            header("X-Secret-Key", key)
         }
 
         val raw = response.bodyAsText()

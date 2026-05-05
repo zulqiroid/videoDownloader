@@ -46,11 +46,13 @@ import androidx.lifecycle.compose.collectAsStateWithLifecycle
 import com.app.videodownloader.R
 import com.app.videodownloader.domain.model.ads.BannerAdScreen
 import com.app.videodownloader.domain.model.ads.BannerAdSlot
+import com.app.videodownloader.domain.usecases.billing.ObserveIsPremiumUserUseCase
 import com.app.videodownloader.presentation.ads.banner.componants.BannerAdHost
 import com.app.videodownloader.presentation.ads.banner.viewModel.BannerAdViewModel
 import com.app.videodownloader.presentation.screens.downloadGuide.events.DownloadGuideIntent
 import com.app.videodownloader.presentation.screens.downloadGuide.state.DownloadGuideState
 import com.app.videodownloader.presentation.screens.downloadGuide.state.GuideStep
+import org.koin.compose.koinInject
 import org.koin.compose.viewmodel.koinViewModel
 
 @OptIn(ExperimentalMaterial3Api::class)
@@ -62,13 +64,18 @@ fun DownloadGuideScreen(
 ) {
 
     val bannerState by bannerAdViewModel.state.collectAsStateWithLifecycle()
+    val observeIsPremiumUserUseCase: ObserveIsPremiumUserUseCase = koinInject()
+    val isPremiumUser by observeIsPremiumUserUseCase()
+        .collectAsStateWithLifecycle(initialValue = false)
 
-    val showTopBanner = bannerState.config.isEnabled(
+    val canShowAds = !isPremiumUser
+
+    val showTopBanner = canShowAds && bannerState.config.isEnabled(
         screen = BannerAdScreen.DownloadGuide,
         slot = BannerAdSlot.Top
     )
 
-    val showBottomBanner = bannerState.config.isEnabled(
+    val showBottomBanner = canShowAds && bannerState.config.isEnabled(
         screen = BannerAdScreen.DownloadGuide,
         slot = BannerAdSlot.Bottom
     )
