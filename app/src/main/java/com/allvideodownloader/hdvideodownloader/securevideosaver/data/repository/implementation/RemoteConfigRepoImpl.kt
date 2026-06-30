@@ -1,0 +1,376 @@
+package com.allvideodownloader.hdvideodownloader.securevideosaver.data.repository.implementation
+
+import android.util.Log
+import androidx.datastore.core.DataStore
+import androidx.datastore.preferences.core.Preferences
+import androidx.datastore.preferences.core.edit
+import com.allvideodownloader.hdvideodownloader.securevideosaver.core.utils.DataStoreKeys
+import com.allvideodownloader.hdvideodownloader.securevideosaver.core.utils.RemoteConfigKeys
+import com.allvideodownloader.hdvideodownloader.securevideosaver.domain.model.ads.AppOpenAdConfig
+import com.allvideodownloader.hdvideodownloader.securevideosaver.domain.model.ads.BannerAdConfig
+import com.allvideodownloader.hdvideodownloader.securevideosaver.domain.model.ads.InterstitialAdConfig
+import com.allvideodownloader.hdvideodownloader.securevideosaver.domain.model.ads.NativeAdConfig
+import com.allvideodownloader.hdvideodownloader.securevideosaver.domain.model.ads.NativeAdPlacementConfig
+import com.allvideodownloader.hdvideodownloader.securevideosaver.domain.model.remoteconfig.AppRemoteConfig
+import com.allvideodownloader.hdvideodownloader.securevideosaver.domain.repository.RemoteConfigRepository
+import com.google.firebase.Firebase
+import com.google.firebase.remoteconfig.FirebaseRemoteConfig
+import com.google.firebase.remoteconfig.remoteConfig
+import com.google.firebase.remoteconfig.remoteConfigSettings
+import kotlinx.coroutines.CoroutineScope
+import kotlinx.coroutines.Dispatchers
+import kotlinx.coroutines.flow.MutableStateFlow
+import kotlinx.coroutines.flow.asStateFlow
+import kotlinx.coroutines.flow.first
+import kotlinx.coroutines.launch
+import kotlinx.serialization.SerializationException
+import kotlinx.serialization.json.Json
+
+class RemoteConfigRepoImpl(
+    private val dataStore: DataStore<Preferences>,
+) : RemoteConfigRepository {
+
+    private val remoteConfig: FirebaseRemoteConfig by lazy {
+        Firebase.remoteConfig
+    }
+
+    private val json = Json {
+        ignoreUnknownKeys = true
+        isLenient = true
+        explicitNulls = false
+    }
+
+    private val defaultAppRemoteConfig = AppRemoteConfig.default()
+
+    private val defaultAppOpenAdConfig = defaultAppRemoteConfig.appOpenAdConfig
+    private val _appOpenAdConfig = MutableStateFlow(defaultAppOpenAdConfig)
+    override val appOpenAdConfig = _appOpenAdConfig.asStateFlow()
+
+    private val defaultInterstitialAdConfig = defaultAppRemoteConfig.interstitialAdConfig
+    private val _interstitialAdConfig = MutableStateFlow(defaultInterstitialAdConfig)
+    override val interstitialAdConfig = _interstitialAdConfig.asStateFlow()
+
+    private val defaultBannerAdConfig = defaultAppRemoteConfig.bannerAdConfig
+    private val _bannerAdConfig = MutableStateFlow(defaultBannerAdConfig)
+    override val bannerAdConfig = _bannerAdConfig.asStateFlow()
+
+    private val defaultNativeAdConfig = defaultAppRemoteConfig.nativeAdConfig
+    private val _nativeAdConfig = MutableStateFlow(defaultNativeAdConfig)
+    override val nativeAdConfig = _nativeAdConfig.asStateFlow()
+
+    override suspend fun initializeAndFetch(
+        onComplete: () -> Unit,
+    ) {
+        Log.d(TAG, "Initializing Remote Config")
+
+        val configSettings = remoteConfigSettings {
+            minimumFetchIntervalInSeconds = 0 // Development. Use 3600 for production.
+            fetchTimeoutInSeconds = 60
+        }
+
+        remoteConfig.setConfigSettingsAsync(configSettings)
+            .addOnCompleteListener { settingsTask ->
+                if (settingsTask.isSuccessful) {
+                    Log.d(TAG, "Remote config settings applied successfully")
+
+                    setDefaultsAndFetch(
+                        onComplete = onComplete
+                    )
+                } else {
+                    Log.e(TAG, "Remote config settings failed", settingsTask.exception)
+
+                    readAndPublishConfigs()
+                    onComplete()
+                }
+            }
+    }
+
+    override suspend fun getApiSecretKey(): String? {
+        val data = dataStore.data.first()
+        return data[DataStoreKeys.API_SECRET_KEY]
+    }
+
+    override suspend fun getBaseUrl(): String? {
+        val data = dataStore.data.first()
+        return data[DataStoreKeys.BASE_API_URL]
+    }
+
+    override fun getCurrentAppOpenAdConfig(): AppOpenAdConfig {
+        return _appOpenAdConfig.value
+    }
+
+    override fun getCurrentInterstitialAdConfig(): InterstitialAdConfig {
+        return _interstitialAdConfig.value
+    }
+
+    override fun getCurrentBannerAdConfig(): BannerAdConfig {
+        return _bannerAdConfig.value
+    }
+
+    override fun getCurrentNativeAdConfig(): NativeAdConfig {
+        return _nativeAdConfig.value
+    }
+
+    override suspend fun getPremiumIconVisibility(): Boolean {
+        val data = dataStore.data.first()
+        return data[DataStoreKeys.SHOW_PREMIUM_ICON] ?: true
+    }
+
+    override suspend fun getPrivacyPolicyVisibility(): Boolean {
+        val data = dataStore.data.first()
+        return data[DataStoreKeys.SHOW_PRIVACY_POLICY] ?: true
+    }
+
+    override suspend fun getPrivacyPolicyLink(): String {
+        val data = dataStore.data.first()
+        return data[DataStoreKeys.PRIVACY_POLICY_LINK] ?: ""
+    }
+
+    private fun setDefaultsAndFetch(
+        onComplete: () -> Unit,
+    ) {
+        remoteConfig.setDefaultsAsync(
+            mapOf(
+                RemoteConfigKeys.APP_REMOTE_CONFIG_REMOTE to defaultAppRemoteConfig.toDefaultJson()
+            )
+        ).addOnCompleteListener { defaultsTask ->
+            if (!defaultsTask.isSuccessful) {
+                Log.e(TAG, "Remote config defaults failed", defaultsTask.exception)
+            }
+
+            remoteConfig.fetchAndActivate()
+                .addOnCompleteListener { fetchTask ->
+                    if (fetchTask.isSuccessful) {
+                        Log.d(
+                            TAG,
+                            "Remote config fetched and activated: ${fetchTask.result}"
+                        )
+                    } else {
+                        Log.e(TAG, "Remote config fetch failed", fetchTask.exception)
+                    }
+
+                    logAllRemoteConfigValues()
+                    readAndPublishConfigs()
+
+                    CoroutineScope(Dispatchers.IO).launch {
+                        saveConfigToDataStore()
+                        onComplete()
+                    }
+                }
+        }
+    }
+
+    private fun readAndPublishConfigs() {
+        val appRemoteConfig = readAppRemoteConfig()
+
+        _appOpenAdConfig.value = appRemoteConfig.appOpenAdConfig
+        _interstitialAdConfig.value = appRemoteConfig.interstitialAdConfig
+        _bannerAdConfig.value = appRemoteConfig.bannerAdConfig
+        _nativeAdConfig.value = appRemoteConfig.nativeAdConfig
+
+        Log.d(TAG, "App Open config published: ${_appOpenAdConfig.value}")
+        Log.d(TAG, "Interstitial config published: ${_interstitialAdConfig.value}")
+        Log.d(TAG, "Banner config published: ${_bannerAdConfig.value}")
+        Log.d(TAG, "Native config published: ${_nativeAdConfig.value}")
+    }
+
+    private fun readAppRemoteConfig(): AppRemoteConfig {
+        val value = remoteConfig.getValue(
+            RemoteConfigKeys.APP_REMOTE_CONFIG_REMOTE
+        )
+
+        val rawJson = value.asString()
+
+        Log.d(TAG, "App Remote Config RC key = ${RemoteConfigKeys.APP_REMOTE_CONFIG_REMOTE}")
+        Log.d(TAG, "App Remote Config RC source = ${value.source}")
+        Log.d(TAG, "App Remote Config raw JSON = $rawJson")
+
+        if (rawJson.isBlank()) {
+            Log.w(TAG, "App Remote Config JSON is blank. Using default config.")
+            return defaultAppRemoteConfig.sanitized()
+        }
+
+        return try {
+            val parsedConfig = json.decodeFromString(
+                deserializer = AppRemoteConfig.serializer(),
+                string = rawJson
+            )
+
+            parsedConfig.sanitized()
+        } catch (exception: SerializationException) {
+            Log.e(TAG, "Failed to parse App Remote Config JSON. Using default config.", exception)
+            defaultAppRemoteConfig.sanitized()
+        } catch (exception: IllegalArgumentException) {
+            Log.e(TAG, "Invalid App Remote Config JSON. Using default config.", exception)
+            defaultAppRemoteConfig.sanitized()
+        } catch (exception: Exception) {
+            Log.e(TAG, "Unexpected App Remote Config parse error. Using default config.", exception)
+            defaultAppRemoteConfig.sanitized()
+        }
+    }
+
+    private fun AppRemoteConfig.sanitized(): AppRemoteConfig {
+        return copy(
+            appOpenAdConfig = appOpenAdConfig.sanitized(),
+            bannerAdConfig = bannerAdConfig.sanitized(),
+            interstitialAdConfig = interstitialAdConfig.sanitized(),
+            nativeAdConfig = nativeAdConfig.sanitized(),
+            apiSecretKeyValue = apiSecretKeyValue.trim(),
+            baseUrlRemote = baseUrlRemote.trim(),
+            privacyPolicyLink = privacyPolicyLink.trim()
+        )
+    }
+
+    private fun AppRemoteConfig.toDefaultJson(): String {
+        return json.encodeToString(
+            serializer = AppRemoteConfig.serializer(),
+            value = this
+        )
+    }
+
+    private fun InterstitialAdConfig.sanitized(): InterstitialAdConfig {
+        return copy(
+            adUnitId = adUnitId.ifBlank {
+                InterstitialAdConfig.TEST_INTERSTITIAL_AD_UNIT_ID
+            },
+            minIntervalBetweenShowsMs = minIntervalBetweenShowsMs.coerceAtLeast(0L),
+            maxAdCacheDurationMs = maxAdCacheDurationMs.coerceAtLeast(MIN_AD_CACHE_DURATION_MS),
+            maxLoadRetryCount = maxLoadRetryCount.coerceIn(0, MAX_RETRY_COUNT),
+            initialRetryDelayMs = initialRetryDelayMs.coerceAtLeast(MIN_INITIAL_RETRY_DELAY_MS),
+            maxRetryDelayMs = maxRetryDelayMs.coerceAtLeast(MIN_MAX_RETRY_DELAY_MS),
+            tabSwitchTriggerCount = tabSwitchTriggerCount.coerceAtLeast(1),
+            playMediaTriggerCount = playMediaTriggerCount.coerceAtLeast(1),
+            downloadClickTriggerCount = downloadClickTriggerCount.coerceAtLeast(1),
+            reelOpenTriggerCount = reelOpenTriggerCount.coerceAtLeast(1),
+            socialOpenTriggerCount = socialOpenTriggerCount.coerceAtLeast(1),
+            backNavigationTriggerCount = backNavigationTriggerCount.coerceAtLeast(1)
+        )
+    }
+
+    private fun AppOpenAdConfig.sanitized(): AppOpenAdConfig {
+        return copy(
+            adUnitId = adUnitId.ifBlank {
+                AppOpenAdConfig.TEST_APP_OPEN_AD_UNIT_ID
+            },
+            splashOpenAdUnitId = splashOpenAdUnitId.ifBlank {
+                AppOpenAdConfig.TEST_APP_OPEN_AD_UNIT_ID
+            },
+            maxAdCacheDurationMs = maxAdCacheDurationMs.coerceAtLeast(MIN_AD_CACHE_DURATION_MS),
+            minIntervalBetweenShowsMs = minIntervalBetweenShowsMs.coerceAtLeast(0L),
+            minBackgroundDurationBeforeShowMs = minBackgroundDurationBeforeShowMs.coerceAtLeast(0L),
+            maxLoadRetryCount = maxLoadRetryCount.coerceIn(0, MAX_RETRY_COUNT),
+            initialRetryDelayMs = initialRetryDelayMs.coerceAtLeast(MIN_INITIAL_RETRY_DELAY_MS),
+            maxRetryDelayMs = maxRetryDelayMs.coerceAtLeast(MIN_MAX_RETRY_DELAY_MS)
+        )
+    }
+
+    private fun BannerAdConfig.sanitized(): BannerAdConfig {
+        val safePosition = when (collapsiblePosition.lowercase()) {
+            BannerAdConfig.COLLAPSIBLE_TOP -> BannerAdConfig.COLLAPSIBLE_TOP
+            BannerAdConfig.COLLAPSIBLE_BOTTOM -> BannerAdConfig.COLLAPSIBLE_BOTTOM
+            else -> BannerAdConfig.COLLAPSIBLE_BOTTOM
+        }
+
+        return copy(
+            adUnitId = adUnitId.ifBlank {
+                BannerAdConfig.TEST_BANNER_AD_UNIT_ID
+            },
+            collapsiblePosition = safePosition
+        )
+    }
+
+    private fun NativeAdConfig.sanitized(): NativeAdConfig {
+        return copy(
+            adUnitId = adUnitId.ifBlank {
+                NativeAdConfig.TEST_NATIVE_AD_UNIT_ID
+            },
+            maxAdCacheDurationMs = maxAdCacheDurationMs.coerceAtLeast(MIN_AD_CACHE_DURATION_MS),
+            maxLoadRetryCount = maxLoadRetryCount.coerceIn(0, MAX_RETRY_COUNT),
+            initialRetryDelayMs = initialRetryDelayMs.coerceAtLeast(MIN_INITIAL_RETRY_DELAY_MS),
+            maxRetryDelayMs = maxRetryDelayMs.coerceAtLeast(MIN_MAX_RETRY_DELAY_MS),
+
+            containerBackgroundColor = containerBackgroundColor.sanitizedHexColor("#FFFFFF"),
+            containerBorderColor = containerBorderColor.sanitizedHexColor("#DADADA"),
+            mediaBackgroundColor = mediaBackgroundColor.sanitizedHexColor("#F1F5F9"),
+
+            headlineTextColor = headlineTextColor.sanitizedHexColor("#6F6F6F"),
+            bodyTextColor = bodyTextColor.sanitizedHexColor("#8A8A8A"),
+
+            ctaBackgroundColor = ctaBackgroundColor.sanitizedHexColor("#4285F4"),
+            ctaTextColor = ctaTextColor.sanitizedHexColor("#FFFFFF"),
+
+            adAttributionTextColor = adAttributionTextColor.sanitizedHexColor("#2E7D32"),
+            adAttributionBackgroundColor = adAttributionBackgroundColor.sanitizedHexColor("#FFFFFF"),
+            adAttributionBorderColor = adAttributionBorderColor.sanitizedHexColor("#2E7D32"),
+
+            starRatingColor = starRatingColor.sanitizedHexColor("#8DE6DE"),
+
+            cornerRadiusDp = cornerRadiusDp.coerceIn(0, 32),
+            ctaCornerRadiusDp = ctaCornerRadiusDp.coerceIn(0, 32),
+            adBadgeCornerRadiusDp = adBadgeCornerRadiusDp.coerceIn(0, 32),
+            mediaCornerRadiusDp = mediaCornerRadiusDp.coerceIn(0, 32),
+            containerBorderWidthDp = containerBorderWidthDp.coerceIn(0, 4),
+
+            placements = placements.mapValues { entry ->
+                entry.value.sanitized()
+            }
+        )
+    }
+
+    private fun NativeAdPlacementConfig.sanitized(): NativeAdPlacementConfig {
+        return copy(
+            insertAfterItemIndex = insertAfterItemIndex.coerceAtLeast(0),
+            insertEveryNItems = insertEveryNItems.coerceAtLeast(0)
+        )
+    }
+
+    private fun String.sanitizedHexColor(
+        fallback: String,
+    ): String {
+        val value = trim()
+
+        val isValidHexColor = Regex("^#([A-Fa-f0-9]{6}|[A-Fa-f0-9]{8})$").matches(value)
+
+        return if (isValidHexColor) {
+            value
+        } else {
+            fallback
+        }
+    }
+
+    private fun logAllRemoteConfigValues() {
+        remoteConfig.all.forEach { (key, value) ->
+            Log.d(TAG, "RemoteConfig: $key = ${value.asString()}")
+        }
+    }
+
+    private suspend fun saveConfigToDataStore() {
+        val appRemoteConfig = readAppRemoteConfig()
+
+        dataStore.edit { preferences ->
+            preferences[DataStoreKeys.BASE_API_URL] = appRemoteConfig.baseUrlRemote
+            Log.d("RemoteConfigRepo", "baseUrl: ${appRemoteConfig.baseUrlRemote}")
+
+            preferences[DataStoreKeys.API_SECRET_KEY] = appRemoteConfig.apiSecretKeyValue
+            Log.d("RemoteConfigRepo", "secretKey saved")
+
+            preferences[DataStoreKeys.SHOW_PREMIUM_ICON] = appRemoteConfig.showPremiumIcon
+            Log.d("RemoteConfigRepo", "isPremiumIconVisible: ${appRemoteConfig.showPremiumIcon}")
+
+            preferences[DataStoreKeys.SHOW_PRIVACY_POLICY] = appRemoteConfig.showPrivacyPolicy
+            Log.d("RemoteConfigRepo", "isPrivacyPolicyVisible: ${appRemoteConfig.showPrivacyPolicy}")
+
+            preferences[DataStoreKeys.PRIVACY_POLICY_LINK] = appRemoteConfig.privacyPolicyLink
+            Log.d("RemoteConfigRepo", "privacyPolicyLink: ${appRemoteConfig.privacyPolicyLink}")
+        }
+    }
+
+    companion object {
+        private const val TAG = "RemoteConfigRepo"
+
+        private const val MIN_AD_CACHE_DURATION_MS = 60_000L
+        private const val MAX_RETRY_COUNT = 10
+        private const val MIN_INITIAL_RETRY_DELAY_MS = 500L
+        private const val MIN_MAX_RETRY_DELAY_MS = 1_000L
+    }
+}

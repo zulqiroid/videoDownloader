@@ -1,0 +1,62 @@
+package com.allvideodownloader.hdvideodownloader.securevideosaver.presentation.screens.home.componants
+
+import androidx.compose.foundation.Image
+import androidx.compose.foundation.clickable
+import androidx.compose.foundation.layout.Arrangement
+import androidx.compose.foundation.layout.Column
+import androidx.compose.foundation.layout.PaddingValues
+import androidx.compose.foundation.layout.size
+import androidx.compose.foundation.lazy.grid.GridCells
+import androidx.compose.foundation.lazy.grid.LazyVerticalGrid
+import androidx.compose.foundation.lazy.grid.items
+import androidx.compose.material3.Text
+import androidx.compose.runtime.Composable
+import androidx.compose.ui.Alignment
+import androidx.compose.ui.Modifier
+import androidx.compose.ui.graphics.Color
+import androidx.compose.ui.res.painterResource
+import androidx.compose.ui.unit.dp
+import androidx.compose.ui.unit.sp
+import com.allvideodownloader.hdvideodownloader.securevideosaver.domain.model.SocialPlatform
+import com.allvideodownloader.hdvideodownloader.securevideosaver.presentation.screens.home.states.HomeState
+
+@Composable
+fun SocialAppsRow(
+    state: HomeState,
+    onSocialClick: (SocialPlatform) -> Unit
+) {
+
+    LazyVerticalGrid(
+        columns = GridCells.Fixed(4),
+        contentPadding = PaddingValues(16.dp),
+        verticalArrangement = Arrangement.spacedBy(16.dp),
+        horizontalArrangement = Arrangement.spacedBy(16.dp)
+    ) {
+        items(state.socialSide) { social ->
+
+            Column(
+                modifier = Modifier.clickable{
+
+                    val platform = SocialPlatform.fromName(social.name)
+
+                    platform?.let {
+                        onSocialClick(it)
+                    }
+                },
+                horizontalAlignment = Alignment.CenterHorizontally,
+                verticalArrangement = Arrangement.spacedBy(8.dp)
+            ) {
+               Image(
+                   painter = painterResource(social.icon),
+                   contentDescription = social.name,
+                   modifier = Modifier.size(56.dp)
+               )
+                Text(
+                    text = social.name,
+                    fontSize = 12.sp,
+                    color = Color(0xFF1F2937)
+                )
+            }
+        }
+    }
+}

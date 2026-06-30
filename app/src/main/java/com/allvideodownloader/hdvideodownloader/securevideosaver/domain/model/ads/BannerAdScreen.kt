@@ -1,0 +1,24 @@
+package com.allvideodownloader.hdvideodownloader.securevideosaver.domain.model.ads
+
+enum class BannerAdScreen(
+    val remoteKey: String
+) {
+    Home("home"),
+    Player("player"),
+    Download("download"),
+    Reels("reels"),
+    More("more"),
+    Social("social"),
+    MediaPlayer("media_player"),
+
+    AppLanguage("app_language"),
+
+    OnBoarding("onboarding"),
+
+    DownloadGuide("download_guide")
+}
+
+enum class BannerAdSlot {
+    Top,
+    Bottom
+}

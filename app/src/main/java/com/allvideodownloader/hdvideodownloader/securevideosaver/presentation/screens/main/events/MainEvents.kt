@@ -1,0 +1,126 @@
+package com.allvideodownloader.hdvideodownloader.securevideosaver.presentation.screens.main.events
+
+import android.app.Activity
+import com.allvideodownloader.hdvideodownloader.securevideosaver.domain.model.MediaFile
+import com.allvideodownloader.hdvideodownloader.securevideosaver.domain.model.Reel
+import com.allvideodownloader.hdvideodownloader.securevideosaver.domain.model.SocialPlatform
+import com.allvideodownloader.hdvideodownloader.securevideosaver.presentation.screens.main.states.BottomNavItem
+
+sealed class MainEvents {
+    data class OnTabSelected(val tab: BottomNavItem, val activity: Activity?) : MainEvents()
+
+
+    object OnPolicyDialogueAcceptClicked: MainEvents()
+
+    data class FetchUrl(val url: String): MainEvents()
+
+
+    data class OnOptionSelected(val index: Int) : MainEvents()
+
+    object OnDismissSheet : MainEvents()
+
+    data class OnDownLoadInBottomSheetClicked(val url: String) : MainEvents()
+    object OnViewProgressInProgressDialogueCLicked : MainEvents()
+
+    object OnDismissProgressDialogue : MainEvents()
+
+    object OnBackClicked : MainEvents()
+
+    object OnDialogueExitClicked: MainEvents()
+    object OnDialogueCancelCLicked: MainEvents()
+    data class OnReelSelected(val reel : Reel): MainEvents()
+    data class OnSocialPlatformSelected(val platform : SocialPlatform): MainEvents()
+
+    data class OnMediaItemInPLayerClick(val item: MediaFile): MainEvents()
+
+
+    data object OnFeedbackClicked : MainEvents()
+    data object OnFeedbackDismissed : MainEvents()
+    data class OnFeedbackValueChanged(val value: String) : MainEvents()
+    data object OnFeedbackSubmitClicked : MainEvents()
+
+
+    data object OnRateUsClicked : MainEvents()
+
+    data object OnAppLanguageCLicked : MainEvents()
+
+    data class OnRateUsSelected(
+        val rating: Int
+    ) : MainEvents()
+
+    data object OnRateUsDismissed : MainEvents()
+
+    data object OnRateNowClicked : MainEvents()
+
+    data object OnPrivacyPolicyClicked : MainEvents()
+
+
+    data object OnFetchFailedRetryClicked : MainEvents()
+
+    data object OnFetchFailedPasteNewLinkClicked : MainEvents()
+
+    data object OnFetchFailedHelpClicked : MainEvents()
+
+    data object OnFetchFailedDismissed : MainEvents()
+
+    data class OnOpenMediaPlayerClicked(
+        val mediaList: List<MediaFile>,
+        val startIndex: Int,
+        val activity: android.app.Activity?
+    ) : MainEvents()
+
+    data class OnBackNavigationClicked(
+        val activity: android.app.Activity?
+    ) : MainEvents()
+
+
+
+    data class OnMediaPermissionResult(
+        val granted: Boolean,
+        val permanentlyDenied: Boolean
+    ) : MainEvents()
+
+    data object OnMediaPermissionDialogDismissed : MainEvents()
+
+    data object OnMediaPermissionRequestClicked : MainEvents()
+
+    data object OnMediaPermissionSettingsClicked : MainEvents()
+
+    data class OnNotificationPermissionResult(
+        val granted: Boolean
+    ) : MainEvents()
+
+
+
+    data object OnPlayerSearchClicked : MainEvents()
+
+    data object OnPlayerSearchClosed : MainEvents()
+
+    data class OnPlayerSearchQueryChanged(
+        val query: String
+    ) : MainEvents()
+
+    data object OnDownloadSearchClicked : MainEvents()
+
+    data object OnDownloadSearchClosed : MainEvents()
+
+    data class OnDownloadSearchQueryChanged(
+        val query: String
+    ) : MainEvents()
+
+    data object OnAudioMiniPlayerPlayPauseClicked : MainEvents()
+
+    data object OnAudioMiniPlayerPreviousClicked : MainEvents()
+
+    data object OnAudioMiniPlayerNextClicked : MainEvents()
+
+    data object OnAudioMiniPlayerCloseClicked : MainEvents()
+
+    data object OnAudioMiniPlayerClicked : MainEvents()
+
+    data object OnFloatingVideoMiniPlayerClicked : MainEvents()
+
+    data object OnFloatingVideoMiniPlayerPlayPauseClicked : MainEvents()
+
+    data object OnFloatingVideoMiniPlayerCloseClicked : MainEvents()
+}

@@ -6,7 +6,7 @@ plugins {
 }
 
 android {
-    namespace = "com.app.videodownloader"
+    namespace = "com.allvideodownloader.hdvideodownloader.securevideosaver"
     compileSdk {
         version = release(36) {
             minorApiLevel = 1
@@ -14,11 +14,11 @@ android {
     }
 
     defaultConfig {
-        applicationId = "com.example.videodownloader"
+        applicationId = "com.allvideodownloader.hdvideodownloader.securevideosaver"
         minSdk = 24
         targetSdk = 36
-        versionCode = 1
-        versionName = "1.0"
+        versionCode = 2
+        versionName = "2.0"
 
         testInstrumentationRunner = "androidx.test.runner.AndroidJUnitRunner"
     }
@@ -56,10 +56,11 @@ dependencies {
     implementation(libs.androidx.lifecycle.viewmodel.ktx)
     implementation(libs.androidx.media3.exoplayer)
     implementation(libs.androidx.media3.ui)
+    implementation(libs.androidx.media3.session)
     implementation(libs.androidx.compose.foundation)
     implementation(libs.androidx.lifecycle.process)
     implementation(libs.androidx.constraintlayout)
-    testImplementation(libs.junit)
+     testImplementation(libs.junit)
     androidTestImplementation(libs.androidx.junit)
     androidTestImplementation(libs.androidx.espresso.core)
     androidTestImplementation(platform(libs.androidx.compose.bom))
@@ -87,15 +88,24 @@ dependencies {
     implementation("io.ktor:ktor-client-cio:3.4.3")
 
 
-    implementation(platform("com.google.firebase:firebase-bom:34.12.0"))
-    implementation("com.google.firebase:firebase-config:23.0.1")
-    implementation("com.google.firebase:firebase-analytics")
+    implementation(platform(libs.firebase.bom))
+    implementation(libs.firebase.config)
+    implementation(libs.firebase.messaging)
+    implementation(libs.firebase.analytics)
+    implementation(libs.firebase.functions)
+    implementation(libs.firebase.installations)
+    implementation(libs.firebase.appcheck.playintegrity)
+    debugImplementation(libs.firebase.appcheck.debug)
+    implementation(libs.kotlinx.coroutines.play.services)
 
     implementation("androidx.compose.material:material-icons-extended")
+
     implementation("androidx.datastore:datastore-preferences:1.2.1")
+
     implementation("com.airbnb.android:lottie-compose:6.7.1")
 
     implementation("io.coil-kt:coil-compose:2.7.0")
+
     implementation("io.coil-kt:coil-video:2.7.0")
 
     implementation("androidx.documentfile:documentfile:1.1.0")
@@ -106,8 +116,8 @@ dependencies {
 
     implementation("com.google.android.play:app-update-ktx:2.1.0")
 
-
     implementation("androidx.work:work-runtime-ktx:2.11.2")
+
     implementation("com.squareup.okhttp3:okhttp:5.3.2")
 
     implementation(libs.play.services.ads)

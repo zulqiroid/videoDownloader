@@ -1,40 +1,21 @@
 {
   "project_info": {
-    "project_number": "261337885111",
-    "project_id": "videodownloader-c9645",
-    "storage_bucket": "videodownloader-c9645.firebasestorage.app"
+    "project_number": "900683197458",
+    "project_id": "fast-video-downloader-5e6aa",
+    "storage_bucket": "fast-video-downloader-5e6aa.firebasestorage.app"
   },
   "client": [
     {
       "client_info": {
-        "mobilesdk_app_id": "1:261337885111:android:517f2ce38d79fba550a032",
+        "mobilesdk_app_id": "1:900683197458:android:7b84f35379f4f97df5fccb",
         "android_client_info": {
-          "package_name": "com.app.videodownloader"
+          "package_name": "com.allvideodownloader.hdvideodownloader.securevideosaver"
         }
       },
       "oauth_client": [],
       "api_key": [
         {
-          "current_key": "AIzaSyB_Aawte57PSvff1lsBEl8f8J8_zqe3JDY"
-        }
-      ],
-      "services": {
-        "appinvite_service": {
-          "other_platform_oauth_client": []
-        }
-      }
-    },
-    {
-      "client_info": {
-        "mobilesdk_app_id": "1:261337885111:android:5a8b2f699321517f50a032",
-        "android_client_info": {
-          "package_name": "com.example.videodownloader"
-        }
-      },
-      "oauth_client": [],
-      "api_key": [
-        {
-          "current_key": "AIzaSyB_Aawte57PSvff1lsBEl8f8J8_zqe3JDY"
+          "current_key": "AIzaSyABVppZ1WCvhMcDRH2qk2OseZhHVKiqKM4"
         }
       ],
       "services": {

@@ -300,4 +300,14 @@
     <string name="preparing">تیاری ہو رہی ہے...</string>
     <string name="get_started">شروع کریں</string>
     <string name="app_may_contain_ads">اس ایپ میں اشتہارات شامل ہو سکتے ہیں</string>
+    <string name="media_notification_channel_name">Media playback</string>
+
+
+    <string name="media_option_equalizer">Equalizer &amp; Bass Boost</string>
+    <string name="audio_effects_title">Equalizer &amp; Bass Boost</string>
+    <string name="audio_effects_equalizer">Equalizer</string>
+    <string name="audio_effects_bass_boost">Bass Boost</string>
+    <string name="audio_effects_presets">Presets</string>
+    <string name="audio_effects_bands">Frequency Bands</string>
+    <string name="audio_effects_not_available">Audio effects are not available for this device/session.</string>
 </resources>

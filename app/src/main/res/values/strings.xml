@@ -2,6 +2,8 @@
 <resources>
     <string name="app_name">Video Downloader</string>
 
+    <string name="default_notification_channel_id" translatable="false">general_notifications</string>
+
     <string name="choose_language_title">Choose Language</string>
     <string name="choose_language_subtitle">Select your preferred language to continue</string>
     <string name="continue_button">Continue</string>
@@ -292,4 +294,13 @@
     <string name="preparing">Preparing...</string>
     <string name="get_started">Get Started</string>
     <string name="app_may_contain_ads">This app may contain ads</string>
+    <string name="media_notification_channel_name">Media playback</string>
+
+    <string name="media_option_equalizer">Equalizer &amp; Bass Boost</string>
+    <string name="audio_effects_title">Equalizer &amp; Bass Boost</string>
+    <string name="audio_effects_equalizer">Equalizer</string>
+    <string name="audio_effects_bass_boost">Bass Boost</string>
+    <string name="audio_effects_presets">Presets</string>
+    <string name="audio_effects_bands">Frequency Bands</string>
+    <string name="audio_effects_not_available">Audio effects are not available for this device/session.</string>
 </resources>
